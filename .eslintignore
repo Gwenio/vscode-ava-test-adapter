@@ -1,0 +1,3 @@
+dist/js/*.js
+tmp/tsc/**.js
+tmp/test/**.js

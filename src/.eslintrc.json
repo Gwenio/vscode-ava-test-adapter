@@ -1,0 +1,44 @@
+{
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"project": "./tsconfig.json",
+		"ecmaVersion": 10,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"classes": true,
+			"modules": true,
+			"templateStrings": true,
+			"impliedStrict": true,
+			"arrowFunctions": true
+		}
+	},
+	"plugins": [
+		"@typescript-eslint"
+	],
+	"extends": [
+		"plugin:@typescript-eslint/recommended"
+	],
+	"rules": {
+		"indent": 0,
+		"@typescript-eslint/indent": ["error", "tab"],
+		"semi": 0,
+		"@typescript-eslint/semi": ["warn", "never"],
+		"new-parens": 2,
+		"no-arg": true,
+		"no-bitwise": 2,
+		"no-conditional-assignment": true,
+		"no-consecutive-blank-lines": false,
+		"no-console": 0,
+		"@typescript-eslint/no-var-requires": "error",
+		"node/no-unpublished-require": "error",
+		"node/no-unsupported-features/es-syntax": 0,
+		"@typescript-eslint/no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"caughtErrorsIgnorePattern": "^_"
+			}
+		],
+		"@typescript-eslint/interface-name-prefix": "off"
+	}
+}
