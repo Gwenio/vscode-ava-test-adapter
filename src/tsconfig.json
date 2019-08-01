@@ -6,10 +6,6 @@
 		"importHelpers": true,
 		"declaration": false,
 		"composite": false,
-		"esModuleInterop": true,
-		"types": [
-			"node",
-			"json5"
-		]
+		"esModuleInterop": true
 	}
 }

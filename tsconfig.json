@@ -10,9 +10,6 @@
 		"noImplicitAny": false,
 		"sourceMap": true,
 		"noEmitOnError": true,
-		"types": [
-			"node"
-		],
 		"strict": true,
 		"alwaysStrict": true,
 		"removeComments": true,
