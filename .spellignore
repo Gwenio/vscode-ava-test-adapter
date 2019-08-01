@@ -1,0 +1,10 @@
+LICENSE
+.editorconfig
+.markdownlint.json
+.gitattributes
+.gitignore
+.spellignore
+.vscode/spellright.dict
+.eslintrc.json
+tsconfig.json
+yarn-error.log
