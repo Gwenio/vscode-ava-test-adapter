@@ -1,0 +1,15 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "../tmp/src",
+		"importHelpers": true,
+		"declaration": false,
+		"composite": false,
+		"esModuleInterop": true,
+		"types": [
+			"node",
+			"json5"
+		]
+	}
+}
