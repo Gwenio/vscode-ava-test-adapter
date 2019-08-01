@@ -1,3 +1,3 @@
-dist/js/*.js
-tmp/tsc/**.js
-tmp/test/**.js
+dist/**.js
+tmp/*/**.js
+types/**.d.ts
