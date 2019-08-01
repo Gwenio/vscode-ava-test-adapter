@@ -1,0 +1,6 @@
+node_modules/
+tmp/
+dist/
+*.vsix
+.vscode/settings.json
+yarn-error.log
