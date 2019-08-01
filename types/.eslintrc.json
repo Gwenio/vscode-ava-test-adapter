@@ -1,0 +1,7 @@
+{
+	"parser": "@typescript-eslint/parser",
+	"rules": {
+		"unicorn/no-abusive-eslint-disable": "off",
+		"unicorn/filename-case": "off"
+	}
+}
