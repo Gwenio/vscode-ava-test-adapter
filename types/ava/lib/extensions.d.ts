@@ -23,4 +23,4 @@ declare module 'ava/lib/extensions'
 import { AVA } from "../namespace"
 
 export default (enhancementsOnly: string[],
-	babelConfig: { extensions: string[] }) => AVA.Extensions
+	babelConfig: AVA.BabelConfig) => AVA.Extensions

@@ -22,6 +22,6 @@ declare module 'ava/lib/babel-pipeline'
 
 import { AVA } from "../namespace"
 
-export function validate(conf: {
+export function validate(conf?: {
 	[K in keyof AVA.BabelConfig]?: AVA.BabelConfig[K]
-}): AVA.BabelConfig
+} | false): AVA.BabelConfig

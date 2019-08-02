@@ -34,7 +34,9 @@ export namespace AVA {
 		compileEnhancements?: boolean;
 		extensions?: string[];
 		require?: string[];
-		babel?: BabelConfig & {};
+		babel?: false | {
+			[K in keyof BabelConfig]?: BabelConfig[K]
+		};
 		timeout?: number;
 	}
 
@@ -51,9 +53,17 @@ export namespace AVA {
 		sourcePatterns: string[];
 	}
 
-	interface Extensions { }
+	interface Extensions {
+		all: string[];
+		enhancementsOnly: string[];
+		full: string[];
+	}
 
 	interface BabelConfig {
-		extensions: string[];
+		extensions?: string[];
+		testOptions: {
+			babelrc: boolean;
+			configFile: boolean;
+		};
 	}
 }
