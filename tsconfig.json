@@ -7,6 +7,7 @@
 			"es2018.promise"
 		],
 		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
 		"noImplicitAny": false,
 		"sourceMap": true,
 		"noEmitOnError": true,
