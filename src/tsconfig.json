@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"rootDir": ".",
 		"outDir": "../tmp/src",
+		"allowSyntheticDefaultImports": true,
 		"importHelpers": true,
 		"declaration": false,
 		"composite": false,
