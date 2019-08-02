@@ -18,13 +18,39 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-declare module 'ava/lib/load-config'
+declare module 'ava/lib/api'
 
 import { AVA } from "../namespace"
 
-export default function loadConfig({
-	configFile,
-	resolveFrom = process.cwd(),
-	defaults = {} }: AVA.Parameters = {}): AVA.Configuration & {
-		projectDir: string;
-	}
+interface Options {
+	babelConfig: AVA.BabalConfig;
+	cacheEnabled: boolean;
+	color: boolean;
+	compileEnhancements: boolean;
+	concurrency: number;
+	environmentVariables: { [key: string]: string }
+	extensions: AVA.Extensions;
+	failFast: conf.failFast,
+	failWithoutAssertions: boolean;
+	globs: AVA.Globs;
+	match: string[];
+	parallelRuns: null | {
+		currentIndex: number;
+		totalRuns: number;
+	};
+	projectDir: string;
+	ranFromCli: boolean;
+	snapshotDir: string | null;
+	timeout: number;
+	serial: boolean;
+	require: string[];
+	resolveTestsFrom: string;
+	updateSnapshots: boolean;
+	workerArgv: string[];
+}
+
+export default class Api {
+	constructor(Options);
+	run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>;
+	on(tag: 'run', handler: (plan: AVA.Plan) => void): void;
+}

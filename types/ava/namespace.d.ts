@@ -24,13 +24,17 @@ export namespace AVA {
 		helpers?: string[];
 		sources?: string[];
 		match?: string[];
+		color?: boolean;
 		cache?: boolean;
+		concurrency?: string;
 		failFast?: boolean;
 		failWithoutAssertions?: boolean;
 		environmentVariables?: { [key: string]: string };
 		tap?: boolean;
 		verbose?: boolean;
+		serial?: boolean;
 		snapshotDir?: string;
+		updateSnapshots?: boolean;
 		compileEnhancements?: boolean;
 		extensions?: string[];
 		require?: string[];
@@ -38,6 +42,7 @@ export namespace AVA {
 			[K in keyof BabelConfig]?: BabelConfig[K]
 		};
 		timeout?: number;
+		watch?: boolean;
 	}
 
 	interface Parameters {
@@ -65,5 +70,39 @@ export namespace AVA {
 			babelrc: boolean;
 			configFile: boolean;
 		};
+	}
+
+	type Event = { type: string }
+
+	interface Status {
+		on(tag: string, handler: (event: Event) => void): void;
+		suggestExitCode(circumstances: { matching: boolean }): number;
+	}
+
+	interface RuntimeOptions {
+		clearLogOnNextRun?: boolean;
+		previousFailures?: number;
+		runOnlyExclusive?: boolean;
+		runVector?: number;
+		updateSnapshots?: boolean;
+	}
+
+	interface Plan {
+		clearLogOnNextRun: boolean;
+		failFastEnabled: boolean;
+		filePathPrefix: string;
+		files: string[];
+		matching: boolean;
+		previousFailures: number;
+		runOnlyExclusive: boolean;
+		runVector: number;
+		status: Status;
+	}
+
+	interface Reporter {
+		reset(): void;
+		startRun(plan: Plan): void;
+		consumeStateChange(event: Event): void;
+		endRun(): void;
 	}
 }
