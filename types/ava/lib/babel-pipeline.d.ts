@@ -18,42 +18,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-export namespace AVA {
-	interface Configuration {
-		files?: string[];
-		helpers?: string[];
-		sources?: string[];
-		match?: string[];
-		cache?: boolean;
-		failFast?: boolean;
-		failWithoutAssertions?: boolean;
-		environmentVariables?: { [key: string]: string };
-		tap?: boolean;
-		verbose?: boolean;
-		snapshotDir?: string;
-		compileEnhancements?: boolean;
-		extensions?: string[];
-		require?: string[];
-		babel?: BabelConfig & {};
-		timeout?: number;
-	}
+declare module 'ava/lib/babel-pipeline'
 
-	interface Parameters {
-		configFile?: string;
-		resolveFrom: string;
-		defaults: Configuration;
-	}
+import { AVA } from "../namespace"
 
-	interface Globs {
-		extensions: string[];
-		testPatterns: string[];
-		helperPatterns: string[];
-		sourcePatterns: string[];
-	}
-
-	interface Extensions { }
-
-	interface BabelConfig {
-		extensions: string[];
-	}
-}
+export function validate(conf: {
+	[K in keyof AVA.BabelConfig]?: AVA.BabelConfig[K]
+}): AVA.BabelConfig
