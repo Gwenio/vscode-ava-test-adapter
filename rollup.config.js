@@ -10,22 +10,21 @@ import {
 import babel from 'rollup-plugin-babel'
 import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
+import jsonfile from 'rollup-plugin-json'
+import globby from "globby"
 
-const avaFiles = ["ava",
-	"ava/lib",
-	"ava/lib/api",
-	"ava/lib/load-config",
-	"ava/lib/reporters/verbose",
-	"ava/lib/reporters/mini",
-	"ava/lib/reporters/tap",
-	"ava/lib/babel-pipeline",
-	"ava/lib/extensions",
-	"ava/lib/globs",
-	"ava/lib/environment-variables"
-]
+const avaFiles = globby.sync([
+	'./node_modules/ava/*.js',
+	'./node_modules/ava/lib/*.js',
+	'./node_modules/ava/lib/worker/*.js',
+	'./node_modules/ava/lib/reporters/*.js',
+], { onlyFiles: true, dot: true }).map(file => {
+	return file.replace(/^\.\/node_modules\//, '').replace(/\.js$/i, '')
+})
 
-function outputBundle(filename) {
+function outputBundle(filename, options = {}) {
 	return {
+		...options,
 		file: filename,
 		format: 'cjs',
 		sourcemap: process.env.NODE_ENV !== 'production',
@@ -39,6 +38,7 @@ function configurePlugins() {
 		return [
 			resolve({}),
 			commonjs({}),
+			jsonfile({}),
 			babel({
 				plugins: [
 					["transform-inline-environment-variables",
@@ -80,6 +80,7 @@ function configurePlugins() {
 			sourcemaps(),
 			resolve({}),
 			commonjs({}),
+			jsonfile({}),
 			babel({
 				plugins: [
 					"transform-remove-undefined",
@@ -97,6 +98,10 @@ function configurePlugins() {
 	}
 }
 
+const avaIntro = {
+	intro: "require('ava/lib/chalk').set({enabled: false});"
+}
+
 export default [{
 	input: 'tmp/src/main.js',
 	external: builtins.concat(
@@ -105,7 +110,7 @@ export default [{
 		"json5",
 		"minimatch",
 		"vscode-test-adapter-util",
-		"vscode-test-adapter-api"),
+		"vscode-test-adapter-api").concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/main.js')
 }, {
@@ -114,7 +119,7 @@ export default [{
 		"vscode",
 		"arrify").concat(avaFiles),
 	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/run_tests.js')
+	output: outputBundle('dist/worker/run_tests.js', avaIntro)
 }, {
 	input: 'tmp/src/worker/load_tests.js',
 	external: builtins.concat(
@@ -123,5 +128,5 @@ export default [{
 		"globby"
 	).concat(avaFiles),
 	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/load_tests.js')
+	output: outputBundle('dist/worker/load_tests.js', avaIntro)
 }]
