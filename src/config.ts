@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import * as path from 'path'
 import { IMinimatch, Minimatch } from 'minimatch'
 import * as vscode from 'vscode'
-import { AVA } from '../types/ava/namespace'
+import { AVA } from 'ava/namespace'
 import loadAVAConfig from 'ava/lib/load-config'
 import { normalizeGlobs } from 'ava/lib/globs'
 import normalizeExtensions from 'ava/lib/extensions'
