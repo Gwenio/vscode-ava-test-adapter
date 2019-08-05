@@ -18,10 +18,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-declare module 'ava/lib/babel-pipeline'
-
 import { AVA } from "../namespace"
 
-export function validate(conf?: {
-	[K in keyof AVA.BabelConfig]?: AVA.BabelConfig[K]
-} | false): AVA.BabelConfig
+declare module 'ava/lib/babel-pipeline' {
+	export function validate(conf?: {
+		[K in keyof AVA.BabelConfig]?: AVA.BabelConfig[K]
+	} | false): AVA.BabelConfig
+}

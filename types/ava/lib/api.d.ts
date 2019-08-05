@@ -18,8 +18,6 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-declare module 'ava/lib/api'
-
 import { AVA } from "../namespace"
 
 interface Options {
@@ -49,8 +47,10 @@ interface Options {
 	workerArgv: string[];
 }
 
-export default class Api {
-	constructor(Options);
-	run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>;
-	on(tag: 'run', handler: (plan: AVA.Plan) => void): void;
+declare module 'ava/lib/api' {
+	export default class Api {
+		constructor(Options);
+		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>;
+		on(tag: 'run', handler: (plan: AVA.Plan) => void): void;
+	}
 }
