@@ -16,7 +16,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import { AVA } from 'ava/namespace'
+import AVA from 'ava/namespace'
 
 type RemoveListener = () => void
 

@@ -18,89 +18,30 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-export namespace AVA {
-	interface Configuration {
-		files?: string[];
-		helpers?: string[];
-		sources?: string[];
-		match?: string[];
-		color?: boolean;
-		cache?: boolean;
-		concurrency?: string;
-		failFast?: boolean;
-		failWithoutAssertions?: boolean;
-		environmentVariables?: { [key: string]: string };
-		tap?: boolean;
-		verbose?: boolean;
-		serial?: boolean;
-		snapshotDir?: string;
-		updateSnapshots?: boolean;
-		compileEnhancements?: boolean;
-		extensions?: string[];
-		require?: string[];
-		babel?: false | {
-			[K in keyof BabelConfig]?: BabelConfig[K]
-		};
-		timeout?: number;
-		watch?: boolean;
-	}
+export as namespace AVA
 
-	interface Parameters {
-		configFile?: string;
-		resolveFrom: string;
-		defaults: Configuration;
-	}
+import { Event, Events, FileStats, TestStats } from './events'
 
-	interface Globs {
-		extensions: string[];
-		testPatterns: string[];
-		helperPatterns: string[];
-		sourcePatterns: string[];
-	}
+export { Event, Events, FileStats, TestStats }
 
-	interface Extensions {
-		all: string[];
-		enhancementsOnly: string[];
-		full: string[];
-	}
+import {
+	Configuration,
+	Parameters,
+	Plan,
+	Globs,
+	Extensions,
+	Status,
+	RuntimeOptions,
+	Reporter
+} from './types'
 
-	interface BabelConfig {
-		extensions?: string[];
-		testOptions: {
-			babelrc: boolean;
-			configFile: boolean;
-		};
-	}
-
-	type Event = { type: string }
-
-	interface Status {
-		on(tag: string, handler: (event: Event) => void): () => void;
-		suggestExitCode(circumstances: { matching: boolean }): number;
-	}
-
-	interface RuntimeOptions {
-		clearLogOnNextRun?: boolean;
-		previousFailures?: number;
-		runOnlyExclusive?: boolean;
-		runVector?: number;
-		updateSnapshots?: boolean;
-	}
-
-	interface Plan {
-		clearLogOnNextRun: boolean;
-		failFastEnabled: boolean;
-		filePathPrefix: string;
-		files: string[];
-		matching: boolean;
-		previousFailures: number;
-		runOnlyExclusive: boolean;
-		runVector: number;
-		status: Status;
-	}
-
-	interface Reporter {
-		startRun(plan: AVA.Plan): void;
-		endRun(): void;
-	}
+export {
+	Configuration,
+	Parameters,
+	Plan,
+	Globs,
+	Extensions,
+	Status,
+	RuntimeOptions,
+	Reporter
 }
