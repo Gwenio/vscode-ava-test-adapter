@@ -75,7 +75,7 @@ export namespace AVA {
 	type Event = { type: string }
 
 	interface Status {
-		on(tag: string, handler: (event: Event) => void): void;
+		on(tag: string, handler: (event: Event) => void): () => void;
 		suggestExitCode(circumstances: { matching: boolean }): number;
 	}
 
@@ -100,9 +100,7 @@ export namespace AVA {
 	}
 
 	interface Reporter {
-		reset(): void;
-		startRun(plan: Plan): void;
-		consumeStateChange(event: Event): void;
+		startRun(plan: AVA.Plan): void;
 		endRun(): void;
 	}
 }
