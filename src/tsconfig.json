@@ -3,6 +3,15 @@
 	"compilerOptions": {
 		"rootDir": ".",
 		"outDir": "../tmp/src",
+		"baseUrl": ".",
+		"paths": {
+			"ava/lib/*": [
+				"../types/ava/lib/*"
+			],
+			"ava/namespace": [
+				"../types/ava/namespace"
+			]
+		},
 		"allowSyntheticDefaultImports": true,
 		"importHelpers": true,
 		"declaration": false,
