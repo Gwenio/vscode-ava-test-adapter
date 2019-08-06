@@ -114,14 +114,14 @@ export default [{
 	plugins: configurePlugins(),
 	output: outputBundle('dist/main.js')
 }, {
-	input: 'tmp/src/worker/run_tests.js',
+	input: 'tmp/src/worker/runnner.js',
 	external: builtins.concat(
 		"vscode",
 		"arrify").concat(avaFiles),
 	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/run_tests.js', avaIntro)
+	output: outputBundle('dist/worker/runnner.js', avaIntro)
 }, {
-	input: 'tmp/src/worker/load_tests.js',
+	input: 'tmp/src/worker/loader.js',
 	external: builtins.concat(
 		"vscode",
 		"vscode-test-adapter-api",
@@ -130,5 +130,5 @@ export default [{
 		"arrify"
 	).concat(avaFiles),
 	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/load_tests.js', avaIntro)
+	output: outputBundle('dist/worker/loader.js', avaIntro)
 }]
