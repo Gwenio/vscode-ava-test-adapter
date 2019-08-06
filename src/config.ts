@@ -76,8 +76,8 @@ export class AVAConfig {
 				defaults: {}
 			})
 		} catch (error) {
-			if (error instanceof Error && log.enabled) {
-				log.error(`Error loading AVA configuration: ${error.message}`)
+			if (log.enabled) {
+				log.error(`Error loading AVA configuration: ${error.message || '?'}`)
 			}
 			return null
 		}
