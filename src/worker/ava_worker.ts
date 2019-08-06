@@ -18,7 +18,6 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import util from 'util'
-//import RegExEscape from 'escape-string-regexp'
 import arrify from "arrify"
 import avaApi from 'ava/lib/api'
 import loadAVAConfig from 'ava/lib/load-config'
@@ -29,9 +28,10 @@ import validateEnvironmentVariables from 'ava/lib/environment-variables'
 import AVA from 'ava/namespace'
 
 type Logger = (message: string) => void
+type MatchFilter = (match: string[]) => string[]
 
 export default async function worker(configFile: string, reporter: AVA.Reporter,
-	logger: null | Logger, testsToRun: string[] = []): Promise<void> {
+	logger: null | Logger, matchFilter: MatchFilter, files: string[] = []): Promise<void> {
 	try {
 		if (logger) logger('Loading AVA config file...')
 		const avaConfig = loadAVAConfig({ configFile, resolveFrom: process.cwd(), defaults: {} })
@@ -45,11 +45,7 @@ export default async function worker(configFile: string, reporter: AVA.Reporter,
 		const extensions = normalizeExtensions(avaConfig.extensions || [], babelConfig)
 		const globs = normalizeGlobs(avaConfig.files, avaConfig.helpers,
 			avaConfig.sources, extensions.all)
-		const match = arrify(avaConfig.match)
-		const resolveTestsFrom = testsToRun.length === 0 ? projectDir : process.cwd()
-		const files = testsToRun.map((file): string => {
-			return path.relative(resolveTestsFrom, path.resolve(process.cwd(), file))
-		})
+		const match = matchFilter(arrify(avaConfig.match))
 		const snapshotDir = avaConfig.snapshotDir ?
 			path.resolve(projectDir, avaConfig.snapshotDir) : null
 		const api = new avaApi({
@@ -66,12 +62,12 @@ export default async function worker(configFile: string, reporter: AVA.Reporter,
 			match,
 			parallelRuns: null,
 			projectDir,
-			ranFromCli: false,
+			ranFromCli: true,
 			require: arrify(avaConfig.require),
-			resolveTestsFrom,
+			resolveTestsFrom: projectDir,
 			serial: avaConfig.serial === true,
 			snapshotDir,
-			timeout: avaConfig.timeout || 30000,
+			timeout: avaConfig.timeout,
 			updateSnapshots: avaConfig.updateSnapshots === true,
 			workerArgv: [] // cli.flags['--']
 		})
