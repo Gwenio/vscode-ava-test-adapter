@@ -114,12 +114,12 @@ export default [{
 	plugins: configurePlugins(),
 	output: outputBundle('dist/main.js')
 }, {
-	input: 'tmp/src/worker/runnner.js',
+	input: 'tmp/src/worker/runner.js',
 	external: builtins.concat(
 		"vscode",
 		"arrify").concat(avaFiles),
 	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/runnner.js', avaIntro)
+	output: outputBundle('dist/worker/runner.js', avaIntro)
 }, {
 	input: 'tmp/src/worker/loader.js',
 	external: builtins.concat(
