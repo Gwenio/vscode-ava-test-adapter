@@ -36,7 +36,7 @@
 	"dependencies": {
 		"arrify": "^2.0.1",
 		"ava": "^2.2.0",
-		"escape-string-regexp": "^2.0.0",
+		"common-path-prefix": "^1.0.0",
 		"globby": "^10.0.1",
 		"minimatch": "^3.0.4",
 		"stack-trace": "^0.0.10",
