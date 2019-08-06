@@ -125,7 +125,9 @@ export default [{
 	external: builtins.concat(
 		"vscode",
 		"vscode-test-adapter-api",
-		"globby"
+		"globby",
+		"common-path-prefix",
+		"arrify"
 	).concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/worker/load_tests.js', avaIntro)
