@@ -33,3 +33,15 @@ export interface AVATestCase {
 }
 
 export type AVATestMeta = AVATestPrefix | AVATestFile | AVATestCase
+
+export interface AVAEvent {
+	type: 'event';
+	test: string;
+	state: 'running' | 'passed' | 'failed' | 'skipped' | 'errored';
+	file: string;
+}
+
+export interface AVADone {
+	type: 'done';
+	file: string;
+}
