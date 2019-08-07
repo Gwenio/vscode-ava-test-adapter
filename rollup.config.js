@@ -106,9 +106,6 @@ export default [{
 	input: 'tmp/src/main.js',
 	external: builtins.concat(
 		"vscode",
-		"child_process",
-		"json5",
-		"minimatch",
 		"vscode-test-adapter-util",
 		"vscode-test-adapter-api").concat(avaFiles),
 	plugins: configurePlugins(),
@@ -116,16 +113,12 @@ export default [{
 }, {
 	input: 'tmp/src/worker/runner.js',
 	external: builtins.concat(
-		"vscode",
 		"arrify").concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/worker/runner.js', avaIntro)
 }, {
 	input: 'tmp/src/worker/loader.js',
 	external: builtins.concat(
-		"vscode",
-		"vscode-test-adapter-api",
-		"globby",
 		"common-path-prefix",
 		"arrify"
 	).concat(avaFiles),
