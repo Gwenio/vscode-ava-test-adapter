@@ -53,7 +53,7 @@ export namespace Events {
 		testFile: string;
 	}
 	interface SelectTest {
-		type: 'select-test';
+		type: 'selected-test';
 		title: string;
 		knownFailing: boolean;
 		skip: boolean;
@@ -66,6 +66,39 @@ export namespace Events {
 		title: string;
 		duration: number;
 		knownFailing: boolean;
+		logs: [];
+		testFile: string;
+	}
+
+	interface ErrorSource {
+		isDependency: boolean;
+		isWithinProject: boolean;
+		file: string;
+		line: number;
+	}
+
+	interface ErrorInfo {
+		avaAssertionError: boolean;
+		nonErrorObject: boolean;
+		source: ErrorSource;
+		stack: string;
+		improperUsage: boolean;
+		message: string;
+		name: string;
+		statements: [],
+		values: {
+			"label": string;
+			"formatted": string;
+		}[],
+		summary: string;
+	}
+
+	interface TestFailed {
+		type: 'test-failed';
+		title: string;
+		duration: number;
+		knownFailing: boolean;
+		err: ErrorInfo;
 		logs: [];
 		testFile: string;
 	}
@@ -99,5 +132,6 @@ export type Event = Events.DeclareTest |
 	Events.SelectTest |
 	Events.Stats |
 	Events.TestPassed |
+	Events.TestFailed |
 	Events.WorkerFinished |
 	Events.Interrrupt
