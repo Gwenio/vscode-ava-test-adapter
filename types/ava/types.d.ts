@@ -20,6 +20,14 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import { Event } from './events'
 
+export interface BabelConfig {
+	extensions?: string[];
+	testOptions: {
+		babelrc: boolean;
+		configFile: boolean;
+	};
+}
+
 export interface Configuration {
 	files?: string[];
 	helpers?: string[];
