@@ -16,9 +16,9 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import * as path from 'path'
-import { IMinimatch, Minimatch } from 'minimatch'
-import * as vscode from 'vscode'
+import path from 'path'
+import Micromatch from 'micromatch'
+import vscode from 'vscode'
 import AVA from 'ava/namespace'
 import loadAVAConfig from 'ava/lib/load-config'
 import { normalizeGlobs } from 'ava/lib/globs'
@@ -27,6 +27,9 @@ import { validate as validateBabel } from 'ava/lib/babel-pipeline'
 import { Log, detectNodePath } from 'vscode-test-adapter-util'
 
 const configRoot = 'avaExplorer'
+
+const matcher = Micromatch.matcher
+type Matcher = (str: string) => boolean
 
 export class AVAConfig {
 	public static affected(uri: vscode.Uri,
@@ -42,18 +45,18 @@ export class AVAConfig {
 	}
 
 	public static getGlobs(patterns: string[], cwd: string,
-		log: Log, type: string): IMinimatch[] {
-		const fileGlobs: IMinimatch[] = []
+		log: Log, type: string): Matcher[] {
+		const fileGlobs: Matcher[] = []
 		if (log.enabled) {
 			for (const relativeGlob of patterns) {
 				const absoluteGlob = path.resolve(cwd, relativeGlob)
 				log.debug(`Using ${type} file glob: ${absoluteGlob}`)
-				fileGlobs.push(new Minimatch(absoluteGlob))
+				fileGlobs.push(matcher(absoluteGlob))
 			}
 		} else {
 			for (const relativeGlob of patterns) {
 				const absoluteGlob = path.resolve(cwd, relativeGlob)
-				fileGlobs.push(new Minimatch(absoluteGlob))
+				fileGlobs.push(matcher(absoluteGlob))
 			}
 		}
 		return fileGlobs
@@ -87,11 +90,11 @@ export class AVAConfig {
 		const globs = normalizeGlobs(avaConfig.files,
 			avaConfig.helpers, avaConfig.sources, extensions.all)
 
-		const testFileGlobs: IMinimatch[] = AVAConfig.getGlobs(globs.testPatterns,
+		const testFileGlobs: Matcher[] = AVAConfig.getGlobs(globs.testPatterns,
 			cwd, log, 'test')
-		const helperFileGlobs: IMinimatch[] = AVAConfig.getGlobs(globs.helperPatterns,
+		const helperFileGlobs: Matcher[] = AVAConfig.getGlobs(globs.helperPatterns,
 			cwd, log, 'helper')
-		const sourceFileGlobs: IMinimatch[] = AVAConfig.getGlobs(globs.sourcePatterns,
+		const sourceFileGlobs: Matcher[] = AVAConfig.getGlobs(globs.sourcePatterns,
 			cwd, log, 'source')
 
 		const configEnvironment: NodeJS.ProcessEnv = adapterConfig.get('env') || {}
@@ -121,9 +124,6 @@ export class AVAConfig {
 
 		const debuggerConfig = adapterConfig.get<string>('debuggerConfig') || undefined
 
-		const breakOnFirstLine: boolean = adapterConfig.get('breakOnFirstLine') === true
-		if (log.enabled) log.debug(`Using breakOnFirstLine: ${breakOnFirstLine}`)
-
 		const debuggerSkipFiles = adapterConfig.get<string[]>('debuggerSkipFiles') || []
 
 		return {
@@ -137,7 +137,6 @@ export class AVAConfig {
 			nodeArgv,
 			debuggerPort,
 			debuggerConfig,
-			breakOnFirstLine,
 			debuggerSkipFiles
 		}
 	}
@@ -150,14 +149,13 @@ export class AVAConfig {
 export interface LoadedConfig {
 	cwd: string;
 	configFilePath: string;
-	testFileGlobs: IMinimatch[];
-	helperFileGlobs: IMinimatch[];
-	sourceFileGlobs: IMinimatch[];
+	testFileGlobs: Matcher[];
+	helperFileGlobs: Matcher[];
+	sourceFileGlobs: Matcher[];
 	environment: NodeJS.ProcessEnv;
 	nodePath: string | undefined;
 	nodeArgv: string[];
 	debuggerPort: number;
 	debuggerConfig: string | undefined;
-	breakOnFirstLine: boolean;
 	debuggerSkipFiles: string[];
 }

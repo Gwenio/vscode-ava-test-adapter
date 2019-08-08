@@ -44,7 +44,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.5.5",
 		"@types/hash-sum": "^1.0.0",
-		"@types/minimatch": "^3.0.3",
+		"@types/micromatch": "^3.1.0",
 		"@types/node": "^12.6.8",
 		"@types/random": "^2.1.0",
 		"@types/seedrandom": "^2.4.28",
@@ -69,7 +69,7 @@
 		"eslint-plugin-unicorn": "^9.1.1",
 		"globby": "^10.0.1",
 		"hash-sum": "^2.0.0",
-		"minimatch": "^3.0.4",
+		"micromatch": "^4.0.2",
 		"random": "^2.1.1",
 		"rimraf": "^2.6.3",
 		"rollup": "^1.17.0",
