@@ -18,7 +18,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import AVA from 'ava/namespace'
 import commonFilePrefix from 'common-path-prefix'
-import worker from './ava_worker'
+import { setup } from './ava_setup'
+import { worker } from './ava_worker'
 import AbstractReporter from './reporter'
 import { AVATestPrefix, AVATestFile, AVATestCase } from '../ipc'
 
@@ -131,51 +132,41 @@ function handler(error: Error): void {
 	}
 }
 
-if (process.send) {
-	const send: Sender = (message): void => {
-		if (process.send) {
-			process.send(message)
-		}
+const avaSetup = setup(process.argv[2], logEnabled ? (message: string): void => {
+	if (process.send) {
+		process.send(message)
 	}
-	if (logEnabled) {
-		const reporter = new Reporter(send, (message: string): void => {
-			send(message)
-		})
-		worker(process.argv[2], reporter, send,
-			(match: string[]): string[] => {
-				reporter.setFilter(match)
-				return ['']
-			}).catch(handler)
+} : null)
+
+const send: Sender = (message): void => {
+	if (process.send) {
+		process.send(message)
+	} else if (process.env.NODE_ENV === 'production') {
+		console.log(message)
 	} else {
-		const reporter = new Reporter(send)
-		worker(process.argv[2], reporter, null,
-			(match: string[]): string[] => {
-				reporter.setFilter(match)
-				return ['']
-			}).catch(handler)
-	}
-} else {
-	if (process.env.NODE_ENV === 'production') {
 		throw new TypeError('process.send unavailable')
-	} else {
-		const send: Sender = (message): boolean => {
-			console.log(message)
-			return true
-		}
-		if (logEnabled) {
-			const reporter = new Reporter(send, console.log)
-			worker(process.argv[2], reporter, send,
-				(match: string[]): string[] => {
-					reporter.setFilter(match)
-					return ['']
-				}).catch(handler)
-		} else {
-			const reporter = new Reporter(send)
-			worker(process.argv[2], reporter, null,
-				(match: string[]): string[] => {
-					reporter.setFilter(match)
-					return ['']
-				}).catch(handler)
-		}
 	}
+}
+
+if (logEnabled) {
+	const reporter = new Reporter(send, (message: string): void => {
+		send(message)
+	})
+	worker(avaSetup, {
+		reporter,
+		logger: send,
+		matchFilter: (match: string[]): string[] => {
+			reporter.setFilter(match)
+			return ['']
+		}
+	}).catch(handler)
+} else {
+	const reporter = new Reporter(send)
+	worker(avaSetup, {
+		reporter,
+		matchFilter: (match: string[]): string[] => {
+			reporter.setFilter(match)
+			return ['']
+		}
+	}).catch(handler)
 }

@@ -16,59 +16,32 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import path from 'path'
 import util from 'util'
-import arrify from "arrify"
 import avaApi from 'ava/lib/api'
-import loadAVAConfig from 'ava/lib/load-config'
-import { validate as validateBabel } from 'ava/lib/babel-pipeline'
-import normalizeExtensions from 'ava/lib/extensions'
-import { normalizeGlobs } from 'ava/lib/globs'
-import validateEnvironmentVariables from 'ava/lib/environment-variables'
 import AVA from 'ava/namespace'
+import { Setup } from './ava_setup'
 
 type Logger = (message: string) => void
 type MatchFilter = (match: string[]) => string[]
 
-export default async function worker(configFile: string, reporter: AVA.Reporter,
-	logger: null | Logger, matchFilter: MatchFilter, files: string[] = []): Promise<void> {
-	try {
-		if (logger) logger('Loading AVA config file...')
-		const avaConfig = loadAVAConfig({ configFile, resolveFrom: process.cwd(), defaults: {} })
+export interface WorkerOptions {
+	reporter: AVA.Reporter;
+	matchFilter: MatchFilter;
+	logger?: Logger;
+	files?: string[];
+}
 
-		const {
-			/* eslint unicorn/prevent-abbreviations: "off" */
-			projectDir
-		} = avaConfig
-		const babelConfig = validateBabel(avaConfig.babel)
-		const environmentVariables = validateEnvironmentVariables(avaConfig.environmentVariables)
-		const extensions = normalizeExtensions(avaConfig.extensions || [], babelConfig)
-		const globs = normalizeGlobs(avaConfig.files, avaConfig.helpers,
-			avaConfig.sources, extensions.all)
-		const match = matchFilter(arrify(avaConfig.match))
-		const snapshotDir = avaConfig.snapshotDir ?
-			path.resolve(projectDir, avaConfig.snapshotDir) : null
+export async function worker(setup: Setup, options: WorkerOptions): Promise<void> {
+	const reporter = options.reporter
+	const logger = options.logger
+	try {
+		const match = options.matchFilter(setup.match)
 		const api = new avaApi({
-			babelConfig,
-			cacheEnabled: avaConfig.cache !== false,
+			...setup,
 			color: false,
-			compileEnhancements: avaConfig.compileEnhancements !== false,
-			concurrency: avaConfig.concurrency ? parseInt(avaConfig.concurrency, 10) : 0,
-			extensions,
-			failFast: avaConfig.failFast,
-			failWithoutAssertions: avaConfig.failWithoutAssertions !== false,
-			globs,
-			environmentVariables,
 			match,
 			parallelRuns: null,
-			projectDir,
 			ranFromCli: true,
-			require: arrify(avaConfig.require),
-			resolveTestsFrom: projectDir,
-			serial: avaConfig.serial === true,
-			snapshotDir,
-			timeout: avaConfig.timeout,
-			updateSnapshots: avaConfig.updateSnapshots === true,
 			workerArgv: [] // cli.flags['--']
 		})
 
@@ -87,7 +60,7 @@ export default async function worker(configFile: string, reporter: AVA.Reporter,
 
 		if (logger) logger('Running AVA')
 
-		const status = await api.run(files)
+		const status = await api.run(options.files || [])
 		process.exitCode = status.suggestExitCode({ matching: match.length > 0 })
 	} catch (error) {
 		if (logger) logger(`Caught error ${util.inspect(error)}`)

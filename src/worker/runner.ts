@@ -17,7 +17,8 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import AVA from 'ava/namespace'
-import worker from './ava_worker'
+import { setup } from './ava_setup'
+import { worker } from './ava_worker'
 import AbstractReporter from './reporter'
 import { AVAEvent, AVADone } from '../ipc'
 
@@ -134,35 +135,37 @@ function matchFilter(match: string[]): string[] {
 	}
 }
 
-if (process.send) {
-	const send: Sender = (message): void => {
-		if (process.send) {
-			process.send(message)
-		}
+const avaSetup = setup(process.argv[2], logEnabled ? (message: string): void => {
+	if (process.send) {
+		process.send(message)
 	}
-	if (logEnabled) {
-		const reporter = new Reporter(send, prefixSize, (message: string): void => {
-			send(message)
-		})
-		worker(process.argv[2], reporter, send, matchFilter, files).catch(handler)
-	} else {
-		const reporter = new Reporter(send, prefixSize)
-		worker(process.argv[2], reporter, null, matchFilter, files).catch(handler)
-	}
-} else {
-	if (process.env.NODE_ENV === 'production') {
+} : null)
+
+const send: Sender = (message): void => {
+	if (process.send) {
+		process.send(message)
+	} else if (process.env.NODE_ENV === 'production') {
 		throw new TypeError('process.send unavailable')
 	} else {
-		const send: Sender = (message): boolean => {
-			console.log(message)
-			return true
-		}
-		if (logEnabled) {
-			const reporter = new Reporter(send, prefixSize, console.log)
-			worker(process.argv[2], reporter, send, matchFilter, files).catch(handler)
-		} else {
-			const reporter = new Reporter(send, prefixSize)
-			worker(process.argv[2], reporter, null, matchFilter, files).catch(handler)
-		}
+		console.log(message)
 	}
+}
+
+if (logEnabled) {
+	const reporter = new Reporter(send, prefixSize, (message: string): void => {
+		send(message)
+	})
+	worker(avaSetup, {
+		reporter,
+		logger: send,
+		matchFilter,
+		files
+	}).catch(handler)
+} else {
+	const reporter = new Reporter(send, prefixSize)
+	worker(avaSetup, {
+		reporter,
+		matchFilter,
+		files
+	}).catch(handler)
 }
