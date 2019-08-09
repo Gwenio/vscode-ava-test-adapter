@@ -25,6 +25,7 @@ import { Event, Events, FileStats, TestStats } from './events'
 export { Event, Events, FileStats, TestStats }
 
 import {
+	BabelConfig,
 	Configuration,
 	Parameters,
 	Plan,
@@ -36,6 +37,7 @@ import {
 } from './types'
 
 export {
+	BabelConfig,
 	Configuration,
 	Parameters,
 	Plan,
