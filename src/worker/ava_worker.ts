@@ -41,8 +41,7 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<void
 			color: false,
 			match,
 			parallelRuns: null,
-			ranFromCli: true,
-			workerArgv: [] // cli.flags['--']
+			ranFromCli: true
 		})
 
 		if (logger) logger('Attaching reporter')

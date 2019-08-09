@@ -29,7 +29,7 @@ type Logger = (message: string) => void
 type MatchFilter = (match: string[]) => string[]
 
 export interface Setup {
-	babelConfig: {};
+	babelConfig: AVA.BabelConfig;
 	cacheEnabled: boolean;
 	compileEnhancements: boolean;
 	concurrency: number;
@@ -46,6 +46,7 @@ export interface Setup {
 	snapshotDir: string | null;
 	timeout?: number;
 	updateSnapshots: boolean;
+	workerArgv: string[];
 }
 
 export function setup(configFile: string, logger: null | Logger): Setup {
@@ -82,6 +83,7 @@ export function setup(configFile: string, logger: null | Logger): Setup {
 		serial: avaConfig.serial === true,
 		snapshotDir,
 		timeout: avaConfig.timeout,
-		updateSnapshots: avaConfig.updateSnapshots === true
+		updateSnapshots: avaConfig.updateSnapshots === true,
+		workerArgv: [] // cli.flags['--']
 	}
 }
