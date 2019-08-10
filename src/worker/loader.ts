@@ -137,6 +137,8 @@ const avaSetup = setup(process.argv[2], logEnabled ? (message: string): void => 
 		process.send(message)
 	}
 } : null)
+const match = avaSetup.match
+avaSetup.match = ['']
 
 const send: Sender = (message): void => {
 	if (process.send) {
@@ -152,21 +154,15 @@ if (logEnabled) {
 	const reporter = new Reporter(send, (message: string): void => {
 		send(message)
 	})
+	reporter.setFilter(match)
 	worker(avaSetup, {
 		reporter,
-		logger: send,
-		matchFilter: (match: string[]): string[] => {
-			reporter.setFilter(match)
-			return ['']
-		}
+		logger: send
 	}).catch(handler)
 } else {
 	const reporter = new Reporter(send)
+	reporter.setFilter(match)
 	worker(avaSetup, {
-		reporter,
-		matchFilter: (match: string[]): string[] => {
-			reporter.setFilter(match)
-			return ['']
-		}
+		reporter
 	}).catch(handler)
 }

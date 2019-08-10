@@ -26,7 +26,6 @@ type MatchFilter = (match: string[]) => string[]
 
 export interface WorkerOptions {
 	reporter: AVA.Reporter;
-	matchFilter: MatchFilter;
 	logger?: Logger;
 	files?: string[];
 }
@@ -35,11 +34,9 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<void
 	const reporter = options.reporter
 	const logger = options.logger
 	try {
-		const match = options.matchFilter(setup.match)
 		const api = new avaApi({
 			...setup,
 			color: false,
-			match,
 			parallelRuns: null,
 			ranFromCli: true
 		})
@@ -60,7 +57,7 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<void
 		if (logger) logger('Running AVA')
 
 		const status = await api.run(options.files || [])
-		process.exitCode = status.suggestExitCode({ matching: match.length > 0 })
+		process.exitCode = status.suggestExitCode({ matching: setup.match.length > 0 })
 	} catch (error) {
 		if (logger) logger(`Caught error ${util.inspect(error)}`)
 		process.exitCode = 1

@@ -140,6 +140,8 @@ const avaSetup = setup(process.argv[2], logEnabled ? (message: string): void => 
 		process.send(message)
 	}
 } : null)
+avaSetup.match = matchFilter(avaSetup.match)
+
 
 const send: Sender = (message): void => {
 	if (process.send) {
@@ -158,14 +160,12 @@ if (logEnabled) {
 	worker(avaSetup, {
 		reporter,
 		logger: send,
-		matchFilter,
 		files
 	}).catch(handler)
 } else {
 	const reporter = new Reporter(send, prefixSize)
 	worker(avaSetup, {
 		reporter,
-		matchFilter,
 		files
 	}).catch(handler)
 }
