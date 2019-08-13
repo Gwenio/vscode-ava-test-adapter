@@ -178,4 +178,12 @@ export default class TestTree {
 	public hasFile(file: string): boolean {
 		return this.suiteMap.has(file)
 	}
+
+	public getFiles(): string[] {
+		const files: string[] = []
+		for (const f of this.suiteMap.keys()) {
+			files.push(f)
+		}
+		return files
+	}
 }
