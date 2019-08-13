@@ -45,6 +45,7 @@ interface Options {
 	resolveTestsFrom: string;
 	updateSnapshots: boolean;
 	workerArgv: string[];
+	testOnlyExecArgv?: string[];
 }
 
 declare module 'ava/lib/api' {
