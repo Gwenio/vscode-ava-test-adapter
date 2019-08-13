@@ -16,13 +16,11 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import util from 'util'
 import avaApi from 'ava/lib/api'
 import AVA from 'ava/namespace'
 import { Setup } from './ava_setup'
 
 type Logger = (message: string) => void
-type MatchFilter = (match: string[]) => string[]
 
 export interface WorkerOptions {
 	reporter: AVA.Reporter;
@@ -30,38 +28,30 @@ export interface WorkerOptions {
 	files?: string[];
 }
 
-export async function worker(setup: Setup, options: WorkerOptions): Promise<void> {
+export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
 	const reporter = options.reporter
 	const logger = options.logger
-	try {
-		const api = new avaApi({
-			...setup,
-			color: false,
-			parallelRuns: null,
-			ranFromCli: true
+	const api = new avaApi({
+		...setup,
+		color: false,
+		parallelRuns: null,
+		ranFromCli: true
+	})
+
+	if (logger) logger('Attaching reporter')
+
+	api.on('run', (plan): void => {
+		reporter.startRun(plan)
+		plan.status.on('stateChange', (event): void => {
+			if (event.type === 'interrupt') {
+				reporter.endRun()
+				/* eslint unicorn/no-process-exit: "off" */
+				process.exit(1) // eslint-disable-line no-process-exit
+			}
 		})
+	})
 
-		if (logger) logger('Attaching reporter')
+	if (logger) logger('Running AVA')
 
-		api.on('run', (plan): void => {
-			reporter.startRun(plan)
-			plan.status.on('stateChange', (event): void => {
-				if (event.type === 'interrupt') {
-					reporter.endRun()
-					/* eslint unicorn/no-process-exit: "off" */
-					process.exit(1) // eslint-disable-line no-process-exit
-				}
-			})
-		})
-
-		if (logger) logger('Running AVA')
-
-		const status = await api.run(options.files || [])
-		process.exitCode = status.suggestExitCode({ matching: setup.match.length > 0 })
-	} catch (error) {
-		if (logger) logger(`Caught error ${util.inspect(error)}`)
-		process.exitCode = 1
-	} finally {
-		reporter.endRun()
-	}
+	return api.run(options.files || [])
 }

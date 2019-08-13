@@ -47,6 +47,7 @@ export interface Setup {
 	timeout?: number;
 	updateSnapshots: boolean;
 	workerArgv: string[];
+	testOnlyExecArgv?: string[];
 }
 
 export function setup(configFile: string, logger: null | Logger): Setup {

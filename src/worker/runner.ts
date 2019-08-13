@@ -161,11 +161,19 @@ if (logEnabled) {
 		reporter,
 		logger: send,
 		files
-	}).catch(handler)
+	}).then((status): void => {
+		process.exitCode = status.suggestExitCode({ matching: avaSetup.match.length > 0 })
+	}).catch(handler).finally((): void => {
+		reporter.endRun()
+	})
 } else {
 	const reporter = new Reporter(send, prefixSize)
 	worker(avaSetup, {
 		reporter,
 		files
-	}).catch(handler)
+	}).then((status): void => {
+		process.exitCode = status.suggestExitCode({ matching: avaSetup.match.length > 0 })
+	}).catch(handler).finally((): void => {
+		reporter.endRun()
+	})
 }

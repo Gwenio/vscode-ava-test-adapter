@@ -158,11 +158,19 @@ if (logEnabled) {
 	worker(avaSetup, {
 		reporter,
 		logger: send
-	}).catch(handler)
+	}).then((): void => {
+		process.exitCode = 0
+	}).catch(handler).finally((): void => {
+		reporter.endRun()
+	})
 } else {
 	const reporter = new Reporter(send)
 	reporter.setFilter(match)
 	worker(avaSetup, {
 		reporter
-	}).catch(handler)
+	}).then((): void => {
+		process.exitCode = 0
+	}).catch(handler).finally((): void => {
+		reporter.endRun()
+	})
 }
