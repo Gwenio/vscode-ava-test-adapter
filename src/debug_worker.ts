@@ -23,20 +23,17 @@ import Worker from './worker'
 interface DebugWorkerConfig {
 	workspace: vscode.WorkspaceFolder;
 	debuggerPort: number;
-	debuggerConfig?: string;
 	debuggerSkipFiles: string[];
 }
 
 export default class DebugWorker extends Worker<string> {
 	private workspace: vscode.WorkspaceFolder
 	private debuggerPort: number
-	private debuggerConfig?: string
 	private debuggerSkipFiles: string[]
 
 	public constructor(l: Log, c: vscode.OutputChannel, x: DebugWorkerConfig) {
 		super(l, c)
 		this.workspace = x.workspace
-		this.debuggerConfig = x.debuggerConfig
 		this.debuggerPort = x.debuggerPort
 		this.debuggerSkipFiles = x.debuggerSkipFiles
 	}
@@ -64,7 +61,7 @@ export default class DebugWorker extends Worker<string> {
 		let currentSession: vscode.DebugSession | undefined
 		this.log.info('Starting the debug session')
 		await vscode.debug.startDebugging(this.workspace,
-			this.debuggerConfig || {
+			{
 				name: 'Debug AVA Tests',
 				type: 'node',
 				request: 'attach',

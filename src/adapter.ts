@@ -217,11 +217,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			JSON.stringify(this.log.enabled),
 			JSON.stringify(prefix),
 			JSON.stringify(config.debuggerPort),
-			JSON.stringify(false)
+			JSON.stringify(config.serial)
 		]
 		const w = new DebugWorker(this.log, this.channel, {
 			workspace: this.workspace,
-			debuggerConfig: config.debuggerConfig,
 			debuggerPort: config.debuggerPort,
 			debuggerSkipFiles: config.debuggerSkipFiles
 		})

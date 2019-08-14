@@ -8,34 +8,70 @@ Implements an AVA Test Adapter for VSCode [Test Explorer](https://marketplace.vi
 
 - Install the extension
 - Restart VS Code and open the Test view
-- Run / Debug your tests using  Test Explorer or the CodeLenses in your test file.
+- Run / Debug your tests using  Test Explorer
+
+The extension is intended to use the same AVA installation as the project.
+If it cannot find AVA, install it locally for the project(s).
 
 ## Features
 
 - Shows a Test Explorer in the Test sidebar with all detected tests and suites and their state
 - Shows a failed test's log when the test is selected in the explorer
 - Lets you choose test suites or individual tests in the explorer that should be rerun on file change
+- Debug your tests easily from the Test Explorer sidebar.
+
+## Limitations
+
+- Still in early development.
+- Does not collect details on why a test failed, yet.
+- Does not display log or console output from tests, yet.
+- AVA does not provide the location of tests for the Test Explorer CodeLens.
+- Supporting multiple AVA configurations is planned but not yet implemented.
+
+In order to avoid having AVA preprocess test files frequently, it is recommended
+that caching be enabled in your AVA configuration.
 
 ## Configuration Options
 
-| Property                        | Description                                                        | Default                                |
-| ------------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
-| `avaExplorer.cwd`               | The working directory for AVA relative to the workspace.           | The workspace folder.                  |
-| `avaExplorer.config`            | The location of the AVA config file, relative to `avaExplorer.cwd` | `"ava.config.js"`                      |
-| `avaExplorer.env`               | Environment variables to be set when running the tests             |
-| `avaExplorer.nodePath`          | The path to the Node executable to use.                            | Searches PATH or VSCode's installation |
-| `avaExplorer.nodeArgv`          | The arguments to the Node executable                               |
-| `avaExplorer.debuggerPort`      | The port for running the debug sessions                            | 9229                                   |
-| `avaExplorer.breakOnFirstLine`  | If `true` injects a breakpoint at the first line of your test      | `false`                                |
-| `avaExplorer.debuggerSkipFiles` | An array of glob patterns for files to skip when debugging         | `[]`                                   |
-| `avaExplorer.debuggerConfig`    | Name of a launch configuration to debug tests.                     |
-| `avaExplorer.logpanel`          | If `true` writes a diagnostic log to AVA Explorer Log              | `false`                                |
-| `avaExplorer.logfile`           | A file to write diagnostics to                                     | `null`                                 |
+| Property                        | Description                                                             | Default                                |
+| ------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
+| `avaExplorer.cwd`               | The working directory for AVA relative to the workspace.                | The workspace folder.                  |
+| `avaExplorer.configs`           | Array of configurations, see [Sub-Configurations](#sub-configurations). | `[{}]`                                 |
+| `avaExplorer.env`               | Environment variables to be set when running the tests                  | `{}`                                   |
+| `avaExplorer.nodePath`          | The path to the Node executable to use.                                 | Searches PATH or VSCode's installation |
+| `avaExplorer.nodeArgv`          | The arguments to the Node executable                                    |
+| `avaExplorer.debuggerPort`      | The port for running the debug sessions                                 | 9229                                   |
+| `avaExplorer.debuggerSkipFiles` | An array of glob patterns for files to skip when debugging              | `[]`                                   |
+| `avaExplorer.logpanel`          | If `true` writes a diagnostic log to AVA Explorer Log                   | `false`                                |
+| `avaExplorer.logfile`           | A file to write diagnostics to                                          | `null`                                 |
 
-Notes:
+### Sub-Configurations
 
-- `avaExplorer.config` can be 'package.json' if your AVA configurations are stored there.
+| Property            | Description                                                | Default |
+| ------------------- | ---------------------------------------------------------- | ------- |
+| `file`              | The configuration file relative to `avaExplorer.cwd`.      | `null`  |
+| `env`               | Environment variables to be set when running the tests     | `{}`    |
+| `serial`            | If `true` then test will be run serially.                  | `false` |
+| `debuggerSkipFiles` | An array of glob patterns for files to skip when debugging | `[]`    |
+
+### Configuration Notes
+
+- AVA will expect `avaExplorer.cwd` to contain the project's 'package.json'.
+- The config `file` will default to 'ava.config.js' if such a file exist in `avaExplorer.cwd`.
+- `avaExplorer.configs` can currently only have one configuration.
+- `avaExplorer.env` is merged with the configuration specific `env`, prefering the latter.
+- `avaExplorer.debuggerSkipFiles` is prepended to the configuration specific `debuggerSkipFiles`.
 - `avaExplorer.logpanel` and `avaExplorer.logfile` are for troubleshooting the plugin.
+
+## TypeScript Support
+
+It is recommended that TS files be precompiled or the AVA configuration setup
+to use 'ts-node' to compile them.
+
+[See how in the AVA documentation.](https://github.com/avajs/ava/blob/master/docs/recipes/typescript.md)
+
+You can also install 'ts-node' and set `avaExplorer.nodeArgv` to `["-r", "ts-node/register"]`.
+This will register 'ts-node' with the Node interpreter before running the tests.
 
 ## Developers
 

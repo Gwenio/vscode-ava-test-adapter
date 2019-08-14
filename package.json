@@ -5,7 +5,7 @@
 	"icon": "img/icon.png",
 	"author": "James Adam Armstrong",
 	"publisher": "gwenio",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"license": "ISC",
 	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",
 	"repository": {
@@ -103,14 +103,57 @@
 					"type": "string",
 					"scope": "resource"
 				},
-				"avaExplorer.config": {
+				"avaExplorer.configs": {
 					"description": "The location of the AVA config file (relative to the working directory)",
-					"type": "string",
-					"default": "ava.config.js",
+					"type": "array",
+					"default": [
+						{
+							"file": null,
+							"env": {},
+							"serial": false,
+							"debuggerSkipFiles": []
+						}
+					],
+					"items": {
+						"description": "An AVA configuration.",
+						"properties": {
+							"file": {
+								"description": "The configuration file relative to 'avaExplorer.cwd'.",
+								"type": [
+									"string",
+									"null"
+								],
+								"default": null
+							},
+							"env": {
+								"description": "Environment variables to be set when running the tests.",
+								"type": "object",
+								"additionalProperties": {
+									"type": "string"
+								},
+								"default": {}
+							},
+							"serial": {
+								"description": "If true then test will be run serially.",
+								"type": "boolean",
+								"default": false
+							},
+							"debuggerSkipFiles": {
+								"description": "An array of glob patterns for files to skip when debugging",
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"default": []
+							}
+						}
+					},
+					"maxItems": 1,
+					"minItems": 1,
 					"scope": "resource"
 				},
 				"avaExplorer.env": {
-					"description": "Environment variables to be set when running the tests",
+					"description": "Environment variables to be set when running the tests.",
 					"type": "object",
 					"additionalProperties": {
 						"type": "string"
@@ -139,15 +182,6 @@
 					"items": {
 						"type": "string"
 					},
-					"scope": "resource"
-				},
-				"avaExplorer.debuggerConfig": {
-					"description": "The name of a launch configuration to use for debugging sessions",
-					"type": [
-						"string",
-						"null"
-					],
-					"default": null,
 					"scope": "resource"
 				},
 				"avaExplorer.breakOnFirstLine": {
