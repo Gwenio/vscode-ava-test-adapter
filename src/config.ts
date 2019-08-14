@@ -17,19 +17,10 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import path from 'path'
-import Micromatch from 'micromatch'
 import vscode from 'vscode'
-import AVA from 'ava/namespace'
-import loadAVAConfig from 'ava/lib/load-config'
-import { normalizeGlobs } from 'ava/lib/globs'
-import normalizeExtensions from 'ava/lib/extensions'
-import { validate as validateBabel } from 'ava/lib/babel-pipeline'
 import { Log, detectNodePath } from 'vscode-test-adapter-util'
 
 const configRoot = 'avaExplorer'
-
-const matcher = Micromatch.matcher
-type Matcher = (str: string) => boolean
 
 export class AVAConfig {
 	public static affected(uri: vscode.Uri,
@@ -42,24 +33,6 @@ export class AVAConfig {
 			}
 		}
 		return false
-	}
-
-	public static getGlobs(patterns: string[], cwd: string,
-		log: Log, type: string): Matcher[] {
-		const fileGlobs: Matcher[] = []
-		if (log.enabled) {
-			for (const relativeGlob of patterns) {
-				const absoluteGlob = path.resolve(cwd, relativeGlob)
-				log.debug(`Using ${type} file glob: ${absoluteGlob}`)
-				fileGlobs.push(matcher(absoluteGlob))
-			}
-		} else {
-			for (const relativeGlob of patterns) {
-				const absoluteGlob = path.resolve(cwd, relativeGlob)
-				fileGlobs.push(matcher(absoluteGlob))
-			}
-		}
-		return fileGlobs
 	}
 
 	public static async load(uri: vscode.Uri, log: Log): Promise<LoadedConfig | null> {
@@ -81,32 +54,6 @@ export class AVAConfig {
 
 		const configFilePath = path.resolve(cwd, c.file || 'ava.config.js')
 		if (log.enabled) log.debug(`Using config file: ${configFilePath}`)
-
-		let avaConfig: AVA.Configuration
-		try {
-			avaConfig = loadAVAConfig({
-				configFile: configFilePath,
-				resolveFrom: cwd,
-				defaults: {}
-			})
-		} catch (error) {
-			if (log.enabled) {
-				log.error(`Error loading AVA configuration: ${error.message || '?'}`)
-			}
-			return null
-		}
-		const babelConfig = validateBabel(avaConfig.babel || {})
-		const extensions = normalizeExtensions(avaConfig.extensions || [],
-			babelConfig)
-		const globs = normalizeGlobs(avaConfig.files,
-			avaConfig.helpers, avaConfig.sources, extensions.all)
-
-		const testFileGlobs: Matcher[] = AVAConfig.getGlobs(globs.testPatterns,
-			cwd, log, 'test')
-		const helperFileGlobs: Matcher[] = AVAConfig.getGlobs(globs.helperPatterns,
-			cwd, log, 'helper')
-		const sourceFileGlobs: Matcher[] = AVAConfig.getGlobs(globs.sourcePatterns,
-			cwd, log, 'source')
 
 		const configEnvironment: NodeJS.ProcessEnv = {
 			...(adapterConfig.get('env') || {}),
@@ -141,9 +88,6 @@ export class AVAConfig {
 		return {
 			cwd,
 			configFilePath,
-			testFileGlobs,
-			helperFileGlobs,
-			sourceFileGlobs,
 			environment,
 			nodePath,
 			nodeArgv,
@@ -169,9 +113,6 @@ export interface SubConfig {
 export interface LoadedConfig {
 	cwd: string;
 	configFilePath: string;
-	testFileGlobs: Matcher[];
-	helperFileGlobs: Matcher[];
-	sourceFileGlobs: Matcher[];
 	environment: NodeJS.ProcessEnv;
 	nodePath: string | undefined;
 	nodeArgv: string[];

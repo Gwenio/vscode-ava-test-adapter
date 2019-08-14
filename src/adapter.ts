@@ -112,14 +112,13 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.load()
 					return
 				}
-				for (const glob of this.config.testFileGlobs) {
-					if (glob(filename)) {
-						if (this.log.enabled) {
-							this.log.info(`Sending reload event because ${filename} is a test file`)
-						}
-						this.load()
-						return
+				const tree = this.tree
+				if (tree.hasFile(filename.slice(tree.prefixSize))) {
+					if (this.log.enabled) {
+						this.log.info(`Sending reload event because ${filename} is a test file`)
 					}
+					this.load()
+					return
 				}
 				if (filename.startsWith(this.workspace.uri.fsPath)) {
 					this.log.info('Sending autorun event')
