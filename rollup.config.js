@@ -105,9 +105,7 @@ const avaIntro = {
 export default [{
 	input: 'tmp/src/main.js',
 	external: builtins.concat(
-		"vscode",
-		"vscode-test-adapter-util",
-		"vscode-test-adapter-api").concat(avaFiles),
+		"vscode").concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/main.js')
 }, {

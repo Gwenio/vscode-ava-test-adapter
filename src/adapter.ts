@@ -28,7 +28,7 @@ import {
 	TestSuiteEvent,
 	TestEvent
 } from 'vscode-test-adapter-api'
-import { Log } from 'vscode-test-adapter-util'
+import { Log } from 'vscode-test-adapter-util/out/log'
 import { AVAConfig, LoadedConfig } from './config'
 import TestTree from './test_tree'
 import LoadWorker from './load_worker'

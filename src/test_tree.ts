@@ -20,7 +20,7 @@ import {
 	TestInfo,
 	TestSuiteInfo,
 } from 'vscode-test-adapter-api'
-import { Log } from 'vscode-test-adapter-util'
+import { Log } from 'vscode-test-adapter-util/out/log'
 import hashSum from 'hash-sum'
 import random from 'random'
 import seedrandom from 'seedrandom'

@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import { ChildProcess, fork } from 'child_process'
 import stream from 'stream'
 import vscode from 'vscode'
-import { Log } from 'vscode-test-adapter-util'
+import { Log } from 'vscode-test-adapter-util/out/log'
 import { LoadedConfig } from './config'
 
 export default abstract class Worker<T> {

@@ -18,7 +18,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import vscode from 'vscode'
-import { Log, detectNodePath } from 'vscode-test-adapter-util'
+import { Log } from 'vscode-test-adapter-util/out/log'
+import { detectNodePath } from 'vscode-test-adapter-util/out/misc'
 
 const configRoot = 'avaExplorer'
 

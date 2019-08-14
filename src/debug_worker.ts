@@ -17,7 +17,7 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import vscode from 'vscode'
-import { Log } from 'vscode-test-adapter-util'
+import { Log } from 'vscode-test-adapter-util/out/log'
 import Worker from './worker'
 
 interface DebugWorkerConfig {

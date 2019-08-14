@@ -24,7 +24,7 @@ import {
 	TestEvent,
 	TestInfo
 } from 'vscode-test-adapter-api'
-import { Log } from 'vscode-test-adapter-util'
+import { Log } from 'vscode-test-adapter-util/out/log'
 import { AVAEvent, AVADone } from './ipc'
 import Worker from './worker'
 

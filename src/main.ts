@@ -18,7 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import vscode from 'vscode'
 import { TestHub, testExplorerExtensionId } from 'vscode-test-adapter-api'
-import { TestAdapterRegistrar } from 'vscode-test-adapter-util'
+import { TestAdapterRegistrar } from 'vscode-test-adapter-util/out/registrar'
 import { AVAAdapter } from './adapter'
 import { AVAConfig } from './config'
 
