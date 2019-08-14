@@ -1,5 +1,6 @@
 src/**
 tmp/**
+types/**
 **/*.map
 yarn.lock
 tsconfig.json
