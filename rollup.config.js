@@ -99,7 +99,8 @@ function configurePlugins() {
 }
 
 const avaIntro = {
-	intro: "require('ava/lib/chalk').set({enabled: false});"
+	intro: "require=require('module').createRequire(process.cwd()+'/');" +
+		"require('ava/lib/chalk').set({enabled: false});"
 }
 
 export default [{

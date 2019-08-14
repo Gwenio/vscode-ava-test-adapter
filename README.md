@@ -56,6 +56,7 @@ that caching be enabled in your AVA configuration.
 
 ### Configuration Notes
 
+- `avaExplorer.cwd` should contain the projects local Node modules.
 - AVA will expect `avaExplorer.cwd` to contain the project's 'package.json'.
 - The config `file` will default to 'ava.config.js' if such a file exist in `avaExplorer.cwd`.
 - `avaExplorer.configs` can currently only have one configuration.
