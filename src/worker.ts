@@ -18,8 +18,6 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import { ChildProcess, fork } from 'child_process'
 import Emitter from 'events'
-import vscode from 'vscode'
-import { Log } from 'vscode-test-adapter-util/out/log'
 import { Parent, Child } from './ipc'
 
 const script = './child'
@@ -60,14 +58,9 @@ type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 
 
 export default class Worker {
 	private child?: ChildProcess
-	protected readonly log: Log
-	protected readonly channel: vscode.OutputChannel
 	private readonly emitter: Emitter = new Emitter()
 
-	public constructor(l: Log, c: vscode.OutputChannel) {
-		this.log = l
-		this.channel = c
-	}
+	public constructor() { }
 
 	public start(config: WorkerConfig): void {
 		const child = fork(
@@ -186,7 +179,7 @@ export default class Worker {
 		if (child) {
 			child.send(message)
 		} else {
-			this.log.error('Process closed before a message was sent.')
+			this.emitter.emit('error', new Error('Process closed before a message was sent.'))
 		}
 	}
 
