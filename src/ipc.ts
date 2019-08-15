@@ -16,32 +16,74 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-export interface AVATestPrefix {
-	type: 'prefix';
+interface Base<T extends string> {
+	type: T;
+}
+
+export interface Logging extends Base<'log'> {
+	enable: boolean;
+}
+
+export interface Port extends Base<'port'> {
+	port: number;
+}
+
+export interface Load extends Base<'load'> {
+	file: string;
+}
+
+export interface Drop extends Base<'drop'> {
+	id: string;
+}
+
+export interface Prefix extends Base<'prefix'> {
+	id: string;
+	file: string;
 	prefix: string;
 }
 
-export interface AVATestFile {
-	type: 'file';
+export interface TestFile extends Base<'file'> {
 	id: string;
-}
-
-export interface AVATestCase {
-	type: 'case';
-	id: string;
+	config: string;
 	file: string;
 }
 
-export type AVATestMeta = AVATestPrefix | AVATestFile | AVATestCase
+export interface TestCase extends Base<'case'> {
+	id: string;
+	file: string;
+	test: string;
+}
 
-export interface AVAEvent {
-	type: 'event';
+export interface Run extends Base<'run'> {
+	run: string[];
+}
+
+export type Stop = Base<'stop'>
+
+export interface Result extends Base<'result'> {
 	test: string;
 	state: 'running' | 'passed' | 'failed' | 'skipped' | 'errored';
+}
+
+export interface Done extends Base<'done'> {
 	file: string;
 }
 
-export interface AVADone {
-	type: 'done';
-	file: string;
+export type End = Base<'end'>
+
+export interface Debug extends Base<'debug'> {
+	run: string[];
 }
+
+export type Ready = Base<'ready'>
+
+export type Action = Load | Drop | Run | Stop | Debug
+
+export type Parent = Action | Logging | Port
+
+export type Tree = Prefix | TestFile | TestCase
+
+export type Event = Result | Done | End
+
+export type Child = Tree | Event
+
