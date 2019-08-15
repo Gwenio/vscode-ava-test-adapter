@@ -16,8 +16,6 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import path from 'path'
-//import { parse as parseStackTrace } from 'stack-trace'
 import vscode from 'vscode'
 import {
 	TestAdapter,
@@ -31,9 +29,7 @@ import {
 import { Log } from 'vscode-test-adapter-util/out/log'
 import { AVAConfig, LoadedConfig } from './config'
 import TestTree from './test_tree'
-import LoadWorker from './load_worker'
-import TestWorker from './test_worker'
-import DebugWorker from './debug_worker'
+import { Worker } from './worker'
 
 interface IDisposable {
 	dispose(): void;
@@ -52,7 +48,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private readonly tree: TestTree = new TestTree()
 	private config: LoadedConfig | null = null
 
-	private testProcess: TestWorker
+	private worker: Worker = new Worker()
 
 	public readonly workspace: vscode.WorkspaceFolder
 	public readonly channel: vscode.OutputChannel
@@ -74,8 +70,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.workspace = workspace
 		this.channel = channel
 		this.log = log
-		this.testProcess = new TestWorker(log, channel, this.testStatesEmitter,
-			this.tree.findTest.bind(this.tree))
 		this.log.info('Initializing AVA Adapter...')
 
 		this.disposables.push(this.testsEmitter)
@@ -87,7 +81,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				this.log.info('Configuration changed')
 				const uri = this.workspace.uri
 				if (AVAConfig.affected(uri, configChange,
-					'cwd', 'config', 'env', 'nodePath', 'nodeArgv')) {
+					'cwd', 'configs', 'env', 'nodePath', 'nodeArgv')) {
 					this.log.info('Sending reload event')
 					this.config = await AVAConfig.load(this.workspace.uri, this.log)
 					this.load()
@@ -125,6 +119,46 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.autorunEmitter.fire()
 				}
 			}))
+
+		const w = this.worker
+		const tree = this.tree
+		w.on('error', (error): void => {
+			log.error(error)
+		})
+		w.on('message', (message): void => {
+			if (log.enabled) {
+				log.info(`Worker Message: ${message}`)
+			}
+		})
+		w.on('prefix', (prefix): void => {
+			tree.pushPrefix(prefix, log)
+		})
+		w.on('file', (file): void => {
+			tree.pushFile(file, log)
+		})
+		w.on('case', (test): void => {
+			tree.pushTest(test, log)
+		})
+		w.on('result', (result): void => {
+			this.testStatesEmitter.fire({
+				type: 'test',
+				state: result.state,
+				test: result.test
+			})
+		})
+		w.on('done', (file): void => {
+			this.testStatesEmitter.fire({
+				type: 'suite',
+				suite: file,
+				state: 'completed'
+			})
+		})
+		w.on('stdout', (chunk): void => {
+			this.channel.append(chunk)
+		})
+		w.on('stderr', (chunk): void => {
+			this.channel.append(chunk)
+		})
 	}
 
 	public async load(): Promise<void> {
@@ -141,12 +175,19 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
-		this.tree.clear()
-		const a = [config.configFilePath, JSON.stringify(this.log.enabled)]
-		const w = new LoadWorker(this.log, this.channel, this.tree)
-		await w.work('./worker/loader', a, config)
-		this.tree.build()
-		this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
+		return this.worker.enque((): void => {
+			this.tree.clear()
+			this.worker.send({
+				type: 'load',
+				file: config.configFilePath
+			})
+		}, (error: Error): void => {
+			this.log.error(error)
+		}).finally((): void => {
+			this.tree.build()
+			this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
+		})
+
 	}
 
 	public async run(testsToRun: string[]): Promise<void> {
@@ -157,46 +198,14 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			this.log.info(`Running test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
 		this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
-		const files = new Set<string>()
-		const match = new Set<string>()
-		const prefix = this.tree.prefixSize
-		testsToRun.forEach((test): void => {
-			if (this.tree.hasFile(test)) {
-				files.add(test)
-			} else if (test !== 'root') {
-				const x = this.tree.getTest(test)
-				if (x) {
-					if (x.file) {
-						files.add(x.file.slice(prefix))
-					}
-					match.add(x.label)
-				} else if (this.log.enabled) {
-					this.log.debug(`did not file a test with ID ${test}`)
-				}
-			}
-		})
-		const a = [
-			config.configFilePath,
-			JSON.stringify(this.log.enabled),
-			JSON.stringify(prefix)
-		]
-		const basePath = path.dirname(config.configFilePath)
-		files.forEach((file): void => {
-			const x = path.relative(basePath, this.tree.prefixFile(file))
-			this.log.info(`running file ${x}`)
-			a.push(x)
-		})
-		if (match.size > 0) {
-			a.push('--match')
-			for (const m of match) {
-				a.push(m)
-				this.log.info(`running test ${m}`)
-			}
-		}
-		if (this.log.enabled) {
-			this.log.info(JSON.stringify(a))
-		}
-		return this.testProcess.work('./worker/runner.js', a, config).then((): void => {
+		return this.worker.enque((): void => {
+			this.worker.send({
+				type: 'run',
+				run: testsToRun
+			})
+		}, (error: Error): void => {
+			this.log.error(error)
+		}).finally((): void => {
 			this.testStatesEmitter.fire({ type: 'finished' })
 		})
 	}
@@ -205,56 +214,25 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (!this.config || (testsToRun.length === 0)) {
 			return
 		}
-		const config = this.config
+		//const config = this.config
 		if (this.log.enabled) {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		const prefix = this.tree.prefixSize
-		const a = [
-			config.configFilePath,
-			JSON.stringify(this.log.enabled),
-			JSON.stringify(prefix),
-			JSON.stringify(config.debuggerPort),
-			JSON.stringify(config.serial)
-		]
-		const w = new DebugWorker(this.log, this.channel, {
-			workspace: this.workspace,
-			debuggerPort: config.debuggerPort,
-			debuggerSkipFiles: config.debuggerSkipFiles
+		return this.worker.enque((): void => {
+			this.worker.send({
+				type: 'debug',
+				run: testsToRun
+			})
+		}, (error: Error): void => {
+			this.log.error(error)
 		})
-		const basePath = path.dirname(config.configFilePath)
-		const work = async (options: string[]): Promise<void> => {
-			return w.work('./worker/debugger.js', [
-				...a,
-				...options
-			], config)
-		}
-		for (const test of testsToRun) {
-			if (this.tree.hasFile(test)) {
-				await work([path.relative(basePath, this.tree.prefixFile(test))])
-			} else if (test !== 'root') {
-				const x = this.tree.getTest(test)
-				if (x) {
-					if (x.file) {
-						await work([
-							path.relative(basePath, x.file),
-							x.label
-						])
-					} else {
-						throw new TypeError('Test File Suites should have a file.')
-					}
-				} else if (this.log.enabled) {
-					this.log.debug(`Did not find a test with ID ${test}`)
-				}
-			}
-		}
 	}
 
 	public cancel(): void {
-		if (this.testProcess.alive) {
-			this.log.info('Killing running test process...')
-			this.testProcess.cancel()
+		if (this.worker.alive) {
+			this.log.info('Stopping running test process...')
+			this.worker.send({ type: 'stop' })
 		}
 	}
 
