@@ -20,7 +20,7 @@ import { ChildProcess, fork } from 'child_process'
 import Emitter from 'events'
 import { Parent, Child, Prefix, TestCase, TestFile, Result } from './ipc'
 
-const script = './child'
+const script = './child.js'
 
 interface WorkerConfig {
 	cwd: string;
