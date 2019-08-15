@@ -18,7 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import { ChildProcess, fork } from 'child_process'
 import Emitter from 'events'
-import { Parent, Child } from './ipc'
+import { Parent, Child, Prefix, TestCase, TestFile, Result } from './ipc'
 
 const script = './child'
 
@@ -29,40 +29,30 @@ interface WorkerConfig {
 	nodeArgv: string[];
 }
 
-interface Prefix {
-	id: string;
-	file: string;
-	prefix: string;
-}
-
-interface File {
-	id: string;
-	file: string;
-	config: string;
-}
-
-interface Test {
-	id: string;
-	file: string;
-	test: string;
-}
-
-interface Result {
-	test: string;
-	state: 'running' | 'passed' | 'failed' | 'skipped' | 'errored';
-}
-
 type Basic = 'error' | 'exit' | 'message' | 'disconnect'
 type Output = 'stdout' | 'stderr'
 type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'end'
 
-export default class Worker {
+export class Worker {
 	private child?: ChildProcess
 	private readonly emitter: Emitter = new Emitter()
+	private queue = Promise.resolve()
+	private halt?: () => void
 
-	public constructor() { }
+	public constructor() {
+		const emitter = this.emitter
+		const end = (): void => {
+			if (this.halt) {
+				this.halt
+				this.halt = undefined
+			}
+		}
+		emitter.on('exit', end)
+		emitter.on('disconnect', end)
+		emitter.on('end', end)
+	}
 
-	public start(config: WorkerConfig): void {
+	public connect(config: WorkerConfig): void {
 		const child = fork(
 			/* eslint node/no-missing-require: "off" */
 			require.resolve(script),
@@ -93,38 +83,23 @@ export default class Worker {
 		child.on('error', this.emitter.emit.bind(this.emitter, 'error'))
 		child.on('message', (message: string | Child): void => {
 			const emit: (event: Events,
-				message?: string | Prefix | File | Test | Result | Error) => void =
+				message?: string | Prefix | TestFile | TestCase | Result | Error) => void =
 				this.emitter.emit.bind(this.emitter)
 			if (typeof message === 'string') {
 				emit('message', message)
 			} else {
 				switch (message.type) {
 					case 'prefix':
-						emit('prefix', {
-							id: message.id,
-							prefix: message.prefix,
-							file: message.file
-						})
+						emit('prefix', message)
 						return
 					case 'file':
-						emit('file', {
-							id: message.id,
-							config: message.config,
-							file: message.file
-						})
+						emit('file', message)
 						return
 					case 'case':
-						emit('case', {
-							id: message.id,
-							test: message.test,
-							file: message.file
-						})
+						emit('case', message)
 						return
 					case 'result':
-						emit('result', {
-							test: message.test,
-							state: message.state
-						})
+						emit('result', message)
 						return
 					case 'done':
 						emit('done', message.file)
@@ -148,8 +123,8 @@ export default class Worker {
 	public on(event: 'stdout', handler: (chunk) => void): Worker
 	public on(event: 'stderr', handler: (chunk) => void): Worker
 	public on(event: 'prefix', handler: (prefix: Prefix) => void): Worker
-	public on(event: 'file', handler: (file: File) => void): Worker
-	public on(event: 'case', handler: (test: Test) => void): Worker
+	public on(event: 'file', handler: (file: TestFile) => void): Worker
+	public on(event: 'case', handler: (test: TestCase) => void): Worker
 	public on(event: 'result', handler: (result: Result) => void): Worker
 	public on(event: 'done', handler: (file: string) => void): Worker
 	public on(event: 'end', handler: () => void): Worker
@@ -165,8 +140,8 @@ export default class Worker {
 	public once(event: 'stdout', handler: (chunk) => void): Worker
 	public once(event: 'stderr', handler: (chunk) => void): Worker
 	public once(event: 'prefix', handler: (prefix: Prefix) => void): Worker
-	public once(event: 'file', handler: (file: File) => void): Worker
-	public once(event: 'case', handler: (test: Test) => void): Worker
+	public once(event: 'file', handler: (file: TestFile) => void): Worker
+	public once(event: 'case', handler: (test: TestCase) => void): Worker
 	public once(event: 'result', handler: (result: Result) => void): Worker
 	public once(event: 'end', handler: () => void): Worker
 	public once(event: Events, handler: (...args) => void): Worker {
@@ -181,6 +156,23 @@ export default class Worker {
 		} else {
 			this.emitter.emit('error', new Error('Process closed before a message was sent.'))
 		}
+	}
+
+	public enque(task: () => void | Promise<void>, handle: (error: Error) => void): Promise<void> {
+		this.queue = this.queue.then((): Promise<void> => {
+			const child = this.child
+			if (child) {
+				const end = new Promise<void>((resolve): void => {
+					this.halt = resolve
+				})
+				this.queue = end
+				task()
+				return end
+			} else {
+				throw new Error('Cannot enque without a worker.')
+			}
+		}).catch(handle)
+		return this.queue
 	}
 
 	public get alive(): boolean {
