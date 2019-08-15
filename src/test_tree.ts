@@ -22,7 +22,7 @@ import {
 } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
 import hash from './hash'
-import { Tree } from './ipc'
+import { Prefix, TestFile, TestCase } from './ipc'
 
 interface Info {
 	id: string;
@@ -68,59 +68,59 @@ export default class TestTree {
 		this.testHash.clear()
 	}
 
-	public pushMetadata(meta: Tree, log: Log): void {
-		if (meta.type === 'prefix') {
-			const prefix = meta.prefix
-			if (log.enabled) {
-				log.info(`Received test file prefix ${prefix} from worker`)
-			}
-			this.prefix = prefix
-		} else if (meta.type === 'file') {
-			if (log.enabled) {
-				log.info(`Received test file ${meta.id} from worker`)
-			}
-			const hashes = this.suiteHash
-			const id = meta.id
-			const h = hash(id, hashes.has.bind(hashes), 'f')
-			const tooltip = process.env.NODE_ENV === 'production' ? id : h
-			const file = this.prefix + id
-			hashes.set(id, {
-				type: 'suite',
-				id: h,
-				label: id,
-				file,
-				tooltip,
-				children: []
-			})
-			this.files.add(file)
-		} else if (meta.type === 'case') {
-			if (log.enabled) {
-				log.info(`Received test case ${meta.id} from worker`)
-			}
-			const hashes = this.testHash
-			const id = meta.id
-			const suite = this.suiteHash.get(meta.file)
-			if (!suite) {
-				log.error(`Test Case for unknown Test File: ${meta.file}`)
-				return
-			}
-			const h = hash(id, hashes.has.bind(hashes), 't', id.length.toString(16))
-			if (log.enabled) {
-				log.info(`Generated test case ID: ${hash}`)
-			}
-			const tooltip = process.env.NODE_ENV === 'production' ? id : h
-			const x: TestInfo & Info = {
-				type: 'test',
-				id: h,
-				label: id,
-				tooltip,
-				file: suite.file
-			}
-			hashes.set(h, x)
-			suite.children.push(x)
-		} else {
-			throw new TypeError('Unexpected message from worker.')
+	public pushPrefix(meta: Prefix, log: Log): void {
+		const prefix = meta.prefix
+		if (log.enabled) {
+			log.info(`Received test file prefix ${prefix} from worker`)
 		}
+		this.prefix = prefix
+	}
+
+	public pushFile(meta: TestFile, log: Log): void {
+		if (log.enabled) {
+			log.info(`Received test file ${meta.id} from worker`)
+		}
+		const hashes = this.suiteHash
+		const id = meta.id
+		const h = hash(id, hashes.has.bind(hashes), 'f')
+		const tooltip = process.env.NODE_ENV === 'production' ? id : h
+		const file = this.prefix + id
+		hashes.set(id, {
+			type: 'suite',
+			id: h,
+			label: id,
+			file,
+			tooltip,
+			children: []
+		})
+		this.files.add(file)
+	}
+
+	public pushTest(meta: TestCase, log: Log): void {
+		if (log.enabled) {
+			log.info(`Received test case ${meta.id} from worker`)
+		}
+		const hashes = this.testHash
+		const id = meta.id
+		const suite = this.suiteHash.get(meta.file)
+		if (!suite) {
+			log.error(`Test Case for unknown Test File: ${meta.file}`)
+			return
+		}
+		const h = hash(id, hashes.has.bind(hashes), 't', id.length.toString(16))
+		if (log.enabled) {
+			log.info(`Generated test case ID: ${hash}`)
+		}
+		const tooltip = process.env.NODE_ENV === 'production' ? id : h
+		const x: TestInfo & Info = {
+			type: 'test',
+			id: h,
+			label: id,
+			tooltip,
+			file: suite.file
+		}
+		hashes.set(h, x)
+		suite.children.push(x)
 	}
 
 	public build(): void {
@@ -138,7 +138,7 @@ export default class TestTree {
 		return this.rootSuite
 	}
 
-	public getTest(id: string): TestInfo | null {
+	public getTest(id: string): (TestInfo & Info) | null {
 		return this.testHash.get(id) || null
 	}
 
