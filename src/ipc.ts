@@ -83,5 +83,5 @@ export type Tree = Prefix | TestFile | TestCase
 
 export type Event = Result | Done
 
-export type Child = Tree | Event
+export type Child = Tree | Event | Ready
 

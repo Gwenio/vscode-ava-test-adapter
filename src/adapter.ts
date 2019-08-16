@@ -144,6 +144,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				this.tree.build()
 				this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
 			})
+		} else {
+			this.log.error('No worker connected.')
 		}
 	}
 
@@ -156,20 +158,26 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 		this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
 		if (this.worker) {
-			return this.worker.send({
-				type: 'run',
-				run: testsToRun
-			}).catch((error: Error): void => {
-				this.log.error(error)
+			return this.worker
+				.send({
+					type: 'run',
+					run: testsToRun
+				})
+				.catch((error: Error): void => {
+					this.log.error(error)
 
-			}).finally((): void => {
-				this.testStatesEmitter.fire({ type: 'finished' })
-			})
+				})
+				.finally((): void => {
+					this.testStatesEmitter.fire({ type: 'finished' })
+				})
+		} else {
+			this.log.error('No worker connected.')
 		}
 	}
 
 	public async debug(testsToRun: string[]): Promise<void> {
-		if (!this.config || (testsToRun.length === 0)) {
+		const config = this.config
+		if (!config || (testsToRun.length === 0)) {
 			return
 		}
 		if (this.log.enabled) {
@@ -177,13 +185,24 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
 		if (this.worker) {
-			return this.worker.send({
-				type: 'debug',
-				run: testsToRun
-			}).catch((error: Error): void => {
-				this.log.error(error)
+			const l = this.connectDebugger.bind(this, config.debuggerPort, config.debuggerSkipFiles)
+			return this.worker
+				.on('ready', l)
+				.send({
+					type: 'debug',
+					run: testsToRun
+				})
+				.catch((error: Error): void => {
+					this.log.error(error)
 
-			})
+				})
+				.finally((): void => {
+					if (this.worker) {
+						this.worker.removeListener('ready', l)
+					}
+				})
+		} else {
+			this.log.error('No worker connected.')
 		}
 	}
 
@@ -270,5 +289,39 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.worker = undefined
 				}
 			})
+	}
+
+
+	private async connectDebugger(port: number, skipFiles: string[]): Promise<void> {
+		let currentSession: vscode.DebugSession | undefined
+		this.log.info('Starting the debug session')
+		await vscode.debug.startDebugging(this.workspace,
+			{
+				name: 'Debug AVA Tests',
+				type: 'node',
+				request: 'attach',
+				port,
+				protocol: 'inspector',
+				timeout: 30000,
+				stopOnEntry: false,
+				skipFiles
+			})
+		// workaround for Microsoft/vscode#70125
+		await new Promise((resolve): void => { setImmediate(resolve) })
+		currentSession = vscode.debug.activeDebugSession
+		if (!currentSession) {
+			this.log.error('No active AVA debug session - aborting')
+			return
+		}
+		return new Promise<void>((resolve): void => {
+			const subscription = vscode.debug.onDidTerminateDebugSession((session): void => {
+				if (currentSession != session) {
+					return
+				}
+				this.log.info('AVA Debug session ended')
+				subscription.dispose()
+				resolve()
+			})
+		})
 	}
 }

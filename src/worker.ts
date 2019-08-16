@@ -46,7 +46,7 @@ interface WorkerConfig {
 
 type Basic = 'error' | 'exit' | 'message' | 'connect' | 'disconnect'
 type Output = 'stdout' | 'stderr'
-type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done'
+type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
 
 export class Worker {
 	private readonly child: ChildProcess
@@ -116,6 +116,9 @@ export class Worker {
 						case 'done':
 							emit('done', m.file)
 							return
+						case 'ready':
+							emit('ready')
+							return
 						default:
 							emit('error', new TypeError(`Invalid message type: ${data.type}`))
 							return
@@ -140,6 +143,7 @@ export class Worker {
 	public on(event: 'case', handler: (test: TestCase) => void): Worker
 	public on(event: 'result', handler: (result: Result) => void): Worker
 	public on(event: 'done', handler: (file: string) => void): Worker
+	public on(event: 'ready', handler: () => void): Worker
 	public on(event: Events, handler: (...args) => void): Worker {
 		this.emitter.on(event, handler)
 		return this
@@ -156,6 +160,7 @@ export class Worker {
 	public once(event: 'file', handler: (file: TestFile) => void): Worker
 	public once(event: 'case', handler: (test: TestCase) => void): Worker
 	public once(event: 'result', handler: (result: Result) => void): Worker
+	public once(event: 'ready', handler: () => void): Worker
 	public once(event: Events, handler: (...args) => void): Worker {
 		this.emitter.once(event, handler)
 		return this
@@ -163,6 +168,11 @@ export class Worker {
 
 	public removeAllListeners(): Worker {
 		this.emitter.removeAllListeners()
+		return this
+	}
+
+	public removeListener(event: Events, listener: (...a) => void): Worker {
+		this.emitter.removeListener(event, listener)
 		return this
 	}
 
