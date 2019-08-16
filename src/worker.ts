@@ -18,7 +18,22 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import { ChildProcess, fork } from 'child_process'
 import Emitter from 'events'
-import { Parent, Child, Prefix, TestCase, TestFile, Result } from './ipc'
+import { Client, ClientSocket } from 'veza'
+import {
+	Parent,
+	Load,
+	Run,
+	Debug,
+	Drop,
+	Stop,
+	Child,
+	Prefix,
+	TestCase,
+	TestFile,
+	Result,
+	Logging,
+	Port
+} from './ipc'
 
 const script = './child.js'
 
@@ -29,31 +44,18 @@ interface WorkerConfig {
 	nodeArgv: string[];
 }
 
-type Basic = 'error' | 'exit' | 'message' | 'disconnect'
+type Basic = 'error' | 'exit' | 'message' | 'connect' | 'disconnect'
 type Output = 'stdout' | 'stderr'
-type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'end'
+type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done'
 
 export class Worker {
-	private child?: ChildProcess
+	private readonly child: ChildProcess
+	private connection?: ClientSocket
 	private readonly emitter: Emitter = new Emitter()
-	private queue = Promise.resolve()
-	private halt?: () => void
 
-	public constructor() {
+	public constructor(config: WorkerConfig) {
 		const emitter = this.emitter
-		const end = (): void => {
-			if (this.halt) {
-				this.halt
-				this.halt = undefined
-			}
-		}
-		emitter.on('exit', end)
-		emitter.on('disconnect', end)
-		emitter.on('end', end)
-	}
-
-	public connect(config: WorkerConfig): void {
-		const child = fork(
+		this.child = fork(
 			/* eslint node/no-missing-require: "off" */
 			require.resolve(script),
 			[],
@@ -66,59 +68,70 @@ export class Worker {
 				stdio: ['pipe', 'pipe', 'pipe', 'ipc']
 			}
 		)
+		const child = this.child
 		if (child.stdout) {
-			child.stdout.on('data', this.emitter.emit.bind(this.emitter, 'stdout'))
+			child.stdout.on('data', emitter.emit.bind(emitter, 'stdout'))
 		}
 		if (child.stderr) {
-			child.stderr.on('data', this.emitter.emit.bind(this.emitter, 'stderr'))
+			child.stderr.on('data', emitter.emit.bind(emitter, 'stderr'))
 		}
-		child.on('exit', (code): void => {
-			this.child = undefined
-			this.emitter.emit('exit', code)
+		child.once('message', (message: string): void => {
+			const s = message.split(':')
+			this.connect(Number.parseInt(s[0], 16), s[1])
 		})
-		child.on('disconnect', (): void => {
-			this.child = undefined
-			this.emitter.emit('disconnect')
-		})
-		child.on('error', this.emitter.emit.bind(this.emitter, 'error'))
-		child.on('message', (message: string | Child): void => {
-			const emit: (event: Events,
-				message?: string | Prefix | TestFile | TestCase | Result | Error) => void =
-				this.emitter.emit.bind(this.emitter)
-			if (typeof message === 'string') {
-				emit('message', message)
-			} else {
-				switch (message.type) {
-					case 'prefix':
-						emit('prefix', message)
-						return
-					case 'file':
-						emit('file', message)
-						return
-					case 'case':
-						emit('case', message)
-						return
-					case 'result':
-						emit('result', message)
-						return
-					case 'done':
-						emit('done', message.file)
-						return
-					case 'end':
-						emit('end')
-						return
-					default:
-						emit('error', new TypeError('Worker sent an invalid message.'))
-						return
+	}
+
+	private connect(port: number, token: string): void {
+		const c = new Client(token)
+			.once('connect', (c): void => {
+				this.connection = c
+				this.emitter.emit('connect')
+			})
+			.once('disconnect', (): void => {
+				this.connection = undefined
+				this.emitter.emit('disconnect')
+			})
+			.on('error', this.emitter.emit.bind(this.emitter, 'error'))
+			.on('message', ({ data }): void => {
+				const emit: (event: Events,
+					message?: string | Prefix | TestFile | TestCase | Result | Error) => void =
+					this.emitter.emit.bind(this.emitter)
+				if (typeof data === 'string') {
+					emit('message', data)
+				} else if (typeof data === 'object' && data.type && typeof data.type === 'string') {
+					const m = data as Child
+					switch (m.type) {
+						case 'prefix':
+							emit('prefix', m)
+							return
+						case 'file':
+							emit('file', m)
+							return
+						case 'case':
+							emit('case', m)
+							return
+						case 'result':
+							emit('result', m)
+							return
+						case 'done':
+							emit('done', m.file)
+							return
+						default:
+							emit('error', new TypeError(`Invalid message type: ${data.type}`))
+							return
+					}
+				} else {
+					emit('error', new TypeError('Worker sent an invalid message.'))
 				}
-			}
-		})
+			})
+		c.connectTo({ port })
 	}
 
 	/* eslint no-dupe-class-members: "off" */
 	public on(event: 'error', handler: (error: Error) => void): Worker
 	public on(event: 'exit', handler: (code: number | null) => void): Worker
 	public on(event: 'message', handler: (message: string) => void): Worker
+	public on(event: 'connect', handler: () => void): Worker
 	public on(event: 'disconnect', handler: () => void): Worker
 	public on(event: 'stdout', handler: (chunk) => void): Worker
 	public on(event: 'stderr', handler: (chunk) => void): Worker
@@ -127,7 +140,6 @@ export class Worker {
 	public on(event: 'case', handler: (test: TestCase) => void): Worker
 	public on(event: 'result', handler: (result: Result) => void): Worker
 	public on(event: 'done', handler: (file: string) => void): Worker
-	public on(event: 'end', handler: () => void): Worker
 	public on(event: Events, handler: (...args) => void): Worker {
 		this.emitter.on(event, handler)
 		return this
@@ -136,6 +148,7 @@ export class Worker {
 	public once(event: 'error', handler: (error: Error) => void): Worker
 	public once(event: 'exit', handler: (code: number | null) => void): Worker
 	public once(event: 'message', handler: (message: string) => void): Worker
+	public once(event: 'connect', handler: () => void): Worker
 	public once(event: 'disconnect', handler: () => void): Worker
 	public once(event: 'stdout', handler: (chunk) => void): Worker
 	public once(event: 'stderr', handler: (chunk) => void): Worker
@@ -143,46 +156,38 @@ export class Worker {
 	public once(event: 'file', handler: (file: TestFile) => void): Worker
 	public once(event: 'case', handler: (test: TestCase) => void): Worker
 	public once(event: 'result', handler: (result: Result) => void): Worker
-	public once(event: 'end', handler: () => void): Worker
 	public once(event: Events, handler: (...args) => void): Worker {
 		this.emitter.once(event, handler)
 		return this
 	}
 
-	public send(message: Parent): void {
-		const child = this.child
-		if (child) {
-			child.send(message)
+	public send(message: Load | Run | Debug): Promise<void>
+	public send(message: Drop | Stop | Logging | Port): void
+	public send(message: Parent): void | Promise<void> {
+		const c = this.connection
+		if (c) {
+			switch (message.type) {
+				case 'debug':
+				case 'run':
+				case 'load':
+					return c.send(message, {
+						receptive: true
+					}).then((): void => { })
+				default:
+					c.send(message, {
+						receptive: false
+					})
+					return
+			}
 		} else {
-			this.emitter.emit('error', new Error('Process closed before a message was sent.'))
+			this.emitter.emit('error', new Error('Attempted to send over a closed connection.'))
 		}
 	}
 
-	public enque(task: () => void | Promise<void>, handle: (error: Error) => void): Promise<void> {
-		this.queue = this.queue.then((): Promise<void> => {
-			const child = this.child
-			if (child) {
-				const end = new Promise<void>((resolve): void => {
-					this.halt = resolve
-				})
-				this.queue = end
-				task()
-				return end
-			} else {
-				throw new Error('Cannot enque without a worker.')
-			}
-		}).catch(handle)
-		return this.queue
-	}
-
-	public get alive(): boolean {
-		return this.child ? true : false
-	}
-
 	public disconnect(): void {
-		if (this.child) {
-			this.child.disconnect()
-			this.child = undefined
+		const c = this.connection
+		if (c) {
+			c.disconnect()
 		}
 	}
 }

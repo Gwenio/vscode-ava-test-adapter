@@ -16,13 +16,18 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import AVA from 'ava/namespace'
+import { Server, ServerSocket } from 'veza'
+import getPort from 'get-port'
+import random from 'random'
 import Api from 'ava/lib/api'
-import { setup } from './worker/ava_setup'
-import { worker } from './worker/ava_worker'
-import { LoadReporter } from './reporter'
 import * as IPC from './ipc'
+import hash from './hash'
 
+let connected = false
+const childToken = 'ava-adapter-worker'
+const parentToken = hash(process.cwd(), (): boolean => true,
+	process.cwd().length.toString(16),
+	random.int(0, 0xFFFF).toString(16))
 let logEnabled = false
 let debuggerPort = 9229
 
@@ -30,42 +35,87 @@ Api.prototype._computeForkExecArgv = async function (): Promise<string[]> {
 	return process.execArgv.concat(`--inspect-brk=${debuggerPort}`)
 }
 
-function send(message: string | IPC.Child): void {
-	if (process.send) {
-		process.send(message)
-	} else if (process.env.NODE_ENV === 'production') {
-		throw new TypeError('process.send unavailable')
-	} else {
-		console.log(message)
-	}
-}
+async function loadTests(_info: IPC.Load, _client: ServerSocket): Promise<void> { }
 
-function handler(error: Error): void {
-	console.error(error.stack)
-	if (!process.exitCode || process.exitCode === 0) {
+async function runTests(_info: IPC.Run, _client: ServerSocket): Promise<void> { }
+
+async function debugTests(_info: IPC.Debug, _client: ServerSocket): Promise<void> { }
+
+const connection = new Server(childToken)
+	.on('error', (error, client): void => {
+		if (client) {
+			console.error(`[IPC] Error from ${client.name}:`, error)
+		} else {
+			console.error(error)
+		}
+	})
+	.on('connect', (client): void => {
+		if (client.name === parentToken) {
+			if (connected) {
+				client.disconnect(true)
+				console.error('[Worker] Another connection made.')
+			} else if (logEnabled) {
+				console.log('[Worker] Connected.')
+			}
+		} else {
+			client.disconnect(true)
+			console.error(`[Worker] Connection attempt with: ${client.name}`)
+		}
+	})
+	.on('disconnect', (client): void => {
+		if (client.name === parentToken && connected) {
+			client.server.close()
+		}
+	})
+	.on('message', (message, client): void => {
+		const data = message.data
+		if (typeof data === 'object' && data.type && typeof data.type === 'string') {
+			const m = data as IPC.Parent
+			switch (m.type) {
+				case 'log':
+					logEnabled = m.enable
+					return
+				case 'port':
+					debuggerPort = m.port
+					return
+				case 'load':
+					loadTests(m, client).finally((): void => {
+						message.reply(null)
+					})
+					return
+				case 'drop':
+					return
+				case 'run':
+					runTests(m, client).finally((): void => {
+						message.reply(null)
+					})
+					return
+				case 'stop':
+					return
+				case 'debug':
+					debugTests(m, client).finally((): void => {
+						message.reply(null)
+					})
+					return
+				default:
+					throw new TypeError(`Invalid message type: ${data.type}`)
+			}
+		} else {
+			throw new TypeError('Invalid message.')
+		}
+	})
+
+async function serve(): Promise<void> {
+	const port = await getPort()
+	try {
+		await connection.listen(port)
+		if (process.send) {
+			process.send(`${port.toString(16)}:${parentToken}`)
+		}
+	} catch (error) {
+		console.error('[Worker] Failed to establish IPC.', error)
 		process.exitCode = 1
 	}
 }
 
-process.on('message', (message: IPC.Parent): void => {
-	switch (message.type) {
-		case 'log':
-			logEnabled = message.enable
-			return
-		case 'port':
-			debuggerPort = message.port
-			return
-		case 'load':
-			return
-		case 'drop':
-			return
-		case 'run':
-			return
-		case 'stop':
-			return
-		case 'debug':
-			return
-		default:
-			throw new TypeError('Invalid message.')
-	}
-})
+serve()

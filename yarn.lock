@@ -755,6 +755,11 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.0.0.tgz#23c0df14f6a88077f5f986c0d167ec03c3d5537c"
   integrity sha512-Phlt0plgpIIBOGTT/ehfFnbNlfsDEiqmzE2KRXoX1bLIlir4X/MR+zSyBEkL05ffWgnRSf/DXv+WrUAVr93/ow==
 
+binarytf@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/binarytf/-/binarytf-2.0.0.tgz#c5476cc5cdf023d075b9b8fa62612b86d36f666c"
+  integrity sha512-CS0MvijAFAHBBw4LgIHBP7wzdW3KWEB0KeMjblK0rHOyyhnkoMu3puW7uhJXlnS5WDn5M2XQFaQBtw00FwRfcA==
+
 bluebird@^3.5.5:
   version "3.5.5"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.5.tgz#a8d0afd73251effbbd5fe384a77d73003c17a71f"
@@ -3820,6 +3825,13 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
+
+veza@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/veza/-/veza-1.0.0.tgz#d526f19f0aff4802e679cd91165aabbe633488f4"
+  integrity sha512-Bt6AWYsl+mA0blnIreMkqRW6OCeF81beiw39o1IVK8GSt760B10IORnIzxbSYV813ZVTtGvToab0gX+ZqQKjew==
+  dependencies:
+    binarytf "^2.0.0"
 
 vsce@^1.65.0:
   version "1.66.0"

@@ -69,8 +69,6 @@ export interface Done extends Base<'done'> {
 	file: string;
 }
 
-export type End = Base<'end'>
-
 export interface Debug extends Base<'debug'> {
 	run: string[];
 }
@@ -83,7 +81,7 @@ export type Parent = Action | Logging | Port
 
 export type Tree = Prefix | TestFile | TestCase
 
-export type Event = Result | Done | End
+export type Event = Result | Done
 
 export type Child = Tree | Event
 

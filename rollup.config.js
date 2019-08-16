@@ -114,7 +114,8 @@ export default [{
 	external: builtins.concat(
 		"common-path-prefix",
 		"arrify",
-		"matcher"
+		"matcher",
+		"get-port"
 	).concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/child.js', avaIntro)
