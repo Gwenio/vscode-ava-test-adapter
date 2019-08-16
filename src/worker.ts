@@ -161,6 +161,11 @@ export class Worker {
 		return this
 	}
 
+	public removeAllListeners(): Worker {
+		this.emitter.removeAllListeners()
+		return this
+	}
+
 	public send(message: Load | Run | Debug): Promise<void>
 	public send(message: Drop | Stop | Logging | Port): void
 	public send(message: Parent): void | Promise<void> {

@@ -48,7 +48,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private readonly tree: TestTree = new TestTree()
 	private config: LoadedConfig | null = null
 
-	private worker: Worker = new Worker()
+	private worker?: Worker
 
 	public readonly workspace: vscode.WorkspaceFolder
 	public readonly channel: vscode.OutputChannel
@@ -83,12 +83,12 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				if (AVAConfig.affected(uri, configChange,
 					'cwd', 'configs', 'env', 'nodePath', 'nodeArgv')) {
 					this.log.info('Sending reload event')
-					this.config = await AVAConfig.load(this.workspace.uri, this.log)
+					await this.loadConfig()
 					this.load()
 
 				} else if (AVAConfig.affected(uri, configChange,
 					'debuggerPort', 'debuggerConfig', 'breakOnFirstLine', 'debuggerSkipFiles')) {
-					this.config = await AVAConfig.load(uri, this.log)
+					await this.loadConfig()
 				}
 			}))
 
@@ -102,7 +102,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				}
 				if (filename === this.config.configFilePath) {
 					this.log.info('Sending reload event')
-					this.config = null
+					await this.loadConfig()
 					this.load()
 					return
 				}
@@ -119,54 +119,11 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.autorunEmitter.fire()
 				}
 			}))
-
-		const w = this.worker
-		const tree = this.tree
-		w.on('error', (error): void => {
-			log.error(error)
-		})
-		w.on('message', (message): void => {
-			if (log.enabled) {
-				log.info(`Worker Message: ${message}`)
-			}
-		})
-		w.on('prefix', (prefix): void => {
-			tree.pushPrefix(prefix, log)
-		})
-		w.on('file', (file): void => {
-			tree.pushFile(file, log)
-		})
-		w.on('case', (test): void => {
-			tree.pushTest(test, log)
-		})
-		w.on('result', (result): void => {
-			this.testStatesEmitter.fire({
-				type: 'test',
-				state: result.state,
-				test: result.test
-			})
-		})
-		w.on('done', (file): void => {
-			this.testStatesEmitter.fire({
-				type: 'suite',
-				suite: file,
-				state: 'completed'
-			})
-		})
-		w.on('stdout', (chunk): void => {
-			this.channel.append(chunk)
-		})
-		w.on('stderr', (chunk): void => {
-			this.channel.append(chunk)
-		})
 	}
 
 	public async load(): Promise<void> {
 		this.testsEmitter.fire({ type: 'started' })
-		if (!this.config) {
-			this.config = await AVAConfig.load(this.workspace.uri, this.log)
-		}
-		const config = this.config
+		const config = this.config || await this.loadConfig()
 		if (!config) {
 			this.log.info(`config unavailable to load tests.`)
 			this.testsEmitter.fire({ type: 'finished', suite: undefined })
@@ -175,19 +132,19 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
-		return this.worker.enque((): void => {
+		if (this.worker) {
 			this.tree.clear()
-			this.worker.send({
+			return this.worker.send({
 				type: 'load',
 				file: config.configFilePath
-			})
-		}, (error: Error): void => {
-			this.log.error(error)
-		}).finally((): void => {
-			this.tree.build()
-			this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
-		})
+			}).catch((error: Error): void => {
+				this.log.error(error)
 
+			}).finally((): void => {
+				this.tree.build()
+				this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
+			})
+		}
 	}
 
 	public async run(testsToRun: string[]): Promise<void> {
@@ -198,50 +155,120 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			this.log.info(`Running test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
 		this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
-		return this.worker.enque((): void => {
-			this.worker.send({
+		if (this.worker) {
+			return this.worker.send({
 				type: 'run',
 				run: testsToRun
+			}).catch((error: Error): void => {
+				this.log.error(error)
+
+			}).finally((): void => {
+				this.testStatesEmitter.fire({ type: 'finished' })
 			})
-		}, (error: Error): void => {
-			this.log.error(error)
-		}).finally((): void => {
-			this.testStatesEmitter.fire({ type: 'finished' })
-		})
+		}
 	}
 
 	public async debug(testsToRun: string[]): Promise<void> {
 		if (!this.config || (testsToRun.length === 0)) {
 			return
 		}
-		//const config = this.config
 		if (this.log.enabled) {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		return this.worker.enque((): void => {
-			this.worker.send({
+		if (this.worker) {
+			return this.worker.send({
 				type: 'debug',
 				run: testsToRun
+			}).catch((error: Error): void => {
+				this.log.error(error)
+
 			})
-		}, (error: Error): void => {
-			this.log.error(error)
-		})
+		}
 	}
 
 	public cancel(): void {
-		if (this.worker.alive) {
+		if (this.worker) {
 			this.log.info('Stopping running test process...')
 			this.worker.send({ type: 'stop' })
 		}
 	}
 
 	public dispose(): void {
-		this.cancel()
+		if (this.worker) {
+			this.worker.disconnect()
+		}
 		for (const disposable of this.disposables) {
 			disposable.dispose()
 		}
 		this.disposables = []
 		this.tree.clear()
+	}
+
+	private async loadConfig(): Promise<LoadedConfig | null> {
+		const old = this.config
+		const c = await AVAConfig.load(this.workspace.uri, this.log)
+		this.config = c
+		if (c && (!this.worker || (old && c && old.cwd !== c.cwd))) {
+			this.spawn(c)
+		} else if (this.worker && !c) {
+			this.worker.disconnect()
+		}
+		return c
+	}
+
+	private async spawn(config: LoadedConfig): Promise<void> {
+		if (this.worker) {
+			this.worker.disconnect()
+		}
+		const tree = this.tree
+		const log = this.log
+		const w = new Worker(config)
+			.on('stdout', (chunk): void => {
+				this.channel.append(chunk)
+			})
+			.on('stderr', (chunk): void => {
+				this.channel.append(chunk)
+			})
+			.on('error', (error): void => {
+				log.error(error)
+			})
+			.on('message', (message): void => {
+				if (log.enabled) {
+					log.info(`Worker Message: ${message}`)
+				}
+			})
+			.on('prefix', (prefix): void => {
+				tree.pushPrefix(prefix, log)
+			})
+			.on('file', (file): void => {
+				tree.pushFile(file, log)
+			})
+			.on('case', (test): void => {
+				tree.pushTest(test, log)
+			})
+			.on('result', (result): void => {
+				this.testStatesEmitter.fire({
+					type: 'test',
+					state: result.state,
+					test: result.test
+				})
+			})
+			.on('done', (file): void => {
+				this.testStatesEmitter.fire({
+					type: 'suite',
+					suite: file,
+					state: 'completed'
+				})
+			})
+			.once('connect', (): void => {
+				this.worker = w
+			})
+			.once('disconnect', (): void => {
+				if (this.worker === w) {
+					this.worker.removeAllListeners()
+					this.worker = undefined
+				}
+			})
 	}
 }
