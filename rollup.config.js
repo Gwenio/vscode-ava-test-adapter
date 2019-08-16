@@ -110,23 +110,12 @@ export default [{
 	plugins: configurePlugins(),
 	output: outputBundle('dist/main.js')
 }, {
-	input: 'tmp/src/worker/runner.js',
-	external: builtins.concat(
-		"arrify").concat(avaFiles),
-	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/runner.js', avaIntro)
-}, {
-	input: 'tmp/src/worker/debugger.js',
-	external: builtins.concat(
-		"arrify").concat(avaFiles),
-	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/debugger.js', avaIntro)
-}, {
-	input: 'tmp/src/worker/loader.js',
+	input: 'tmp/src/child.js',
 	external: builtins.concat(
 		"common-path-prefix",
-		"arrify"
+		"arrify",
+		"matcher"
 	).concat(avaFiles),
 	plugins: configurePlugins(),
-	output: outputBundle('dist/worker/loader.js', avaIntro)
+	output: outputBundle('dist/child.js', avaIntro)
 }]
