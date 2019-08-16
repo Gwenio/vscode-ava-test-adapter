@@ -26,7 +26,6 @@ import validateEnvironmentVariables from 'ava/lib/environment-variables'
 import AVA from 'ava/namespace'
 
 type Logger = (message: string) => void
-type MatchFilter = (match: string[]) => string[]
 
 export interface Setup {
 	babelConfig: AVA.BabelConfig;
@@ -50,7 +49,7 @@ export interface Setup {
 	testOnlyExecArgv?: string[];
 }
 
-export function setup(configFile: string, logger: null | Logger): Setup {
+export function setup(configFile: string, logger?: Logger): Setup {
 	if (logger) logger('Loading AVA config file...')
 	const avaConfig = loadAVAConfig({ configFile, resolveFrom: process.cwd(), defaults: {} })
 
