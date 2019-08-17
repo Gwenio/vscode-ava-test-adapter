@@ -53,7 +53,7 @@ export class Worker {
 	private connection?: ClientSocket
 	private readonly emitter: Emitter = new Emitter()
 
-	public constructor(config: WorkerConfig) {
+	public constructor(config: WorkerConfig, resolve: () => void) {
 		const emitter = this.emitter
 		this.child = fork(
 			/* eslint node/no-missing-require: "off" */
@@ -75,13 +75,19 @@ export class Worker {
 		if (child.stderr) {
 			child.stderr.on('data', emitter.emit.bind(emitter, 'stderr'))
 		}
+		const timer = setTimeout((): void => {
+			child.kill()
+			resolve()
+		}, 30000)
 		child.once('message', (message: string): void => {
+			clearTimeout(timer)
 			const s = message.split(':')
-			this.connect(Number.parseInt(s[0], 16), s[1])
+			child.disconnect()
+			this.connect(Number.parseInt(s[0], 16), s[1], resolve)
 		})
 	}
 
-	private connect(port: number, token: string): void {
+	private connect(port: number, token: string, resolve: () => void): void {
 		const c = new Client(token)
 			.once('connect', (c): void => {
 				this.connection = c
@@ -127,7 +133,7 @@ export class Worker {
 					emit('error', new TypeError('Worker sent an invalid message.'))
 				}
 			})
-		c.connectTo({ port })
+		c.connectTo({ port }).finally(resolve)
 	}
 
 	/* eslint no-dupe-class-members: "off" */
@@ -171,8 +177,8 @@ export class Worker {
 		return this
 	}
 
-	public removeListener(event: Events, listener: (...a) => void): Worker {
-		this.emitter.removeListener(event, listener)
+	public off(event: Events, listener: (...a) => void): Worker {
+		this.emitter.off(event, listener)
 		return this
 	}
 
