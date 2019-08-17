@@ -250,8 +250,20 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		const old = this.config
 		const c = await AVAConfig.load(this.workspace.uri, this.log)
 		this.config = c
-		if (c && (!this.worker || (old && c && old.cwd !== c.cwd))) {
-			this.spawn(c)
+		if (c && (!this.worker || (old && old.cwd !== c.cwd))) {
+			this.spawn(c).then((): void => {
+				const w = this.worker
+				if (w) {
+					w.send({
+						type: 'log',
+						enable: this.log.enabled
+					})
+					w.send({
+						type: 'port',
+						port: c.debuggerPort
+					})
+				}
+			})
 		} else if (this.worker && !c) {
 			this.worker.disconnect()
 		}
