@@ -49,6 +49,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private config: LoadedConfig | null = null
 
 	private worker?: Worker
+	private spawnQueue: Promise<void> = Promise.resolve()
 
 	public readonly workspace: vscode.WorkspaceFolder
 	public readonly channel: vscode.OutputChannel
@@ -132,20 +133,35 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
+		this.tree.clear()
+		this.spawnQueue = this.spawnQueue.then(async (): Promise<void> => {
+			if (!this.worker) {
+				await this.spawn(config)
+			}
+		})
+		await this.spawnQueue
 		if (this.worker) {
-			this.tree.clear()
-			return this.worker.send({
-				type: 'load',
-				file: config.configFilePath
-			}).catch((error: Error): void => {
-				this.log.error(error)
+			return this.worker
+				.send({
+					type: 'load',
+					file: config.configFilePath
+				})
+				.then((): void => {
+					if (this.log.enabled) {
+						this.log.info('Finished loading test information.')
+					}
+				})
+				.catch((error: Error): void => {
+					this.log.error(error)
 
-			}).finally((): void => {
-				this.tree.build()
-				this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
-			})
+				})
+				.finally((): void => {
+					this.tree.build()
+					this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
+				})
 		} else {
 			this.log.error('No worker connected.')
+			this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
 		}
 	}
 
@@ -157,15 +173,20 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			this.log.info(`Running test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
 		this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
+		await this.spawnQueue
 		if (this.worker) {
 			return this.worker
 				.send({
 					type: 'run',
 					run: testsToRun
 				})
+				.then((): void => {
+					if (this.log.enabled) {
+						this.log.info('Finished running tests.')
+					}
+				})
 				.catch((error: Error): void => {
 					this.log.error(error)
-
 				})
 				.finally((): void => {
 					this.testStatesEmitter.fire({ type: 'finished' })
@@ -184,6 +205,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
+		await this.spawnQueue
 		if (this.worker) {
 			const l = this.connectDebugger.bind(this, config.debuggerPort, config.debuggerSkipFiles)
 			return this.worker
@@ -198,7 +220,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				})
 				.finally((): void => {
 					if (this.worker) {
-						this.worker.removeListener('ready', l)
+						this.worker.off('ready', l)
 					}
 				})
 		} else {
@@ -236,59 +258,76 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		return c
 	}
 
-	private async spawn(config: LoadedConfig): Promise<void> {
-		if (this.worker) {
-			this.worker.disconnect()
-		}
+	private spawn(config: LoadedConfig): Promise<void> {
 		const tree = this.tree
 		const log = this.log
-		const w = new Worker(config)
-			.on('stdout', (chunk): void => {
+		const append = (chunk): void => {
+			if (typeof chunk === 'string') {
 				this.channel.append(chunk)
-			})
-			.on('stderr', (chunk): void => {
-				this.channel.append(chunk)
-			})
-			.on('error', (error): void => {
-				log.error(error)
-			})
-			.on('message', (message): void => {
-				if (log.enabled) {
-					log.info(`Worker Message: ${message}`)
-				}
-			})
-			.on('prefix', (prefix): void => {
-				tree.pushPrefix(prefix, log)
-			})
-			.on('file', (file): void => {
-				tree.pushFile(file, log)
-			})
-			.on('case', (test): void => {
-				tree.pushTest(test, log)
-			})
-			.on('result', (result): void => {
-				this.testStatesEmitter.fire({
-					type: 'test',
-					state: result.state,
-					test: result.test
+			} else if (chunk instanceof Buffer) {
+				this.channel.append(chunk.toString())
+			}
+		}
+		const p = new Promise<void>(async (resolve): Promise<void> => {
+			await this.spawnQueue
+			if (log.enabled) {
+				log.debug('Spawning worker...')
+			}
+			const w = new Worker(config, resolve)
+				.on('stdout', append)
+				.on('stderr', append)
+				.on('error', (error): void => {
+					log.error(error)
 				})
-			})
-			.on('done', (file): void => {
-				this.testStatesEmitter.fire({
-					type: 'suite',
-					suite: file,
-					state: 'completed'
+				.on('message', (message): void => {
+					if (log.enabled) {
+						log.info(`Worker Message: ${message}`)
+					}
 				})
-			})
-			.once('connect', (): void => {
-				this.worker = w
-			})
-			.once('disconnect', (): void => {
-				if (this.worker === w) {
-					this.worker.removeAllListeners()
-					this.worker = undefined
-				}
-			})
+				.on('prefix', (prefix): void => {
+					tree.pushPrefix(prefix, log)
+				})
+				.on('file', (file): void => {
+					tree.pushFile(file, log)
+				})
+				.on('case', (test): void => {
+					tree.pushTest(test, log)
+				})
+				.on('result', (result): void => {
+					this.testStatesEmitter.fire({
+						type: 'test',
+						state: result.state,
+						test: result.test
+					})
+				})
+				.on('done', (file): void => {
+					this.testStatesEmitter.fire({
+						type: 'suite',
+						suite: file,
+						state: 'completed'
+					})
+				})
+				.once('connect', (): void => {
+					if (this.worker) {
+						this.worker.disconnect()
+					}
+					this.worker = w
+					if (log.enabled) {
+						log.debug('Worker connected.')
+					}
+				})
+				.once('disconnect', (): void => {
+					if (this.worker === w) {
+						this.worker = undefined
+					}
+					w.removeAllListeners()
+					if (log.enabled) {
+						log.debug('Worker disconnected.')
+					}
+				})
+		})
+		this.spawnQueue = p
+		return p
 	}
 
 
