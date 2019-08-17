@@ -5,6 +5,8 @@ types/**
 yarn.lock
 tsconfig.json
 node_modules/**
+!node_modules/veza/dist/**.js
+!node_modules/binarytf/**.js
 .git/**
 .vscode/**
 .gitignore

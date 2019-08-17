@@ -37,7 +37,9 @@ function configurePlugins() {
 	if (process.env.NODE_ENV === 'production') {
 		return [
 			resolve({}),
-			commonjs({}),
+			commonjs({
+				sourceMap: false
+			}),
 			jsonfile({}),
 			babel({
 				plugins: [
@@ -79,7 +81,9 @@ function configurePlugins() {
 		return [
 			sourcemaps(),
 			resolve({}),
-			commonjs({}),
+			commonjs({
+				sourceMap: true
+			}),
 			jsonfile({}),
 			babel({
 				plugins: [
@@ -99,14 +103,19 @@ function configurePlugins() {
 }
 
 const avaIntro = {
-	intro: "require=require('module').createRequire(process.cwd()+'/');" +
-		"require('ava/lib/chalk').set({enabled: false});"
+	intro: "const connection=(function() {\n" +
+		"const {Server}=new require('veza/dist/lib/Server');\n" +
+		"return new Server('ava-adapter-worker');})()\n" +
+		"require=require('module').createRequire(process.cwd()+'/');\n" +
+		"require('ava/lib/chalk').set({enabled: false});\n"
 }
 
 export default [{
 	input: 'tmp/src/main.js',
 	external: builtins.concat(
-		"vscode").concat(avaFiles),
+		"vscode",
+		"veza",
+		"binarytf").concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/main.js')
 }, {
@@ -115,7 +124,9 @@ export default [{
 		"common-path-prefix",
 		"arrify",
 		"matcher",
-		"get-port"
+		"get-port",
+		"veza",
+		"binarytf"
 	).concat(avaFiles),
 	plugins: configurePlugins(),
 	output: outputBundle('dist/child.js', avaIntro)
