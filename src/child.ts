@@ -22,6 +22,7 @@ import random from 'random'
 import Api from 'ava/lib/api'
 import * as IPC from './ipc'
 import hash from './hash'
+import Suite from './worker/suite'
 
 let connected = false
 const token = hash(process.cwd(), (): boolean => false,
@@ -34,7 +35,18 @@ Api.prototype._computeForkExecArgv = async function (): Promise<string[]> {
 	return process.execArgv.concat(`--inspect-brk=${debuggerPort}`)
 }
 
-async function loadTests(_info: IPC.Load, _client: ServerSocket): Promise<void> { }
+let suite: Suite | null = null
+
+async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
+	const logger = logEnabled ? console.log : undefined
+	suite = new Suite(info.file, logger)
+	await suite.load(logger)
+	suite.collectInfo((data: IPC.Tree): void => {
+		client.send(data, {
+			receptive: false
+		})
+	})
+}
 
 async function runTests(_info: IPC.Run, _client: ServerSocket): Promise<void> { }
 
