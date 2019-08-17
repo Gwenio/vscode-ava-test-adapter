@@ -24,11 +24,10 @@ import * as IPC from './ipc'
 import hash from './hash'
 
 let connected = false
-const childToken = 'ava-adapter-worker'
-const parentToken = hash(process.cwd(), (): boolean => true,
+const token = hash(process.cwd(), (): boolean => false,
 	process.cwd().length.toString(16),
 	random.int(0, 0xFFFF).toString(16))
-let logEnabled = false
+let logEnabled = process.env.NODE_ENV !== 'production'
 let debuggerPort = 9229
 
 Api.prototype._computeForkExecArgv = async function (): Promise<string[]> {
@@ -41,7 +40,8 @@ async function runTests(_info: IPC.Run, _client: ServerSocket): Promise<void> { 
 
 async function debugTests(_info: IPC.Debug, _client: ServerSocket): Promise<void> { }
 
-const connection = new Server(childToken)
+declare const connection: Server
+connection
 	.on('error', (error, client): void => {
 		if (client) {
 			console.error(`[IPC] Error from ${client.name}:`, error)
@@ -50,7 +50,7 @@ const connection = new Server(childToken)
 		}
 	})
 	.on('connect', (client): void => {
-		if (client.name === parentToken) {
+		if (client.name === token) {
 			if (connected) {
 				client.disconnect(true)
 				console.error('[Worker] Another connection made.')
@@ -63,7 +63,7 @@ const connection = new Server(childToken)
 		}
 	})
 	.on('disconnect', (client): void => {
-		if (client.name === parentToken && connected) {
+		if (client.name === token && connected) {
 			client.server.close()
 		}
 	})
@@ -108,9 +108,15 @@ const connection = new Server(childToken)
 async function serve(): Promise<void> {
 	const port = await getPort()
 	try {
+		if (logEnabled) {
+			console.log(`[Worker] Will listen on port: ${port}`)
+		}
 		await connection.listen(port)
 		if (process.send) {
-			process.send(`${port.toString(16)}:${parentToken}`)
+			process.send(`${port.toString(16)}:${token}`)
+		} else {
+			console.error('[Worker] Could not send the token to the parent.')
+			connection.close()
 		}
 	} catch (error) {
 		console.error('[Worker] Failed to establish IPC.', error)
