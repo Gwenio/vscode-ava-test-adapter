@@ -21,7 +21,6 @@ import {
 	TestSuiteInfo,
 } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
-import hash from './hash'
 import { Prefix, TestFile, TestCase } from './ipc'
 
 interface Info {
@@ -80,17 +79,15 @@ export default class TestTree {
 		if (log.enabled) {
 			log.info(`Received test file ${meta.id} from worker`)
 		}
-		const hashes = this.suiteHash
 		const id = meta.id
-		const h = hash(id, hashes.has.bind(hashes), 'f')
-		const tooltip = process.env.NODE_ENV === 'production' ? id : h
-		const file = this.prefix + id
-		hashes.set(id, {
+		const label = meta.file
+		const file = this.prefix + label
+		this.suiteHash.set(id, {
 			type: 'suite',
-			id: h,
-			label: id,
+			id,
+			label,
 			file,
-			tooltip,
+			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			children: []
 		})
 		this.files.add(file)
@@ -100,26 +97,21 @@ export default class TestTree {
 		if (log.enabled) {
 			log.info(`Received test case ${meta.id} from worker`)
 		}
-		const hashes = this.testHash
 		const id = meta.id
+		const label = meta.test
 		const suite = this.suiteHash.get(meta.file)
 		if (!suite) {
 			log.error(`Test Case for unknown Test File: ${meta.file}`)
 			return
 		}
-		const h = hash(id, hashes.has.bind(hashes), 't', id.length.toString(16))
-		if (log.enabled) {
-			log.info(`Generated test case ID: ${hash}`)
-		}
-		const tooltip = process.env.NODE_ENV === 'production' ? id : h
 		const x: TestInfo & Info = {
 			type: 'test',
-			id: h,
-			label: id,
-			tooltip,
+			id,
+			label,
+			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			file: suite.file
 		}
-		hashes.set(h, x)
+		this.testHash.set(id, x)
 		suite.children.push(x)
 	}
 
