@@ -19,7 +19,6 @@ PERFORMANCE OF THIS SOFTWARE.
 import { Server, ServerSocket } from 'veza'
 import getPort from 'get-port'
 import random from 'random'
-import Api from 'ava/lib/api'
 import * as IPC from './ipc'
 import hash from './hash'
 import Suite from './worker/suite'
@@ -29,11 +28,7 @@ const token = hash(process.cwd(), (): boolean => false,
 	process.cwd().length.toString(16),
 	random.int(0, 0xFFFF).toString(16))
 let logEnabled = process.env.NODE_ENV !== 'production'
-let debuggerPort = 9229
-
-Api.prototype._computeForkExecArgv = async function (): Promise<string[]> {
-	return process.execArgv.concat(`--inspect-brk=${debuggerPort}`)
-}
+//let debuggerPort = 9229
 
 let suite: Suite | null = null
 
@@ -41,11 +36,13 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	suite = new Suite(info.file, logger)
 	await suite.load(logger)
-	suite.collectInfo((data: IPC.Tree): void => {
-		client.send(data, {
+	const wait: Promise<unknown>[] = []
+	await suite.collectInfo((data: IPC.Tree): void => {
+		wait.push(client.send(data, {
 			receptive: false
-		})
+		}))
 	})
+	await Promise.all(wait)
 }
 
 async function runTests(_info: IPC.Run, _client: ServerSocket): Promise<void> { }
@@ -88,7 +85,7 @@ connection
 					logEnabled = m.enable
 					return
 				case 'port':
-					debuggerPort = m.port
+					//debuggerPort = m.port
 					return
 				case 'load':
 					loadTests(m, client).finally((): void => {
