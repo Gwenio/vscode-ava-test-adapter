@@ -46,6 +46,7 @@ export default class Suite {
 	private prefix: string = ''
 	private files: Map<string, string> = new Map<string, string>()
 	private tests: Map<string, TestInfo> = new Map<string, TestInfo>()
+	private working: Promise<void> = Promise.resolve()
 
 	public constructor(file: string, logger?: Logger) {
 		this.file = file
@@ -54,7 +55,7 @@ export default class Suite {
 
 	public async load(logger?: Logger): Promise<AVA.Status> {
 		const reporter = new LoadReporter((report): void => {
-			this.build(report, logger)
+			this.working = this.build(report, logger)
 		}, this.config.match, logger)
 		const c = {
 			...this.config,
@@ -63,10 +64,11 @@ export default class Suite {
 		return worker(c, {
 			reporter,
 			logger
-		})
+		}).finally(reporter.endRun.bind(reporter))
 	}
 
-	public collectInfo(send: (data: Tree) => void): void {
+	public async collectInfo(send: (data: Tree) => void): Promise<void> {
+		await this.working
 		send({
 			type: 'prefix',
 			id: '',
@@ -92,7 +94,10 @@ export default class Suite {
 		}
 	}
 
-	private build(data: Loaded, _logger?: Logger): void {
+	private async build(data: Loaded, logger?: Logger): Promise<void> {
+		if (logger) {
+			logger(JSON.stringify(data))
+		}
 		this.prefix = data.prefix
 		for (const { file, tests } of data.info) {
 			const id = hash(file, this.files.has.bind(this.files), 'f')
