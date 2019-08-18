@@ -78,6 +78,12 @@ export default class LoadReporter extends AbstractReporter {
 					file: event.testFile
 				})
 				return
+			case 'worker-stderr':
+				process.stderr.write(event.chunk)
+				return
+			case 'worker-stdout':
+				process.stdout.write(event.chunk)
+				return
 			default:
 				return
 		}
@@ -98,7 +104,7 @@ export default class LoadReporter extends AbstractReporter {
 				prefix,
 				info: files.map((file): Info => {
 					const list = tests.filter((value): boolean => {
-						return value.file === file
+						return value.file.slice(length) === file
 					}).map((value): string => {
 						return value.title
 					})
