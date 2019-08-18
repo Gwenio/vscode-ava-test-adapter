@@ -52,8 +52,6 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 		plan.status.on('stateChange', (event): void => {
 			if (event.type === 'interrupt') {
 				reporter.endRun()
-				/* eslint unicorn/no-process-exit: "off" */
-				process.exit(1) // eslint-disable-line no-process-exit
 			}
 		})
 	})
