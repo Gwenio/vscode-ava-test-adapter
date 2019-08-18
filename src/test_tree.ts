@@ -94,10 +94,10 @@ export default class TestTree {
 	}
 
 	public pushTest(meta: TestCase, log: Log): void {
-		if (log.enabled) {
-			log.info(`Received test case ${meta.id} from worker`)
-		}
 		const id = meta.id
+		if (log.enabled) {
+			log.info(`Received test case ${id} of file ${meta.file} from worker`)
+		}
 		const label = meta.test
 		const suite = this.suiteHash.get(meta.file)
 		if (!suite) {
@@ -119,6 +119,7 @@ export default class TestTree {
 		const suites = this.rootSuite.children
 		this.suiteHash.forEach((value): void => {
 			sortTestInfo(value)
+			suites.push(value)
 		})
 		// Sort the suites by their filenames
 		this.rootSuite.children = suites.sort((a, b): (1 | -1) => {
