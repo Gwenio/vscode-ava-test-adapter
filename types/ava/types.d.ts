@@ -76,6 +76,7 @@ export interface Extensions {
 export interface Status {
 	on(tag: string, handler: (event: Event) => void): () => void;
 	suggestExitCode(circumstances: { matching: boolean }): number;
+	emitStateChange(event: Event): void;
 }
 
 export interface RuntimeOptions {
