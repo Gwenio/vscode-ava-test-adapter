@@ -17,11 +17,13 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import LoadReporter from './load'
-import TestReporter from './test'
+import { TestReporter, TestEmitter, TestResult } from './test'
 import DebugReporter from './debug'
 
 export {
 	LoadReporter,
 	TestReporter,
+	TestEmitter,
+	TestResult,
 	DebugReporter
 }
