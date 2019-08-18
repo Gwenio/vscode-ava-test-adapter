@@ -16,12 +16,14 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
+import Emitter from 'events'
 import { Server, ServerSocket } from 'veza'
 import getPort from 'get-port'
 import random from 'random'
 import * as IPC from './ipc'
 import hash from './hash'
 import Suite from './worker/suite'
+import { TestResult } from './reporter'
 
 let connected = false
 const token = hash(process.cwd(), (): boolean => false,
@@ -45,7 +47,50 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 	await Promise.all(wait)
 }
 
-async function runTests(_info: IPC.Run, _client: ServerSocket): Promise<void> { }
+async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
+	const s = suite
+	if (s) {
+		const logger = logEnabled ? console.log : undefined
+		const emit = new Emitter()
+		const wait: Promise<unknown>[] = [
+			new Promise<void>((resolve): void => {
+				emit.once('end', resolve)
+			})
+		]
+		const send = (data: IPC.Event): void => {
+			wait.push(client.send(data, {
+				receptive: false
+			}))
+		}
+		emit.on('done', (file: string): void => {
+			const id = s.getFileID(file)
+			if (id) {
+				send({
+					type: 'done',
+					file: id
+				})
+			} else {
+				console.error(`Could not find ID of file: ${file}`)
+			}
+		})
+		emit.on('result', (result: TestResult): void => {
+			const id = s.getTestID(result.test, result.file)
+			if (id) {
+				send({
+					type: 'result',
+					test: id,
+					state: result.state
+				})
+			} else {
+				console.error(`Could not find ID of test: ${JSON.stringify(result)}`)
+			}
+		})
+		await s.run(emit, info.run, logger)
+		await Promise.all(wait)
+	} else {
+		console.error('Attemped to run tests when no suite has been loaded.')
+	}
+}
 
 async function debugTests(_info: IPC.Debug, _client: ServerSocket): Promise<void> { }
 
