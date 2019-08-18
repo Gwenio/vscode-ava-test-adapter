@@ -26,6 +26,7 @@ export interface WorkerOptions {
 	reporter: AVA.Reporter;
 	logger?: Logger;
 	files?: string[];
+	port?: number;
 }
 
 export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
@@ -37,6 +38,12 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 		parallelRuns: null,
 		ranFromCli: true
 	})
+
+	if (options.port) {
+		api._computeForkExecArgv = async function (): Promise<string[]> {
+			return process.execArgv.concat(`--inspect-brk=${options.port}`)
+		}
+	}
 
 	if (logger) logger('Attaching reporter')
 
