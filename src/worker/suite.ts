@@ -16,10 +16,15 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
+import path from 'path'
 import AVA from 'ava/namespace'
 import { setup, Setup } from './ava_setup'
 import { worker } from './ava_worker'
-import { LoadReporter } from '../reporter'
+import {
+	LoadReporter,
+	TestReporter,
+	TestEmitter
+} from '../reporter'
 import hash from '../hash'
 import {
 	Tree
@@ -36,21 +41,77 @@ interface Loaded {
 }
 
 interface TestInfo {
+	/**
+	 * @summary The ID of the test's file.
+	 */
 	file: string;
+	/**
+	 * @summary The file name of the test's file.
+	 */
+	name: string;
+	/**
+	 * @summary The test's title.
+	 */
 	title: string;
+}
+
+interface Entry {
+	/**
+	 * @summary The test's ID.
+	 */
+	id: string;
+	/**
+	 * @summary The test's title.
+	 */
+	title: string;
+}
+
+interface Lookup {
+	/**
+	 * @summary The file name.
+	 */
+	file: string;
+	/**
+	 * @summary Test Entries for a file.
+	 */
+	entries: Entry[];
 }
 
 export default class Suite {
 	private readonly config: Setup
 	private readonly file: string
 	private prefix: string = ''
-	private files: Map<string, string> = new Map<string, string>()
-	private tests: Map<string, TestInfo> = new Map<string, TestInfo>()
+	private readonly files: Map<string, Lookup> = new Map<string, Lookup>()
+	private readonly tests: Map<string, TestInfo> = new Map<string, TestInfo>()
 	private working: Promise<void> = Promise.resolve()
 
 	public constructor(file: string, logger?: Logger) {
 		this.file = file
 		this.config = setup(file, logger)
+	}
+
+	public getFileID(name: string): string | null {
+		for (const f of this.files) {
+			if (f[1].file === name) {
+				return f[0]
+			}
+		}
+		return null
+	}
+
+	public getTestID(name: string, file: string): string | null {
+		for (const f of this.files) {
+			const x = f[1]
+			if (x.file === file) {
+				for (const t of x.entries) {
+					if (t.title === name) {
+						return t.id
+					}
+				}
+				return null
+			}
+		}
+		return null
 	}
 
 	public async load(logger?: Logger): Promise<AVA.Status> {
@@ -67,6 +128,36 @@ export default class Suite {
 		}).finally(reporter.endRun.bind(reporter))
 	}
 
+	public async run(emit: TestEmitter, plan: string[], logger?: Logger): Promise<AVA.Status> {
+		const config = this.config
+		const reporter = new TestReporter(emit, this.prefix.length, logger)
+		const { files, match } = this.processPlan(plan, config.resolveTestsFrom)
+		if (files) {
+			if (match) {
+				const c = {
+					...this.config,
+					match
+				}
+				return worker(c, {
+					reporter,
+					logger,
+					files
+				}).finally(reporter.endRun.bind(reporter))
+			} else {
+				return worker(config, {
+					reporter,
+					logger,
+					files
+				}).finally(reporter.endRun.bind(reporter))
+			}
+		} else {
+			return worker(config, {
+				reporter,
+				logger
+			}).finally(reporter.endRun.bind(reporter))
+		}
+	}
+
 	public async collectInfo(send: (data: Tree) => void): Promise<void> {
 		await this.working
 		send({
@@ -80,7 +171,7 @@ export default class Suite {
 				type: 'file',
 				id: f[0],
 				config: '',
-				file: f[1]
+				file: f[1].file
 			})
 		}
 		for (const t of this.tests) {
@@ -94,21 +185,72 @@ export default class Suite {
 		}
 	}
 
-	private async build(data: Loaded, logger?: Logger): Promise<void> {
-		if (logger) {
-			logger(JSON.stringify(data))
-		}
+	private async build(data: Loaded, _logger?: Logger): Promise<void> {
 		this.prefix = data.prefix
+		const files = this.files
+		const t = this.tests
 		for (const { file, tests } of data.info) {
-			const id = hash(file, this.files.has.bind(this.files), 'f')
-			this.files.set(id, file)
-			for (const item of tests) {
-				const h = hash(item, this.tests.has.bind(this.tests), 't', item.length.toString(16))
-				this.tests.set(h, {
+			const id = hash(file, files.has.bind(files), 'f')
+			const entries: Entry[] = []
+			for (const title of tests) {
+				const h = hash(title, t.has.bind(t), 't', title.length.toString(16))
+				t.set(h, {
 					file: id,
-					title: item
+					name: file,
+					title
+				})
+				entries.push({
+					id: h,
+					title
 				})
 			}
+			files.set(id, { file, entries })
+		}
+	}
+
+	private processPlan(plan: string[], from: string): { files?: string[]; match?: string[] } {
+		const prefix = this.prefix
+		const files = this.files
+		const tests = this.tests
+		const f = new Set<string>()
+		const m = new Set<string>()
+		for (const p of plan) {
+			if (p === 'root') {
+				return {}
+			} else if (p.startsWith('f')) {
+				const lookup = files.get(p)
+				if (lookup) {
+					for (const t of lookup.entries) {
+						m.add(t.title)
+					}
+					f.add(lookup.file)
+				}
+			} else if (p.startsWith('t')) {
+				const t = tests.get(p)
+				if (t) {
+					m.add(t.title)
+					f.add(t.name)
+				}
+			}
+		}
+		if (f.size > 0) {
+			const select: string[] = []
+			for (const x of f) {
+				select.push(path.relative(from, prefix + x))
+			}
+			console.log(`Files: ${JSON.stringify(select)}`)
+			if (m.size > 0) {
+				const match: string[] = []
+				for (const x of m) {
+					match.push(x)
+				}
+				console.log(`Match: ${JSON.stringify(match)}`)
+				return { files: select, match }
+			} else {
+				return { files: select }
+			}
+		} else {
+			return {}
 		}
 	}
 }
