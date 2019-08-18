@@ -117,6 +117,11 @@ export namespace Events {
 		testFile: string;
 	}
 
+	interface WorkerFailed {
+		type: 'worker-failed';
+		testFile: string;
+	}
+
 	interface Stats {
 		type: 'stats';
 		stats: TestStats;
@@ -139,5 +144,6 @@ export type Event = Events.DeclareTest |
 	Events.TestPassed |
 	Events.TestFailed |
 	Events.WorkerFinished |
+	Events.WorkerFailed |
 	Events.Output |
 	Events.Interrrupt
