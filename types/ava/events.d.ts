@@ -125,6 +125,11 @@ export namespace Events {
 	interface Interrrupt {
 		type: 'interrupt';
 	}
+
+	interface Output {
+		type: 'worker-stderr' | 'worker-stdout';
+		chunk: string | Uint8Array;
+	}
 }
 
 export type Event = Events.DeclareTest |
@@ -134,4 +139,5 @@ export type Event = Events.DeclareTest |
 	Events.TestPassed |
 	Events.TestFailed |
 	Events.WorkerFinished |
+	Events.Output |
 	Events.Interrrupt
