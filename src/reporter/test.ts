@@ -68,33 +68,36 @@ export class TestReporter extends AbstractReporter {
 						test: event.title
 					})
 				}
-				break
+				return
 			case 'test-passed':
 				this.reporter.emit('result', {
 					state: 'passed',
 					file: event.testFile.slice(this.prefix),
 					test: event.title
 				})
-				break
+				return
 			case 'test-failed':
 				this.reporter.emit('result', {
 					state: 'failed',
 					file: event.testFile.slice(this.prefix),
 					test: event.title
 				})
-				break
+				return
 			case 'worker-failed':
 			case 'worker-finished':
 				this.reporter.emit('done', event.testFile.slice(this.prefix))
-				break
+				return
 			case 'worker-stderr':
 				process.stderr.write(event.chunk)
 				return
 			case 'worker-stdout':
 				process.stdout.write(event.chunk)
 				return
+			case 'interrupt':
+				this.log('Testing interrupted.')
+				return
 			default:
-				break
+				return
 		}
 	}
 
