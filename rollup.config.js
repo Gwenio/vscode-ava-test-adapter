@@ -71,6 +71,7 @@ function configurePlugins() {
 				babelrc: false
 			}),
 			terser({
+				sourcemap: false,
 				ecma: 8,
 				parse: {
 					shebang: true
