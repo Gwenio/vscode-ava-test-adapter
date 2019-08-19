@@ -41,8 +41,11 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 	})
 
 	if (options.port) {
+		const original = api._computeForkExecArgv.bind(api)
 		api._computeForkExecArgv = async function (): Promise<string[]> {
-			return process.execArgv.concat(`--inspect-brk=${options.port}`)
+			const base = await original()
+			const filtered = base.filter((a): boolean => !a.startsWith('--inspect'))
+			return filtered.concat(`--inspect-brk=${options.port}`)
 		}
 	}
 
