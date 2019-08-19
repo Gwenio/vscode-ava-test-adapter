@@ -351,7 +351,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				port,
 				protocol: 'inspector',
 				timeout: 30000,
-				stopOnEntry: true,
+				stopOnEntry: false,
 				skipFiles
 			})
 		// workaround for Microsoft/vscode#70125
