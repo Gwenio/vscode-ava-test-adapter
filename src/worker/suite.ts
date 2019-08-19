@@ -23,7 +23,8 @@ import { worker } from './ava_worker'
 import {
 	LoadReporter,
 	TestReporter,
-	TestEmitter
+	TestEmitter,
+	DebugReporter
 } from '../reporter'
 import hash from '../hash'
 import {
@@ -171,6 +172,37 @@ export default class Suite {
 				logger,
 				interrupt: callback
 			}).finally(done)
+		}
+	}
+
+	public async debug(ready: () => void, plan: string[], port: number, serial: boolean,
+		logger?: Logger): Promise<void> {
+		const config = {
+			...this.config,
+			serial: serial || this.config.serial
+		}
+		const prefix = this.prefix
+		const from = config.resolveTestsFrom
+		const tests = this.tests
+		const reporter = new DebugReporter(ready, logger)
+		const done = reporter.endRun.bind(reporter)
+		for (const p of plan) {
+			if (p.startsWith('t')) {
+				const t = tests.get(p)
+				if (t) {
+					config.match = [t.title]
+					await worker(config, {
+						reporter,
+						logger,
+						port,
+						files: [path.relative(from, prefix + t.file)]
+					}).finally(done)
+				} else {
+					console.error(`Could not find test case with ID: ${p}`)
+				}
+			} else {
+				console.error('Only debugging of individual tests is supported.')
+			}
 		}
 	}
 

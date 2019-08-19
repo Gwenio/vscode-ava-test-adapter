@@ -206,12 +206,15 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
 		await this.spawnQueue
-		if (this.worker) {
-			const l = this.connectDebugger.bind(this, config.debuggerPort, config.debuggerSkipFiles)
-			return this.worker
+		const w = this.worker
+		if (w) {
+			const l = this.connectDebugger.bind(this, config.debuggerSkipFiles)
+			return w
 				.on('ready', l)
 				.send({
 					type: 'debug',
+					port: config.debuggerPort,
+					serial: config.serial,
 					run: testsToRun
 				})
 				.catch((error: Error): void => {
@@ -219,9 +222,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 				})
 				.finally((): void => {
-					if (this.worker) {
-						this.worker.off('ready', l)
-					}
+					w.off('ready', l)
 				})
 		} else {
 			this.log.error('No worker connected.')
@@ -257,10 +258,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					w.send({
 						type: 'log',
 						enable: this.log.enabled
-					})
-					w.send({
-						type: 'port',
-						port: c.debuggerPort
 					})
 				}
 			})
@@ -343,7 +340,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	}
 
 
-	private async connectDebugger(port: number, skipFiles: string[]): Promise<void> {
+	private async connectDebugger(skipFiles: string[], port: number): Promise<void> {
 		let currentSession: vscode.DebugSession | undefined
 		this.log.info('Starting the debug session')
 		await vscode.debug.startDebugging(this.workspace,
@@ -354,7 +351,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				port,
 				protocol: 'inspector',
 				timeout: 30000,
-				stopOnEntry: false,
+				stopOnEntry: true,
 				skipFiles
 			})
 		// workaround for Microsoft/vscode#70125

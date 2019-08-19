@@ -31,8 +31,7 @@ import {
 	TestCase,
 	TestFile,
 	Result,
-	Logging,
-	Port
+	Logging
 } from './ipc'
 
 const script = './child.js'
@@ -100,7 +99,7 @@ export class Worker {
 			.on('error', this.emitter.emit.bind(this.emitter, 'error'))
 			.on('message', ({ data }): void => {
 				const emit: (event: Events,
-					message?: string | Prefix | TestFile | TestCase | Result | Error) => void =
+					message?: string | number | Child | Result | Error) => void =
 					this.emitter.emit.bind(this.emitter)
 				if (typeof data === 'string') {
 					emit('message', data)
@@ -123,7 +122,7 @@ export class Worker {
 							emit('done', m.file)
 							return
 						case 'ready':
-							emit('ready')
+							emit('ready', m.port)
 							return
 						default:
 							emit('error', new TypeError(`Invalid message type: ${data.type}`))
@@ -133,7 +132,7 @@ export class Worker {
 					emit('error', new TypeError('Worker sent an invalid message.'))
 				}
 			})
-		c.connectTo({ port }).finally(resolve)
+		c.connectTo({ port, host: '127.0.0.1' }).finally(resolve)
 	}
 
 	/* eslint no-dupe-class-members: "off" */
@@ -149,7 +148,7 @@ export class Worker {
 	public on(event: 'case', handler: (test: TestCase) => void): Worker
 	public on(event: 'result', handler: (result: Result) => void): Worker
 	public on(event: 'done', handler: (file: string) => void): Worker
-	public on(event: 'ready', handler: () => void): Worker
+	public on(event: 'ready', handler: (port: number) => void): Worker
 	public on(event: Events, handler: (...args) => void): Worker {
 		this.emitter.on(event, handler)
 		return this
@@ -166,7 +165,7 @@ export class Worker {
 	public once(event: 'file', handler: (file: TestFile) => void): Worker
 	public once(event: 'case', handler: (test: TestCase) => void): Worker
 	public once(event: 'result', handler: (result: Result) => void): Worker
-	public once(event: 'ready', handler: () => void): Worker
+	public once(event: 'ready', handler: (port: number) => void): Worker
 	public once(event: Events, handler: (...args) => void): Worker {
 		this.emitter.once(event, handler)
 		return this
@@ -183,7 +182,7 @@ export class Worker {
 	}
 
 	public send(message: Load | Run | Debug): Promise<void>
-	public send(message: Drop | Stop | Logging | Port): void
+	public send(message: Drop | Stop | Logging): void
 	public send(message: Parent): void | Promise<void> {
 		const c = this.connection
 		if (c) {

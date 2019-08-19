@@ -30,7 +30,6 @@ const token = hash(process.cwd(), (): boolean => false,
 	process.cwd().length.toString(16),
 	random.int(0, 0xFFFF).toString(16))
 let logEnabled = process.env.NODE_ENV !== 'production'
-//let debuggerPort = 9229
 
 let suite: Suite | null = null
 
@@ -108,8 +107,11 @@ connection
 			if (connected) {
 				client.disconnect(true)
 				console.error('[Worker] Another connection made.')
-			} else if (logEnabled) {
-				console.log('[Worker] Connected.')
+			} else {
+				connected = true
+				if (logEnabled) {
+					console.log('[Worker] Connected.')
+				}
 			}
 		} else {
 			client.disconnect(true)
@@ -128,9 +130,6 @@ connection
 			switch (m.type) {
 				case 'log':
 					logEnabled = m.enable
-					return
-				case 'port':
-					//debuggerPort = m.port
 					return
 				case 'load':
 					loadTests(m, client).finally((): void => {
@@ -168,12 +167,13 @@ async function serve(): Promise<void> {
 		if (logEnabled) {
 			console.log(`[Worker] Will listen on port: ${port}`)
 		}
-		await connection.listen(port)
+		await connection.listen(port, '127.0.0.1')
 		if (process.send) {
 			process.send(`${port.toString(16)}:${token}`)
 		} else {
 			console.error('[Worker] Could not send the token to the parent.')
 			connection.close()
+			process.exitCode = 1
 		}
 	} catch (error) {
 		console.error('[Worker] Failed to establish IPC.', error)
