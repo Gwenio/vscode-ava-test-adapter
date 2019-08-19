@@ -24,10 +24,6 @@ export interface Logging extends Base<'log'> {
 	enable: boolean;
 }
 
-export interface Port extends Base<'port'> {
-	port: number;
-}
-
 export interface Load extends Base<'load'> {
 	file: string;
 }
@@ -70,14 +66,18 @@ export interface Done extends Base<'done'> {
 }
 
 export interface Debug extends Base<'debug'> {
+	port: number;
+	serial: boolean;
 	run: string[];
 }
 
-export type Ready = Base<'ready'>
+export interface Ready extends Base<'ready'> {
+	port: number;
+}
 
 export type Action = Load | Drop | Run | Stop | Debug
 
-export type Parent = Action | Logging | Port
+export type Parent = Action | Logging
 
 export type Tree = Prefix | TestFile | TestCase
 
