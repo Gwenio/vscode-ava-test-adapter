@@ -27,6 +27,7 @@ export interface WorkerOptions {
 	logger?: Logger;
 	files?: string[];
 	port?: number;
+	interrupt?: (cb: () => void) => void;
 }
 
 export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
@@ -43,6 +44,15 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 		api._computeForkExecArgv = async function (): Promise<string[]> {
 			return process.execArgv.concat(`--inspect-brk=${options.port}`)
 		}
+	}
+
+	if (options.interrupt) {
+		options.interrupt((): void => {
+			if (logger) {
+				logger('Interrupting AVA worker...')
+			}
+			api._interruptHandler()
+		})
 	}
 
 	if (logger) logger('Attaching reporter')
