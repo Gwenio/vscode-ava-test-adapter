@@ -91,7 +91,19 @@ async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 	}
 }
 
-async function debugTests(_info: IPC.Debug, _client: ServerSocket): Promise<void> { }
+async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> {
+	const s = suite
+	if (s) {
+		const logger = logEnabled ? console.log : undefined
+		const port = await getPort({ port: info.port })
+		await s.debug((): void => {
+			client.send({
+				type: 'ready',
+				port
+			})
+		}, info.run, port, info.serial, logger)
+	}
+}
 
 declare const connection: Server
 connection
