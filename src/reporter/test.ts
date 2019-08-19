@@ -38,7 +38,6 @@ export class TestReporter extends AbstractReporter {
 	private readonly log: Logger = (_message: string): void => { }
 	private readonly prefix: number
 	private running: boolean = false
-	private stop?: () => void
 
 	public constructor(reporter: TestEmitter, prefix: number, log?: Logger) {
 		super()
@@ -49,23 +48,14 @@ export class TestReporter extends AbstractReporter {
 		}
 	}
 
-	public cancel(): void {
-		if (this.stop) {
-			this.stop()
-		}
-	}
-
 	public reset(): void {
 		super.reset()
 		this.running = true
-		this.stop = undefined
 	}
 
 	public startRun(plan: AVA.Plan): void {
 		super.startRun(plan)
 		this.log('Begin Run.')
-		const s = plan.status
-		this.stop = s.emitStateChange.bind(s, { type: 'interrupt' })
 	}
 
 	public consumeStateChange(event: AVA.Event): void {
