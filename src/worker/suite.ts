@@ -184,19 +184,25 @@ export default class Suite {
 		const prefix = this.prefix
 		const from = config.resolveTestsFrom
 		const tests = this.tests
+		const files = this.files
 		const reporter = new DebugReporter(ready, logger)
 		const done = reporter.endRun.bind(reporter)
 		for (const p of plan) {
 			if (p.startsWith('t')) {
 				const t = tests.get(p)
 				if (t) {
-					config.match = [t.title]
-					await worker(config, {
-						reporter,
-						logger,
-						port,
-						files: [path.relative(from, prefix + t.file)]
-					}).finally(done)
+					const f = files.get(t.file)
+					if (f) {
+						config.match = [t.title]
+						await worker(config, {
+							reporter,
+							logger,
+							port,
+							files: [path.relative(from, prefix + f.file)]
+						}).finally(done)
+					} else {
+						console.error(`Could not find file with ID: ${t.file}`)
+					}
 				} else {
 					console.error(`Could not find test case with ID: ${p}`)
 				}
