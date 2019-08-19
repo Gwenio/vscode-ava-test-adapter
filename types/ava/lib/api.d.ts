@@ -53,6 +53,7 @@ declare module 'ava/lib/api' {
 		constructor(Options);
 		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>;
 		on(tag: 'run', handler: (plan: AVA.Plan) => void): void;
+		_interruptHandler(): void;
 		async _computeForkExecArgv(): Promise<string[]>;
 	}
 }
