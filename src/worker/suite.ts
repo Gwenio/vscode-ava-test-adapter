@@ -140,7 +140,9 @@ export default class Suite {
 	public async run(emit: TestEmitter, plan: string[], logger?: Logger): Promise<AVA.Status> {
 		const config = this.config
 		const reporter = new TestReporter(emit, this.prefix.length, logger)
-		const callback = (interrupt: () => void): void => interrupt()
+		const callback = (interrupt: () => void): void => {
+			this.stop = interrupt
+		}
 		const done = (): void => {
 			this.stop = undefined
 			reporter.endRun()
