@@ -11,6 +11,7 @@ import babel from 'rollup-plugin-babel'
 import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
 import jsonfile from 'rollup-plugin-json'
+import esModuleInterop from 'rollup-plugin-es-module-interop'
 import globby from "globby"
 
 const avaFiles = globby.sync([
@@ -41,6 +42,7 @@ function configurePlugins() {
 				sourceMap: false
 			}),
 			jsonfile({}),
+			esModuleInterop(),
 			babel({
 				plugins: [
 					["transform-inline-environment-variables",
@@ -86,6 +88,7 @@ function configurePlugins() {
 				sourceMap: true
 			}),
 			jsonfile({}),
+			esModuleInterop(),
 			babel({
 				plugins: [
 					"transform-remove-undefined",
