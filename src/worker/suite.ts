@@ -294,13 +294,11 @@ export default class Suite {
 			for (const x of f) {
 				select.push(path.relative(from, prefix + x))
 			}
-			console.log(`Files: ${JSON.stringify(select)}`)
 			if (m.size > 0) {
 				const match: string[] = []
 				for (const x of m) {
 					match.push(x)
 				}
-				console.log(`Match: ${JSON.stringify(match)}`)
 				return { files: select, match }
 			} else {
 				return { files: select }
