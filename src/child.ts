@@ -145,6 +145,9 @@ connection
 					})
 					return
 				case 'stop':
+					if (suite) {
+						suite.cancel()
+					}
 					return
 				case 'debug':
 					debugTests(m, client).finally((): void => {
