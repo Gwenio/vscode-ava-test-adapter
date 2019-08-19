@@ -84,6 +84,7 @@ export default class Suite {
 	private readonly files: Map<string, Lookup> = new Map<string, Lookup>()
 	private readonly tests: Map<string, TestInfo> = new Map<string, TestInfo>()
 	private working: Promise<void> = Promise.resolve()
+	private stop?: () => void
 
 	public constructor(file: string, logger?: Logger) {
 		this.file = file
@@ -114,6 +115,13 @@ export default class Suite {
 		return null
 	}
 
+	public cancel(): void {
+		const s = this.stop
+		if (s) {
+			s()
+		}
+	}
+
 	public async load(logger?: Logger): Promise<AVA.Status> {
 		const reporter = new LoadReporter((report): void => {
 			this.working = this.build(report, logger)
@@ -131,6 +139,11 @@ export default class Suite {
 	public async run(emit: TestEmitter, plan: string[], logger?: Logger): Promise<AVA.Status> {
 		const config = this.config
 		const reporter = new TestReporter(emit, this.prefix.length, logger)
+		const callback = (interrupt: () => void): void => interrupt()
+		const done = (): void => {
+			this.stop = undefined
+			reporter.endRun()
+		}
 		const { files, match } = this.processPlan(plan, config.resolveTestsFrom)
 		if (files) {
 			if (match) {
@@ -141,20 +154,23 @@ export default class Suite {
 				return worker(c, {
 					reporter,
 					logger,
-					files
-				}).finally(reporter.endRun.bind(reporter))
+					files,
+					interrupt: callback
+				}).finally(done)
 			} else {
 				return worker(config, {
 					reporter,
 					logger,
-					files
-				}).finally(reporter.endRun.bind(reporter))
+					files,
+					interrupt: callback
+				}).finally(done)
 			}
 		} else {
 			return worker(config, {
 				reporter,
-				logger
-			}).finally(reporter.endRun.bind(reporter))
+				logger,
+				interrupt: callback
+			}).finally(done)
 		}
 	}
 
