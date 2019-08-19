@@ -2,6 +2,7 @@
 
 /* eslint node/no-unsupported-features/es-syntax: ["error", { "ignores": ["modules"] }] */
 
+import path from 'path'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 import {
@@ -11,9 +12,22 @@ import babel from 'rollup-plugin-babel'
 import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
 import jsonfile from 'rollup-plugin-json'
-import esModuleInterop from 'rollup-plugin-es-module-interop'
+import license from 'rollup-plugin-license'
 import globby from "globby"
+import chalk from 'chalk'
 
+function bundleSize() {
+	return {
+		name: 'bundle-size',
+		generateBundle(options, bundle) {
+			/** @type string */
+			const a = path.basename(options.file)
+			/** @type string */
+			const c = bundle[a].code
+			console.log(`Size of ${chalk.cyan(a)}: ${chalk.green(c.length.toString())}`)
+		}
+	}
+}
 const avaFiles = globby.sync([
 	'./node_modules/ava/*.js',
 	'./node_modules/ava/lib/*.js',
@@ -42,8 +56,8 @@ function configurePlugins() {
 				sourceMap: false
 			}),
 			jsonfile({}),
-			esModuleInterop(),
 			babel({
+				sourcemap: false,
 				plugins: [
 					["transform-inline-environment-variables",
 						{
@@ -51,34 +65,36 @@ function configurePlugins() {
 						}
 					],
 					"transform-remove-undefined",
-					"transform-remove-debugger",
-					"transform-member-expression-literals",
 					"transform-inline-consecutive-adds",
 					"transform-property-literals",
 					"transform-regexp-constructors",
-					"minify-constant-folding",
 					"minify-guarded-expressions",
-					["minify-dead-code-elimination",
-						{
-							keepClassName: true
-						}
-					],
-					["minify-mangle-names",
-						{
-							keepClassName: true
-						}
-					]
 				],
 				configFile: false,
 				babelrc: false
+			}),
+			license({
+				sourcemap: false,
+				banner: {
+					commentStyle: 'ignored',
+					content: {
+						file: path.join(__dirname, 'LICENSE'),
+						encoding: 'utf-8',
+					}
+				}
 			}),
 			terser({
 				sourcemap: false,
 				ecma: 8,
 				parse: {
 					shebang: true
+				},
+				output: {
+					comments: /^!/,
+					shebang: true
 				}
-			})
+			}),
+			bundleSize()
 		]
 	} else {
 		return [
@@ -87,21 +103,36 @@ function configurePlugins() {
 			commonjs({
 				sourceMap: true
 			}),
-			jsonfile({}),
-			esModuleInterop(),
+			jsonfile({
+				sourcemap: true
+			}),
 			babel({
+				sourcemap: true,
 				plugins: [
+					["transform-inline-environment-variables",
+						typeof process.env.NODE_ENV === 'string' ?
+							{ "include": ["NODE_ENV"] } : {}
+					],
 					"transform-remove-undefined",
 					"transform-member-expression-literals",
 					"transform-inline-consecutive-adds",
 					"transform-property-literals",
 					"transform-regexp-constructors",
 					"minify-constant-folding",
-					"minify-guarded-expressions"
+					"minify-guarded-expressions",
+					["minify-dead-code-elimination",
+						{
+							keepFnName: true,
+							/* eslint unicorn/prevent-abbreviations: "off" */
+							keepFnArgs: true,
+							keepClassName: true,
+							tdz: true
+						}]
 				],
 				configFile: false,
 				babelrc: false
-			})
+			}),
+			bundleSize()
 		]
 	}
 }
