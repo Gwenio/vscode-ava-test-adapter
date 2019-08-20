@@ -180,8 +180,8 @@
 					},
 					"scope": "resource"
 				},
-				"avaExplorer.breakOnFirstLine": {
-					"description": "when debugging, inject a breakpoint at the 1st line of the 1st run test",
+				"avaExplorer.serial": {
+					"description": "When true, forces test to run serially while debugging.",
 					"type": "boolean",
 					"default": false,
 					"scope": "resource"
