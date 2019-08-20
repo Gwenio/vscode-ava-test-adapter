@@ -24,7 +24,7 @@ function bundleSize() {
 			const a = path.basename(options.file)
 			/** @type string */
 			const c = bundle[a].code
-			console.log(`Size of ${chalk.cyan(a)}: ${c.length.toString()}`)
+			console.log(`Size of ${chalk.cyan(a)}: ${chalk.green(c.length.toString())}`)
 		}
 	}
 }
@@ -89,6 +89,14 @@ function configurePlugins() {
 					"transform-property-literals",
 					"transform-regexp-constructors",
 					"minify-guarded-expressions",
+					["minify-dead-code-elimination",
+						{
+							keepFnName: true,
+							/* eslint unicorn/prevent-abbreviations: "off" */
+							keepFnArgs: true,
+							keepClassName: true,
+							tdz: true
+						}]
 				],
 				configFile: false,
 				babelrc: false
@@ -105,6 +113,7 @@ function configurePlugins() {
 			}),
 			terser({
 				sourcemap: false,
+				toplevel: true,
 				ecma: 8,
 				parse: {
 					shebang: true
@@ -135,11 +144,9 @@ function configurePlugins() {
 							{ "include": ["NODE_ENV"] } : {}
 					],
 					"transform-remove-undefined",
-					"transform-member-expression-literals",
 					"transform-inline-consecutive-adds",
 					"transform-property-literals",
 					"transform-regexp-constructors",
-					"minify-constant-folding",
 					"minify-guarded-expressions",
 					["minify-dead-code-elimination",
 						{
@@ -152,6 +159,35 @@ function configurePlugins() {
 				],
 				configFile: false,
 				babelrc: false
+			}),
+			terser({
+				sourcemap: true,
+				ecma: 8,
+				keep_classnames: true,
+				keep_fnames: true,
+				warnings: true,
+				toplevel: true,
+				parse: {
+					shebang: true
+				},
+				compress: {
+					/* eslint unicorn/prevent-abbreviations: "off" */
+					defaults: false,
+					arrows: true,
+					evaluate: true,
+					properties: true,
+					computed_props: true,
+					dead_code: true
+				},
+				output: {
+					comments: 'some',
+					shebang: true,
+					beautify: true,
+					semicolons: false,
+					keep_quoted_props: true,
+					indent_level: 2,
+					max_line_len: 100
+				}
 			}),
 			bundleSize()
 		]
