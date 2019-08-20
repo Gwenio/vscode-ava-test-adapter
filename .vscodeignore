@@ -11,11 +11,13 @@ node_modules/**
 !node_modules/veza/dist/lib/Structures/Base/SocketHandler.js
 !node_modules/veza/dist/lib/Util/*.js
 !node_modules/veza/LICENSE
+!node_modules/veza/package.json
 !node_modules/binarytf/dist/index.js
 !node_modules/binarytf/dist/lib/*.js
 !node_modules/binarytf/dist/lib/errors/*.js
 !node_modules/binarytf/dist/lib/util/*.js
 !node_modules/binarytf/LICENSE
+!node_modules/binarytf/package.json
 .git/**
 .vscode/**
 .gitignore
