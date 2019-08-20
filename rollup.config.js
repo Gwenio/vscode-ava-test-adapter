@@ -24,10 +24,30 @@ function bundleSize() {
 			const a = path.basename(options.file)
 			/** @type string */
 			const c = bundle[a].code
-			console.log(`Size of ${chalk.cyan(a)}: ${chalk.green(c.length.toString())}`)
+			console.log(`Size of ${chalk.cyan(a)}: ${c.length.toString()}`)
 		}
 	}
 }
+
+function dependList() {
+	return {
+		name: 'depend-list',
+		generateBundle(options, bundle) {
+			const f = path.basename(options.file)
+			const s = new Set()
+			Object.keys(bundle[f].modules)
+				.filter(x => !x.startsWith('\u0000'))
+				.map(x => path.dirname(x).split(path.sep))
+				.filter(x => x.includes('node_modules'))
+				.map(x => x.slice(x.lastIndexOf('node_modules') + 1))
+				.map(x => x.slice(0, x[0].startsWith('@') ? 2 : 1))
+				.map(x => x.join(path.sep))
+				.forEach(x => s.add(x))
+			console.log([...s])
+		}
+	}
+}
+
 const avaFiles = globby.sync([
 	'./node_modules/ava/*.js',
 	'./node_modules/ava/lib/*.js',
@@ -94,6 +114,7 @@ function configurePlugins() {
 					shebang: true
 				}
 			}),
+			dependList(),
 			bundleSize()
 		]
 	} else {
@@ -139,10 +160,10 @@ function configurePlugins() {
 
 const avaIntro = {
 	intro: "const connection=(function() {\n" +
-		"const {Server}=new require('veza/dist/lib/Server');\n" +
-		"return new Server('ava-adapter-worker');})()\n" +
-		"require=require('module').createRequire(process.cwd()+'/');\n" +
-		"require('ava/lib/chalk').set({enabled: false});\n"
+		"const {Server}=new require('veza/dist/lib/Server')\n" +
+		"return new Server('ava-adapter-worker')})()\n" +
+		"require=require('module').createRequire(process.cwd()+'/')\n" +
+		"require('ava/lib/chalk').set({enabled: false})\n"
 }
 
 export default [{
