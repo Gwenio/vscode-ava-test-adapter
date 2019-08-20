@@ -6,7 +6,9 @@ yarn.lock
 tsconfig.json
 node_modules/**
 !node_modules/veza/dist/**.js
+!node_modules/veza/LICENSE
 !node_modules/binarytf/**.js
+!node_modules/binarytf/LICENSE
 .git/**
 .vscode/**
 .gitignore
