@@ -45,7 +45,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private readonly testStatesEmitter = new vscode.EventEmitter<TestStates>()
 	private readonly autorunEmitter = new vscode.EventEmitter<void>()
 
-	private readonly tree: TestTree = new TestTree()
+	private files = new Set<string>()
 	private config: LoadedConfig | null = null
 
 	private worker?: Worker
@@ -107,8 +107,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.load()
 					return
 				}
-				const tree = this.tree
-				if (tree.hasFile(filename.slice(tree.prefixSize))) {
+				const f = this.files
+				if (f.has(filename)) {
 					if (this.log.enabled) {
 						this.log.info(`Sending reload event because ${filename} is a test file`)
 					}
@@ -133,15 +133,19 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
-		this.tree.clear()
 		this.spawnQueue = this.spawnQueue.then(async (): Promise<void> => {
 			if (!this.worker) {
 				await this.spawn(config)
 			}
 		})
 		await this.spawnQueue
-		if (this.worker) {
-			return this.worker
+		const tree = new TestTree(this.log)
+		const w = this.worker
+		if (w) {
+			const p = tree.pushPrefix.bind(tree)
+			const f = tree.pushFile.bind(tree)
+			const c = tree.pushTest.bind(tree)
+			return w.on('prefix', p).on('file', f).on('case', c)
 				.send({
 					type: 'load',
 					file: config.configFilePath
@@ -153,15 +157,17 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				})
 				.catch((error: Error): void => {
 					this.log.error(error)
-
 				})
 				.finally((): void => {
-					this.tree.build()
-					this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
+					w.off('prefix', p).off('file', f).off('case', c)
+					tree.build()
+					this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
+					this.files = tree.getFiles()
 				})
 		} else {
 			this.log.error('No worker connected.')
-			this.testsEmitter.fire({ type: 'finished', suite: this.tree.rootNode })
+			this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
+			this.files = tree.getFiles()
 		}
 	}
 
@@ -244,7 +250,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			disposable.dispose()
 		}
 		this.disposables = []
-		this.tree.clear()
+		this.files.clear()
 	}
 
 	private async loadConfig(): Promise<LoadedConfig | null> {
@@ -268,7 +274,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	}
 
 	private spawn(config: LoadedConfig): Promise<void> {
-		const tree = this.tree
 		const log = this.log
 		const append = (chunk): void => {
 			if (typeof chunk === 'string') {
@@ -292,15 +297,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 						if (log.enabled) {
 							log.info(`Worker Message: ${message}`)
 						}
-					})
-					.on('prefix', (prefix): void => {
-						tree.pushPrefix(prefix, log)
-					})
-					.on('file', (file): void => {
-						tree.pushFile(file, log)
-					})
-					.on('case', (test): void => {
-						tree.pushTest(test, log)
 					})
 					.on('result', (result): void => {
 						this.testStatesEmitter.fire({

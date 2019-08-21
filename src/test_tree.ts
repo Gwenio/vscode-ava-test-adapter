@@ -50,22 +50,14 @@ export default class TestTree {
 	}
 	private readonly files = new Set<string>()
 	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
-	private readonly testHash = new Map<string, TestInfo & Info>()
+	private readonly log: Log
 
-	public clear(): void {
-		this.prefix = ''
-		this.rootSuite = {
-			type: 'suite',
-			id: 'root',
-			label: 'AVA',
-			children: []
-		}
-		this.files.clear()
-		this.suiteHash.clear()
-		this.testHash.clear()
+	public constructor(log: Log) {
+		this.log = log
 	}
 
-	public pushPrefix(meta: Prefix, log: Log): void {
+	public pushPrefix(meta: Prefix): void {
+		const log = this.log
 		const prefix = meta.prefix
 		if (log.enabled) {
 			log.info(`Received test file prefix ${prefix} from worker`)
@@ -73,25 +65,29 @@ export default class TestTree {
 		this.prefix = prefix
 	}
 
-	public pushFile(meta: TestFile, log: Log): void {
+	public pushFile(meta: TestFile): void {
+		const log = this.log
 		if (log.enabled) {
 			log.info(`Received test file ${meta.id} from worker`)
 		}
 		const id = meta.id
 		const label = meta.file
 		const file = this.prefix + label
-		this.suiteHash.set(id, {
+		const x: TestSuiteInfo & Info = {
 			type: 'suite',
 			id,
 			label,
 			file,
 			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			children: []
-		})
+		}
+		this.suiteHash.set(id, x)
+		this.rootSuite.children.push(x)
 		this.files.add(file)
 	}
 
-	public pushTest(meta: TestCase, log: Log): void {
+	public pushTest(meta: TestCase): void {
+		const log = this.log
 		const id = meta.id
 		if (log.enabled) {
 			log.info(`Received test case ${id} of file ${meta.file} from worker`)
@@ -109,47 +105,19 @@ export default class TestTree {
 			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			file: suite.file
 		}
-		this.testHash.set(id, x)
 		suite.children.push(x)
 	}
 
 	public build(): void {
-		const suites = this.rootSuite.children
-		this.suiteHash.forEach((value): void => {
-			sortTestInfo(value)
-			suites.push(value)
-		})
-		// Sort the suites by their filenames
-		this.rootSuite.children = suites.sort((a, b): (1 | -1) => {
-			return a.label.toLocaleLowerCase() < b.label.toLocaleLowerCase() ? -1 : 1
-		})
+		this.suiteHash.clear()
+		sortTestInfo(this.rootSuite)
 	}
 
 	public get rootNode(): TestSuiteInfo {
 		return this.rootSuite
 	}
 
-	public getTest(id: string): (TestInfo & Info) | null {
-		return this.testHash.get(id) || null
-	}
-
-	public get prefixSize(): number {
-		return this.prefix.length
-	}
-
-	public prefixFile(file: string): string {
-		return this.prefix + file
-	}
-
-	public hasFile(file: string): boolean {
-		return this.files.has(file)
-	}
-
-	public getFiles(): string[] {
-		const files: string[] = []
-		for (const f of this.files) {
-			files.push(f)
-		}
-		return files
+	public getFiles(): Set<string> {
+		return this.files
 	}
 }
