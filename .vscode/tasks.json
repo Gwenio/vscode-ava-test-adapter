@@ -27,6 +27,46 @@
 			"problemMatcher": [
 				"$eslint-stylish"
 			]
+		},
+		{
+			"label": "rollup-watch",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"rollup",
+				"-cw"
+			],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "rollup-production",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"rollup",
+				"-c"
+			],
+			"options": {
+				"env": {
+					"NODE_ENV": "production"
+				}
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
 		}
 	]
 }
