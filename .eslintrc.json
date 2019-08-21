@@ -41,10 +41,8 @@
 			"never"
 		],
 		"new-parens": 2,
-		"no-arg": true,
 		"no-bitwise": 2,
-		"no-conditional-assignment": true,
-		"no-consecutive-blank-lines": false,
+		"no-consecutive-blank-lines": "off",
 		"no-console": 0,
 		"no-debugger": 0,
 		"node/no-unpublished-require": 0,

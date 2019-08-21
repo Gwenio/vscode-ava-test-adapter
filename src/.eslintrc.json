@@ -20,14 +20,18 @@
 	],
 	"rules": {
 		"indent": 0,
-		"@typescript-eslint/indent": ["error", "tab"],
+		"@typescript-eslint/indent": [
+			"error",
+			"tab"
+		],
 		"semi": 0,
-		"@typescript-eslint/semi": ["warn", "never"],
+		"@typescript-eslint/semi": [
+			"warn",
+			"never"
+		],
 		"new-parens": 2,
-		"no-arg": true,
 		"no-bitwise": 2,
-		"no-conditional-assignment": true,
-		"no-consecutive-blank-lines": false,
+		"no-consecutive-blank-lines": "off",
 		"no-console": 0,
 		"@typescript-eslint/no-var-requires": "error",
 		"node/no-unpublished-require": "error",
