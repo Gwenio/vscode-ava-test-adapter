@@ -25,7 +25,7 @@ type Ready = () => void
 export default class DebugReporter extends AbstractReporter {
 	private readonly ready: Ready
 	private readonly log: Logger = (_message: string): void => { }
-	private running: boolean = false
+	private running = false
 
 	public constructor(ready: Ready, log?: Logger) {
 		super()

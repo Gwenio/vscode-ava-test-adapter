@@ -37,7 +37,7 @@ export class TestReporter extends AbstractReporter {
 	private readonly reporter: TestEmitter
 	private readonly log: Logger = (_message: string): void => { }
 	private readonly prefix: number
-	private running: boolean = false
+	private running = false
 
 	public constructor(reporter: TestEmitter, prefix: number, log?: Logger) {
 		super()

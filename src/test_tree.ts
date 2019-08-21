@@ -41,7 +41,7 @@ function sortTestInfo(suite: (TestInfo | TestSuiteInfo)): TestSuiteInfo {
 }
 
 export default class TestTree {
-	private prefix: string = ''
+	private prefix = ''
 	private rootSuite: TestSuiteInfo = {
 		type: 'suite',
 		id: 'root',
@@ -51,8 +51,6 @@ export default class TestTree {
 	private readonly files = new Set<string>()
 	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
 	private readonly testHash = new Map<string, TestInfo & Info>()
-
-	public constructor() { }
 
 	public clear(): void {
 		this.prefix = ''

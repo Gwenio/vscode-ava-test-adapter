@@ -79,7 +79,7 @@ export class AVAConfig {
 		}
 		if (log.enabled) log.debug(`Using nodePath: ${nodePath}`)
 
-		let nodeArgv: string[] = adapterConfig.get<string[]>('nodeArgv') || []
+		const nodeArgv: string[] = adapterConfig.get<string[]>('nodeArgv') || []
 		if (log.enabled) log.debug(`Using node arguments: ${nodeArgv}`)
 
 		const debuggerPort = adapterConfig.get<number>('debuggerPort') || 9229

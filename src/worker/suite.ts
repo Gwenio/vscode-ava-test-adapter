@@ -81,7 +81,7 @@ interface Lookup {
 export default class Suite {
 	private readonly config: Setup
 	private readonly file: string
-	private prefix: string = ''
+	private prefix = ''
 	private readonly files: Map<string, Lookup> = new Map<string, Lookup>()
 	private readonly tests: Map<string, TestInfo> = new Map<string, TestInfo>()
 	private working: Promise<void> = Promise.resolve()

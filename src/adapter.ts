@@ -277,63 +277,64 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				this.channel.append(chunk.toString())
 			}
 		}
-		const p = new Promise<void>(async (resolve): Promise<void> => {
-			await this.spawnQueue
-			if (log.enabled) {
-				log.debug('Spawning worker...')
-			}
-			const w = new Worker(config, resolve)
-				.on('stdout', append)
-				.on('stderr', append)
-				.on('error', (error): void => {
-					log.error(error)
-				})
-				.on('message', (message): void => {
-					if (log.enabled) {
-						log.info(`Worker Message: ${message}`)
-					}
-				})
-				.on('prefix', (prefix): void => {
-					tree.pushPrefix(prefix, log)
-				})
-				.on('file', (file): void => {
-					tree.pushFile(file, log)
-				})
-				.on('case', (test): void => {
-					tree.pushTest(test, log)
-				})
-				.on('result', (result): void => {
-					this.testStatesEmitter.fire({
-						type: 'test',
-						state: result.state,
-						test: result.test
+		const p = this.spawnQueue.then((): Promise<void> => {
+			return new Promise<void>((resolve): void => {
+				if (log.enabled) {
+					log.debug('Spawning worker...')
+				}
+				const w = new Worker(config, resolve)
+					.on('stdout', append)
+					.on('stderr', append)
+					.on('error', (error): void => {
+						log.error(error)
 					})
-				})
-				.on('done', (file): void => {
-					this.testStatesEmitter.fire({
-						type: 'suite',
-						suite: file,
-						state: 'completed'
+					.on('message', (message): void => {
+						if (log.enabled) {
+							log.info(`Worker Message: ${message}`)
+						}
 					})
-				})
-				.once('connect', (): void => {
-					if (this.worker) {
-						this.worker.disconnect()
-					}
-					this.worker = w
-					if (log.enabled) {
-						log.debug('Worker connected.')
-					}
-				})
-				.once('disconnect', (): void => {
-					if (this.worker === w) {
-						this.worker = undefined
-					}
-					w.removeAllListeners()
-					if (log.enabled) {
-						log.debug('Worker disconnected.')
-					}
-				})
+					.on('prefix', (prefix): void => {
+						tree.pushPrefix(prefix, log)
+					})
+					.on('file', (file): void => {
+						tree.pushFile(file, log)
+					})
+					.on('case', (test): void => {
+						tree.pushTest(test, log)
+					})
+					.on('result', (result): void => {
+						this.testStatesEmitter.fire({
+							type: 'test',
+							state: result.state,
+							test: result.test
+						})
+					})
+					.on('done', (file): void => {
+						this.testStatesEmitter.fire({
+							type: 'suite',
+							suite: file,
+							state: 'completed'
+						})
+					})
+					.once('connect', (): void => {
+						if (this.worker) {
+							this.worker.disconnect()
+						}
+						this.worker = w
+						if (log.enabled) {
+							log.debug('Worker connected.')
+						}
+					})
+					.once('disconnect', (): void => {
+						if (this.worker === w) {
+							this.worker = undefined
+						}
+						w.removeAllListeners()
+						if (log.enabled) {
+							log.debug('Worker disconnected.')
+						}
+					})
+			})
 		})
 		this.spawnQueue = p
 		return p
@@ -341,7 +342,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 
 	private async connectDebugger(skipFiles: string[], port: number): Promise<void> {
-		let currentSession: vscode.DebugSession | undefined
 		this.log.info('Starting the debug session')
 		await vscode.debug.startDebugging(this.workspace,
 			{
@@ -356,7 +356,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			})
 		// workaround for Microsoft/vscode#70125
 		await new Promise((resolve): void => { setImmediate(resolve) })
-		currentSession = vscode.debug.activeDebugSession
+		const currentSession = vscode.debug.activeDebugSession
 		if (!currentSession) {
 			this.log.error('No active AVA debug session - aborting')
 			return

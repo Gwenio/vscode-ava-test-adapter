@@ -43,7 +43,7 @@ type Report = (report: Loaded) => void
 export default class LoadReporter extends AbstractReporter {
 	private readonly report: Report
 	private readonly log: Logger = (_message: string): void => { }
-	private running: boolean = false
+	private running = false
 	private readonly filter: string[]
 	private files: Set<string> = new Set<string>()
 	private tests: TestCase[] = []
