@@ -26,10 +26,11 @@ import {
 	TestEmitter,
 	DebugReporter
 } from '../reporter'
-import hash from '../hash'
 import {
 	Tree
 } from '../ipc'
+import TestInfo from './test_info'
+import FileInfo from './file_info'
 
 type Logger = (message: string) => void
 
@@ -41,49 +42,12 @@ interface Loaded {
 	}[];
 }
 
-interface TestInfo {
-	/**
-	 * @summary The ID of the test's file.
-	 */
-	file: string;
-	/**
-	 * @summary The file name of the test's file.
-	 */
-	name: string;
-	/**
-	 * @summary The test's title.
-	 */
-	title: string;
-}
-
-interface Entry {
-	/**
-	 * @summary The test's ID.
-	 */
-	id: string;
-	/**
-	 * @summary The test's title.
-	 */
-	title: string;
-}
-
-interface Lookup {
-	/**
-	 * @summary The file name.
-	 */
-	file: string;
-	/**
-	 * @summary Test Entries for a file.
-	 */
-	entries: Entry[];
-}
-
 export default class Suite {
 	private readonly config: Setup
 	private readonly file: string
 	private prefix = ''
-	private readonly files: Map<string, Lookup> = new Map<string, Lookup>()
-	private readonly tests: Map<string, TestInfo> = new Map<string, TestInfo>()
+	private readonly files = new Map<string, FileInfo>()
+	private readonly tests = new Map<string, TestInfo>()
 	private working: Promise<void> = Promise.resolve()
 	private stop?: () => void
 
@@ -93,24 +57,18 @@ export default class Suite {
 	}
 
 	public getFileID(name: string): string | null {
-		for (const f of this.files) {
-			if (f[1].file === name) {
-				return f[0]
+		for (const f of this.files.values()) {
+			if (f.name === name) {
+				return f.id
 			}
 		}
 		return null
 	}
 
 	public getTestID(name: string, file: string): string | null {
-		for (const f of this.files) {
-			const x = f[1]
-			if (x.file === file) {
-				for (const t of x.entries) {
-					if (t.title === name) {
-						return t.id
-					}
-				}
-				return null
+		for (const f of this.files.values()) {
+			if (f.name === file) {
+				return f.getTestID(name)
 			}
 		}
 		return null
@@ -186,25 +144,19 @@ export default class Suite {
 		const prefix = this.prefix
 		const from = config.resolveTestsFrom
 		const tests = this.tests
-		const files = this.files
 		const reporter = new DebugReporter(ready, logger)
 		const done = reporter.endRun.bind(reporter)
 		for (const p of plan) {
 			if (p.startsWith('t')) {
 				const t = tests.get(p)
 				if (t) {
-					const f = files.get(t.file)
-					if (f) {
-						config.match = [t.title]
-						await worker(config, {
-							reporter,
-							logger,
-							port,
-							files: [path.relative(from, prefix + f.file)]
-						}).finally(done)
-					} else {
-						console.error(`Could not find file with ID: ${t.file}`)
-					}
+					config.match = [t.name]
+					await worker(config, {
+						reporter,
+						logger,
+						port,
+						files: [path.relative(from, prefix + t.fileName)]
+					}).finally(done)
 				} else {
 					console.error(`Could not find test case with ID: ${p}`)
 				}
@@ -222,22 +174,22 @@ export default class Suite {
 			file: this.file,
 			prefix: this.prefix
 		})
-		for (const f of this.files) {
+		for (const f of this.files.values()) {
+			const id = f.id
 			send({
 				type: 'file',
-				id: f[0],
+				id,
 				config: '',
-				file: f[1].file
+				file: f.name
 			})
-		}
-		for (const t of this.tests) {
-			const { title, file } = t[1]
-			send({
-				type: 'case',
-				id: t[0],
-				file,
-				test: title
-			})
+			for (const t of f.entries) {
+				send({
+					type: 'case',
+					id: t.id,
+					file: id,
+					test: t.name
+				})
+			}
 		}
 	}
 
@@ -245,22 +197,16 @@ export default class Suite {
 		this.prefix = data.prefix
 		const files = this.files
 		const t = this.tests
+		const fileIdExists = files.has.bind(files)
+		const testIdExists = t.has.bind(t)
 		for (const { file, tests } of data.info) {
-			const id = hash(file, files.has.bind(files), 'f')
-			const entries: Entry[] = []
+			const y = new FileInfo(file, fileIdExists)
 			for (const title of tests) {
-				const h = hash(title, t.has.bind(t), 't', title.length.toString(16))
-				t.set(h, {
-					file: id,
-					name: file,
-					title
-				})
-				entries.push({
-					id: h,
-					title
-				})
+				const z = new TestInfo(title, y, testIdExists)
+				t.set(z.id, z)
+				y.addTest(z)
 			}
-			files.set(id, { file, entries })
+			files.set(y.id, y)
 		}
 	}
 
@@ -277,15 +223,15 @@ export default class Suite {
 				const lookup = files.get(p)
 				if (lookup) {
 					for (const t of lookup.entries) {
-						m.add(t.title)
+						m.add(t.name)
 					}
-					f.add(lookup.file)
+					f.add(lookup.name)
 				}
 			} else if (p.startsWith('t')) {
 				const t = tests.get(p)
 				if (t) {
-					m.add(t.title)
-					f.add(t.name)
+					m.add(t.name)
+					f.add(t.fileName)
 				}
 			}
 		}
