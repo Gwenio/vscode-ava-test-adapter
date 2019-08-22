@@ -67,11 +67,12 @@ export interface Done extends Base<'done'> {
 
 export interface Debug extends Base<'debug'> {
 	port: number;
-	serial: boolean;
+	serial: { [config: string]: boolean };
 	run: string[];
 }
 
 export interface Ready extends Base<'ready'> {
+	config: string;
 	port: number;
 }
 
