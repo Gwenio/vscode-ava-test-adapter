@@ -25,7 +25,7 @@ type Ready = () => void
 export default class DebugReporter extends AbstractReporter {
 	private readonly ready: Ready
 	private readonly log: Logger = (_message: string): void => { }
-	private running = false
+	private static running = false
 
 	public constructor(ready: Ready, log?: Logger) {
 		super()
@@ -35,15 +35,11 @@ export default class DebugReporter extends AbstractReporter {
 		}
 	}
 
-	public reset(): void {
-		super.reset()
-		this.running = true
-	}
-
 	public startRun(plan: AVA.Plan): void {
-		if (this.running) {
+		if (DebugReporter.running) {
 			throw new Error('Cannot start a new debugging session while another is in progress.')
 		}
+		DebugReporter.running = true
 		super.startRun(plan)
 		this.log('Begin Run.')
 		this.ready()
@@ -53,8 +49,8 @@ export default class DebugReporter extends AbstractReporter {
 	public consumeStateChange(_event: AVA.Event): void { }
 
 	public endRun(): void {
-		if (this.running) {
-			this.running = false
+		if (DebugReporter.running) {
+			DebugReporter.running = false
 			this.log('Run Complete.')
 		}
 	}
