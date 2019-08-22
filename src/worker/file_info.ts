@@ -18,6 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import hash from '../hash'
 import TestInfo from './test_info'
+import ConfigInfo from './config_info'
 
 /**
  * @summary Stores information on a test file.
@@ -34,13 +35,35 @@ export default class FileInfo {
 	public readonly name: string
 
 	/**
+	 * @summary The test configuration of the test file.
+	 */
+	private readonly config: ConfigInfo
+
+	/**
 	 * @summary The test cases from the test file.
 	 */
 	private readonly tests: TestInfo[] = []
 
-	public constructor(name: string, idExists: (s: string) => boolean) {
+	/**
+	 * @summary Set of active file IDs.
+	 */
+	private static readonly fileSet = new Set<string>()
+
+	/**
+	 * @summary Used to check if an ID is in use.
+	 */
+	private static readonly idExists = FileInfo.fileSet.has.bind(FileInfo.fileSet)
+
+	public readonly dispose: () => void
+
+	public constructor(name: string, config: ConfigInfo) {
 		this.name = name
-		this.id = hash(name, idExists, 'f')
+		this.config = config
+		const i = hash(name, FileInfo.idExists, 'f')
+		this.id = i
+		const s = FileInfo.fileSet
+		s.add(i)
+		this.dispose = s.delete.bind(s, i)
 	}
 
 	public getTestID(title: string): string | null {

@@ -38,10 +38,26 @@ export default class TestInfo {
 	 */
 	private readonly file: FileInfo
 
-	public constructor(name: string, file: FileInfo, idExists: (s: string) => boolean) {
+	/**
+	 * @summary Set of active test IDs.
+	 */
+	private static readonly testSet = new Set<string>()
+
+	/**
+	 * @summary Used to check if an ID is in use.
+	 */
+	private static readonly idExists = TestInfo.testSet.has.bind(TestInfo.testSet)
+
+	public readonly dispose: () => void
+
+	public constructor(name: string, file: FileInfo) {
 		this.name = name
 		this.file = file
-		this.id = hash(name, idExists, 't', name.length.toString(16))
+		const i = hash(name, TestInfo.idExists, 't', name.length.toString(16))
+		this.id = i
+		const s = TestInfo.testSet
+		s.add(i)
+		this.dispose = s.delete.bind(s, i)
 	}
 
 	public get fileName(): string {
