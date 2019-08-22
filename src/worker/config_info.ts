@@ -119,7 +119,6 @@ export default class ConfigInfo {
 		return this
 	}
 
-
 	public async collectInfo(send: (data: Tree) => void, _logger?: Logger): Promise<void> {
 		const i = this.id
 		send({
@@ -193,16 +192,16 @@ export default class ConfigInfo {
 		}
 	}
 
-	public async debug(ready: () => void, plan: DebugPlan, logger?: Logger): Promise<void> {
+	public async debug(ready: (port: number) => void,
+		plan: DebugPlan, logger?: Logger): Promise<void> {
 		const config = {
 			...this.config,
 			serial: plan.serial || this.config.serial
 		}
 		const prefix = this.prefix
 		const from = config.resolveTestsFrom
-		const reporter = new DebugReporter(ready, logger)
+		const reporter = new DebugReporter(ready, plan.port, logger)
 		const done = reporter.endRun.bind(reporter)
-		const port = plan.port
 		const p = plan.plan
 		if (p && !p.includes(this.id)) {
 			const { files, match } = this.processPlan(p, config.resolveTestsFrom)
@@ -212,7 +211,7 @@ export default class ConfigInfo {
 					await worker(c, {
 						reporter,
 						logger,
-						port,
+						port: await reporter.selectPort(),
 						files: [f]
 					}).finally(done)
 				}
@@ -222,7 +221,7 @@ export default class ConfigInfo {
 				await worker(config, {
 					reporter,
 					logger,
-					port,
+					port: await reporter.selectPort(),
 					files: [path.relative(from, prefix + f.name)]
 				}).finally(done)
 			}

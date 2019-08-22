@@ -79,16 +79,18 @@ export default class Suite {
 		await Promise.all(wait)
 	}
 
-	public async debug(ready: () => void, plan: string[], port: number, serial: boolean,
-		logger?: Logger): Promise<void> {
+	public async debug(ready: (config: string, port: number) => void, plan: string[],
+		port: number, serial: { [config: string]: boolean }, logger?: Logger): Promise<void> {
 		const v = this.configs.values()
 		if (plan.includes('root')) {
 			for (const c of v) {
-				await c.debug(ready, { port, serial }, logger)
+				await c.debug(ready.bind(null, c.id),
+					{ port, serial: serial[c.id] || false }, logger)
 			}
 		} else {
 			for (const c of v) {
-				await c.debug(ready, { plan, port, serial }, logger)
+				await c.debug(ready.bind(null, c.id),
+					{ plan, port, serial: serial[c.id] || false }, logger)
 			}
 		}
 	}

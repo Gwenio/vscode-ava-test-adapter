@@ -16,23 +16,34 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
+import getPort from 'get-port'
 import AVA from 'ava/namespace'
 import AbstractReporter from './reporter'
 
 type Logger = (message: string) => void
-type Ready = () => void
+type Ready = (port: number) => void
 
 export default class DebugReporter extends AbstractReporter {
 	private readonly ready: Ready
 	private readonly log: Logger = (_message: string): void => { }
+	private readonly defaultPort: number
+	private port: number
 	private static running = false
 
-	public constructor(ready: Ready, log?: Logger) {
+	public constructor(ready: Ready, port: number, log?: Logger) {
 		super()
 		this.ready = ready
+		this.defaultPort = port
+		this.port = port
 		if (log) {
 			this.log = log
 		}
+	}
+
+	public async selectPort(): Promise<number> {
+		const p = await getPort({ port: this.defaultPort })
+		this.port = p
+		return p
 	}
 
 	public startRun(plan: AVA.Plan): void {
@@ -42,7 +53,7 @@ export default class DebugReporter extends AbstractReporter {
 		DebugReporter.running = true
 		super.startRun(plan)
 		this.log('Begin Run.')
-		this.ready()
+		this.ready(this.port)
 	}
 
 	/* eslint @typescript-eslint/no-empty-function: "off" */

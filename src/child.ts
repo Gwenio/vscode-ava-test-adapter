@@ -64,13 +64,13 @@ async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> 
 	const s = suite
 	if (s) {
 		const logger = logEnabled ? console.log : undefined
-		const port = await getPort({ port: info.port })
-		await s.debug((): void => {
+		await s.debug(function (config: string, port: number): void {
 			client.send({
 				type: 'ready',
+				config,
 				port
 			})
-		}, info.run, port, info.serial, logger)
+		}, info.run, info.port, info.serial, logger)
 	}
 }
 
