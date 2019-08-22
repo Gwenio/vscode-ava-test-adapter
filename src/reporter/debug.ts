@@ -41,11 +41,15 @@ export default class DebugReporter extends AbstractReporter {
 	}
 
 	public startRun(plan: AVA.Plan): void {
+		if (this.running) {
+			throw new Error('Cannot start a new debugging session while another is in progress.')
+		}
 		super.startRun(plan)
 		this.log('Begin Run.')
 		this.ready()
 	}
 
+	/* eslint @typescript-eslint/no-empty-function: "off" */
 	public consumeStateChange(_event: AVA.Event): void { }
 
 	public endRun(): void {
