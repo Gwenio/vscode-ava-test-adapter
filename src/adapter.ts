@@ -101,15 +101,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				if (this.log.enabled) {
 					this.log.info(`${filename} was saved - checking if this affects ${workPath}`)
 				}
-				if (filename === this.config.configFilePath) {
-					this.log.info('Sending reload event')
-					this.load()
-					return
-				}
 				const f = this.files
 				if (f.has(filename)) {
 					if (this.log.enabled) {
-						this.log.info(`Sending reload event because ${filename} is a test file`)
+						this.log.info(`Sending reload event because ${filename} was saved.`)
 					}
 					this.load()
 					return
@@ -138,7 +133,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			}
 		})
 		await this.spawnQueue
-		const tree = new TestTree(this.log)
+		const tree = new TestTree(this.log, config.cwd)
 		const w = this.worker
 		if (w) {
 			const p = tree.pushPrefix.bind(tree)

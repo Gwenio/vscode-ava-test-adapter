@@ -83,10 +83,8 @@ export class AVAConfig {
 		return {
 			cwd,
 			configs: configs.map((c): SubConfig => {
-				const configFilePath = path.resolve(cwd, c.file || 'ava.config.js')
-				if (log.enabled) log.debug(`Using config file: ${configFilePath}`)
 				return {
-					file: configFilePath,
+					file: c.file || 'ava.config.js',
 					serial: c.serial || false,
 					debuggerSkipFiles: c.debuggerSkipFiles
 				}

@@ -16,6 +16,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
+import path from 'path'
 import {
 	TestInfo,
 	TestSuiteInfo,
@@ -48,12 +49,14 @@ export default class TestTree {
 		label: 'AVA',
 		children: []
 	}
+	private readonly base: string
 	private readonly files = new Set<string>()
 	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
 	private readonly log: Log
 
-	public constructor(log: Log) {
+	public constructor(log: Log, base: string) {
 		this.log = log
+		this.base = base
 	}
 
 	public pushPrefix(meta: Prefix): void {
@@ -63,6 +66,7 @@ export default class TestTree {
 			log.info(`Received test file prefix ${prefix} from worker`)
 		}
 		this.prefix = prefix
+		this.files.add(path.resolve(this.base, meta.file))
 	}
 
 	public pushFile(meta: TestFile): void {
