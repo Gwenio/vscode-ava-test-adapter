@@ -53,6 +53,7 @@ export default class TestTree {
 	private readonly files = new Set<string>()
 	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
 	private readonly prefixHash = new Map<string, string>()
+	private readonly configMap = new Map<string, string>()
 	private readonly log: Log
 
 	public constructor(log: Log, base: string) {
@@ -83,6 +84,7 @@ export default class TestTree {
 		}
 		this.prefix = prefix
 		this.suiteHash.set(id, x)
+		this.configMap.set(label, id)
 		this.prefixHash.set(id, prefix)
 		this.files.add(path.resolve(this.base, file))
 		this.rootSuite.children.push(x)
@@ -145,6 +147,10 @@ export default class TestTree {
 
 	public get rootNode(): TestSuiteInfo {
 		return this.rootSuite
+	}
+
+	public getConfigs(): IterableIterator<[string, string]> {
+		return this.configMap.entries()
 	}
 
 	public getFiles(): Set<string> {
