@@ -175,22 +175,9 @@ export default class ConfigInfo {
 		}
 		if (plan && !plan.includes(this.id)) {
 			const { files, match } = this.processPlan(plan, config.resolveTestsFrom)
-			if (files.length === 0) {
-				return
-			}
-			if (match) {
-				const c = {
-					...this.config,
-					match
-				}
+			if (files.length > 0) {
+				const c = match ? { ...config, match } : config
 				await worker(c, {
-					reporter,
-					logger,
-					files,
-					interrupt: callback
-				}).finally(done)
-			} else {
-				await worker(config, {
 					reporter,
 					logger,
 					files,
@@ -219,25 +206,10 @@ export default class ConfigInfo {
 		const p = plan.plan
 		if (p && !p.includes(this.id)) {
 			const { files, match } = this.processPlan(p, config.resolveTestsFrom)
-			if (files.length === 0) {
-				return
-			}
-			if (match) {
-				const c = {
-					...this.config,
-					match
-				}
+			if (files.length > 0) {
+				const c = match ? { ...config, match } : config
 				for (const f of files) {
 					await worker(c, {
-						reporter,
-						logger,
-						port,
-						files: [f]
-					}).finally(done)
-				}
-			} else {
-				for (const f of files) {
-					await worker(config, {
 						reporter,
 						logger,
 						port,
