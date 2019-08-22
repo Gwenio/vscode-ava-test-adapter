@@ -77,11 +77,11 @@ export default class Suite {
 		const v = this.configs.values()
 		if (plan.includes('root')) {
 			for (const c of v) {
-				c.debug(ready, { port, serial }, logger)
+				await c.debug(ready, { port, serial }, logger)
 			}
 		} else {
 			for (const c of v) {
-				c.debug(ready, { plan, port, serial }, logger)
+				await c.debug(ready, { plan, port, serial }, logger)
 			}
 		}
 	}
