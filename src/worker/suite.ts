@@ -41,12 +41,19 @@ export default class Suite {
 		}
 	}
 
-	public drop(id: string): void {
+	public drop(id?: string): void {
 		const configs = this.configs
-		const c = configs.get(id)
-		if (c) {
-			configs.delete(id)
-			c.dispose()
+		if (id) {
+			const c = configs.get(id)
+			if (c) {
+				configs.delete(id)
+				c.dispose()
+			}
+		} else {
+			for (const c of configs.values()) {
+				c.dispose()
+			}
+			configs.clear()
 		}
 	}
 

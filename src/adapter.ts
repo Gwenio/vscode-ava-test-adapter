@@ -136,6 +136,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		const tree = new TestTree(this.log, config.cwd)
 		const w = this.worker
 		if (w) {
+			w.send({ type: 'drop' })
 			const p = tree.pushPrefix.bind(tree)
 			const f = tree.pushFile.bind(tree)
 			const c = tree.pushTest.bind(tree)

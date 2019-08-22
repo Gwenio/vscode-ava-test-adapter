@@ -29,7 +29,7 @@ export interface Load extends Base<'load'> {
 }
 
 export interface Drop extends Base<'drop'> {
-	id: string;
+	id?: string;
 }
 
 export interface Prefix extends Base<'prefix'> {
