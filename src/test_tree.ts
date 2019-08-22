@@ -42,7 +42,7 @@ function sortTestInfo(suite: (TestInfo | TestSuiteInfo)): TestSuiteInfo {
 }
 
 export default class TestTree {
-	private prefix = ''
+	private prefix: string
 	private rootSuite: TestSuiteInfo = {
 		type: 'suite',
 		id: 'root',
@@ -52,21 +52,40 @@ export default class TestTree {
 	private readonly base: string
 	private readonly files = new Set<string>()
 	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
+	private readonly prefixHash = new Map<string, string>()
 	private readonly log: Log
 
 	public constructor(log: Log, base: string) {
 		this.log = log
+		this.prefix = base
 		this.base = base
 	}
 
 	public pushPrefix(meta: Prefix): void {
 		const log = this.log
+		const id = meta.id
+		const label = meta.file
+		const file = this.base + meta.file
+		if (log.enabled) {
+			log.info(`${id} is the ID of config ${file}`)
+		}
 		const prefix = meta.prefix
 		if (log.enabled) {
 			log.info(`Received test file prefix ${prefix} from worker`)
 		}
+		const x: TestSuiteInfo & Info = {
+			type: 'suite',
+			id,
+			label,
+			file,
+			tooltip: process.env.NODE_ENV === 'production' ? label : id,
+			children: []
+		}
 		this.prefix = prefix
-		this.files.add(path.resolve(this.base, meta.file))
+		this.suiteHash.set(id, x)
+		this.prefixHash.set(id, prefix)
+		this.files.add(path.resolve(this.base, file))
+		this.rootSuite.children.push(x)
 	}
 
 	public pushFile(meta: TestFile): void {
@@ -76,7 +95,13 @@ export default class TestTree {
 		}
 		const id = meta.id
 		const label = meta.file
-		const file = this.prefix + label
+		const suite = this.suiteHash.get(meta.config)
+		if (!suite) {
+			log.error(`Test File for unknown Test Config: ${meta.config}`)
+			return
+		}
+		const prefix = this.prefixHash.get(meta.config) || this.prefix
+		const file = prefix + label
 		const x: TestSuiteInfo & Info = {
 			type: 'suite',
 			id,
@@ -86,7 +111,8 @@ export default class TestTree {
 			children: []
 		}
 		this.suiteHash.set(id, x)
-		this.rootSuite.children.push(x)
+		this.prefixHash.set(id, prefix)
+		suite.children.push(x)
 		this.files.add(file)
 	}
 
