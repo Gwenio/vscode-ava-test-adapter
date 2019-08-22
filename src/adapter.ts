@@ -214,6 +214,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
+		const serial: { [config: string]: boolean } = {}
+		for (const [id, { serial: s }] of this.configMap) {
+			serial[id] = s
+		}
 		await this.spawnQueue
 		const w = this.worker
 		if (w) {
@@ -223,7 +227,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				.send({
 					type: 'debug',
 					port: config.debuggerPort,
-					serial: config.serial,
+					serial,
 					run: testsToRun
 				})
 				.catch((error: Error): void => {
@@ -344,10 +348,11 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	}
 
 
-	private async connectDebugger(skipFiles: string[], port: number): Promise<void> {
+	private async connectDebugger(skipFiles: string[], id: string, port: number): Promise<void> {
 		if (this.log.enabled) {
 			this.log.info('Starting the debug session')
 		}
+		const sub = this.configMap.get(id)
 		await vscode.debug.startDebugging(this.workspace,
 			{
 				name: 'Debug AVA Tests',
@@ -357,7 +362,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				protocol: 'inspector',
 				timeout: 30000,
 				stopOnEntry: false,
-				skipFiles
+				skipFiles: sub ? skipFiles.concat(sub.debuggerSkipFiles) : skipFiles
 			})
 		// workaround for Microsoft/vscode#70125
 		await new Promise((resolve): void => { setImmediate(resolve) })

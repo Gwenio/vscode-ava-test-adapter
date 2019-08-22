@@ -87,20 +87,19 @@ export class Worker {
 	}
 
 	private connect(port: number, token: string, resolve: () => void): void {
+		const emit: (event: Events, ...m) => void =
+			this.emitter.emit.bind(this.emitter)
 		const c = new Client(token)
 			.once('connect', (c): void => {
 				this.connection = c
-				this.emitter.emit('connect')
+				emit('connect')
 			})
 			.once('disconnect', (): void => {
 				this.connection = undefined
-				this.emitter.emit('disconnect')
+				emit('disconnect')
 			})
 			.on('error', this.emitter.emit.bind(this.emitter, 'error'))
 			.on('message', ({ data }): void => {
-				const emit: (event: Events,
-					message?: string | number | Child | Result | Error) => void =
-					this.emitter.emit.bind(this.emitter)
 				if (typeof data === 'string') {
 					emit('message', data)
 				} else if (typeof data === 'object' && data.type && typeof data.type === 'string') {
@@ -122,7 +121,7 @@ export class Worker {
 							emit('done', m.file)
 							return
 						case 'ready':
-							emit('ready', m.port)
+							emit('ready', m.config, m.port)
 							return
 						default:
 							emit('error', new TypeError(`Invalid message type: ${data.type}`))
@@ -148,7 +147,7 @@ export class Worker {
 	public on(event: 'case', handler: (test: TestCase) => void): Worker
 	public on(event: 'result', handler: (result: Result) => void): Worker
 	public on(event: 'done', handler: (file: string) => void): Worker
-	public on(event: 'ready', handler: (port: number) => void): Worker
+	public on(event: 'ready', handler: (id: string, port: number) => void): Worker
 	public on(event: Events, handler: (...args) => void): Worker {
 		this.emitter.on(event, handler)
 		return this
@@ -165,7 +164,7 @@ export class Worker {
 	public once(event: 'file', handler: (file: TestFile) => void): Worker
 	public once(event: 'case', handler: (test: TestCase) => void): Worker
 	public once(event: 'result', handler: (result: Result) => void): Worker
-	public once(event: 'ready', handler: (port: number) => void): Worker
+	public once(event: 'ready', handler: (id: string, port: number) => void): Worker
 	public once(event: Events, handler: (...args) => void): Worker {
 		this.emitter.once(event, handler)
 		return this
