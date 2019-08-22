@@ -97,13 +97,12 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			async (document): Promise<void> => {
 				if (!this.config) return
 				const filename = document.uri.fsPath
+				const workPath = this.workspace.uri.fsPath
 				if (this.log.enabled) {
-					const fsPath = this.workspace.uri.fsPath
-					this.log.info(`${filename} was saved - checking if this affects ${fsPath}`)
+					this.log.info(`${filename} was saved - checking if this affects ${workPath}`)
 				}
 				if (filename === this.config.configFilePath) {
 					this.log.info('Sending reload event')
-					await this.loadConfig()
 					this.load()
 					return
 				}
@@ -115,7 +114,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.load()
 					return
 				}
-				if (filename.startsWith(this.workspace.uri.fsPath)) {
+				if (filename.startsWith(workPath)) {
 					this.log.info('Sending autorun event')
 					this.autorunEmitter.fire()
 				}
@@ -145,25 +144,23 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const p = tree.pushPrefix.bind(tree)
 			const f = tree.pushFile.bind(tree)
 			const c = tree.pushTest.bind(tree)
-			return w.on('prefix', p).on('file', f).on('case', c)
-				.send({
-					type: 'load',
-					file: config.configFilePath
-				})
-				.then((): void => {
-					if (this.log.enabled) {
-						this.log.info('Finished loading test information.')
-					}
-				})
-				.catch((error: Error): void => {
-					this.log.error(error)
-				})
-				.finally((): void => {
-					w.off('prefix', p).off('file', f).off('case', c)
-					tree.build()
-					this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
-					this.files = tree.getFiles()
-				})
+			w.on('prefix', p).on('file', f).on('case', c)
+			for (const sub of config.configs) {
+				await w
+					.send({ type: 'load', file: sub.file })
+					.then((): void => {
+						if (this.log.enabled) {
+							this.log.info(`Loaded test information for ${sub.file}`)
+						}
+					})
+					.catch((error: Error): void => {
+						this.log.error(error)
+					})
+			}
+			w.off('prefix', p).off('file', f).off('case', c)
+			tree.build()
+			this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
+			this.files = tree.getFiles()
 		} else {
 			this.log.error('No worker connected.')
 			this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
