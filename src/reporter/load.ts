@@ -38,19 +38,19 @@ interface TestCase {
 	title: string;
 }
 
-type Report = (report: Loaded) => void
-
 export default class LoadReporter extends AbstractReporter {
-	private readonly report: Report
 	private readonly log: Logger = (_message: string): void => { }
 	private running = false
 	private readonly filter: string[]
 	private files: Set<string> = new Set<string>()
 	private tests: TestCase[] = []
+	private data: Loaded = {
+		prefix: '',
+		info: []
+	}
 
-	public constructor(r: Report, filter: string[], log?: Logger) {
+	public constructor(filter: string[], log?: Logger) {
 		super()
-		this.report = r
 		this.filter = filter
 		if (log) {
 			this.log = log
@@ -100,7 +100,7 @@ export default class LoadReporter extends AbstractReporter {
 			const length = prefix.length
 			files = files.map((value): string => value.slice(length))
 			const tests = this.tests
-			this.report({
+			this.data = {
 				prefix,
 				info: files.map((file): Info => {
 					const list = tests.filter((value): boolean => {
@@ -113,8 +113,12 @@ export default class LoadReporter extends AbstractReporter {
 						tests: matcher(list, this.filter)
 					}
 				})
-			})
+			}
 			this.log('Run Complete.')
 		}
+	}
+
+	public get report(): Loaded {
+		return this.data
 	}
 }
