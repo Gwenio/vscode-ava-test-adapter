@@ -228,6 +228,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 				})
 				.finally((): void => {
+					if (this.log.enabled) {
+						this.log.info('Done debugging.')
+					}
 					w.off('ready', l)
 				})
 		} else {
@@ -338,7 +341,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 
 	private async connectDebugger(skipFiles: string[], port: number): Promise<void> {
-		this.log.info('Starting the debug session')
+		if (this.log.enabled) {
+			this.log.info('Starting the debug session')
+		}
 		await vscode.debug.startDebugging(this.workspace,
 			{
 				name: 'Debug AVA Tests',
