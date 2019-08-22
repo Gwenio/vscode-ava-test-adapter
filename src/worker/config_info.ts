@@ -233,7 +233,7 @@ export default class ConfigInfo {
 						logger,
 						port,
 						files: [f]
-					})
+					}).finally(done)
 				}
 			} else {
 				for (const f of files) {
@@ -242,7 +242,7 @@ export default class ConfigInfo {
 						logger,
 						port,
 						files: [f]
-					})
+					}).finally(done)
 				}
 			}
 		} else {
