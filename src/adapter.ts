@@ -27,7 +27,7 @@ import {
 	TestEvent
 } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
-import { AVAConfig, LoadedConfig } from './config'
+import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
 import { Worker } from './worker'
 
@@ -46,6 +46,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private readonly autorunEmitter = new vscode.EventEmitter<void>()
 
 	private files = new Set<string>()
+	private readonly configMap = new Map<string, SubConfig>()
 	private config: LoadedConfig | null = null
 
 	private worker?: Worker
@@ -132,6 +133,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				await this.spawn(config)
 			}
 		})
+		const m = this.configMap
 		await this.spawnQueue
 		const tree = new TestTree(this.log, config.cwd)
 		const w = this.worker
@@ -141,7 +143,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const f = tree.pushFile.bind(tree)
 			const c = tree.pushTest.bind(tree)
 			w.on('prefix', p).on('file', f).on('case', c)
-			for (const sub of config.configs) {
+			const subs = config.configs
+			for (const sub of subs) {
 				await w
 					.send({ type: 'load', file: sub.file })
 					.then((): void => {
@@ -157,10 +160,17 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			tree.build()
 			this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
 			this.files = tree.getFiles()
+			for (const [file, id] of tree.getConfigs()) {
+				const sub = subs.find((x): boolean => x.file === file)
+				if (sub) {
+					m.set(id, sub)
+				}
+			}
 		} else {
 			this.log.error('No worker connected.')
 			this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
 			this.files = tree.getFiles()
+			m.clear()
 		}
 	}
 
@@ -247,6 +257,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 		this.disposables = []
 		this.files.clear()
+		this.configMap.clear()
 	}
 
 	private async loadConfig(): Promise<LoadedConfig | null> {
