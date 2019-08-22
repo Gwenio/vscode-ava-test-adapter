@@ -105,7 +105,6 @@
 					"default": [
 						{
 							"file": null,
-							"env": {},
 							"serial": false,
 							"debuggerSkipFiles": []
 						}
@@ -120,14 +119,6 @@
 									"null"
 								],
 								"default": null
-							},
-							"env": {
-								"description": "Environment variables to be set when running the tests.",
-								"type": "object",
-								"additionalProperties": {
-									"type": "string"
-								},
-								"default": {}
 							},
 							"serial": {
 								"description": "If true then test will be run serially.",
@@ -144,12 +135,10 @@
 							}
 						}
 					},
-					"maxItems": 1,
-					"minItems": 1,
 					"scope": "resource"
 				},
 				"avaExplorer.env": {
-					"description": "Environment variables to be set when running the tests.",
+					"description": "Environment variables for the background worker.",
 					"type": "object",
 					"additionalProperties": {
 						"type": "string"
@@ -178,12 +167,6 @@
 					"items": {
 						"type": "string"
 					},
-					"scope": "resource"
-				},
-				"avaExplorer.serial": {
-					"description": "When true, forces test to run serially while debugging.",
-					"type": "boolean",
-					"default": false,
 					"scope": "resource"
 				},
 				"avaExplorer.debuggerSkipFiles": {

@@ -43,25 +43,23 @@ export class AVAConfig {
 
 		const configs: SubConfig[] = adapterConfig.get<SubConfig[]>('configs') || [
 			{
-				file: null,
-				/* eslint unicorn/prevent-abbreviations: "off" */
-				env: {},
+				file: 'ava.config.js',
 				serial: false,
 				debuggerSkipFiles: []
 			}
 		]
-		const c = configs[0]
-		log.debug(JSON.stringify(c))
 
-		const configFilePath = path.resolve(cwd, c.file || 'ava.config.js')
-		if (log.enabled) log.debug(`Using config file: ${configFilePath}`)
+		let nodePath: string | undefined = adapterConfig.get<string>('nodePath') || undefined
+		if (nodePath === 'default' || nodePath === undefined) {
+			nodePath = await detectNodePath()
+		}
 
 		const configEnvironment: NodeJS.ProcessEnv = {
-			...(adapterConfig.get('env') || {}),
-			...(c.env)
+			...(adapterConfig.get('env') || {})
 		}
 		if (log.enabled) {
-			log.debug(`Using environment variable config: ${JSON.stringify(configEnvironment)}`)
+			const output = JSON.stringify(configEnvironment)
+			log.debug(`Using environment variable config: ${output}`)
 		}
 		const environment: NodeJS.ProcessEnv = { ...process.env }
 		for (const key in configEnvironment) {
@@ -73,10 +71,6 @@ export class AVAConfig {
 			}
 		}
 
-		let nodePath: string | undefined = adapterConfig.get<string>('nodePath') || undefined
-		if (nodePath === 'default' || nodePath === undefined) {
-			nodePath = await detectNodePath()
-		}
 		if (log.enabled) log.debug(`Using nodePath: ${nodePath}`)
 
 		const nodeArgv: string[] = adapterConfig.get<string[]>('nodeArgv') || []
@@ -88,13 +82,20 @@ export class AVAConfig {
 
 		return {
 			cwd,
-			configFilePath,
+			configs: configs.map((c): SubConfig => {
+				const configFilePath = path.resolve(cwd, c.file || 'ava.config.js')
+				if (log.enabled) log.debug(`Using config file: ${configFilePath}`)
+				return {
+					file: configFilePath,
+					serial: c.serial || false,
+					debuggerSkipFiles: c.debuggerSkipFiles
+				}
+			}),
 			environment,
 			nodePath,
 			nodeArgv,
-			serial: c.serial || false,
 			debuggerPort,
-			debuggerSkipFiles: debuggerSkipFiles.concat(c.debuggerSkipFiles)
+			debuggerSkipFiles
 		}
 	}
 
@@ -104,20 +105,17 @@ export class AVAConfig {
 }
 
 export interface SubConfig {
-	file: string | null;
-	/* eslint unicorn/prevent-abbreviations: "off" */
-	env: NodeJS.ProcessEnv;
+	file: string;
 	serial: boolean;
 	debuggerSkipFiles: string[];
 }
 
 export interface LoadedConfig {
 	cwd: string;
-	configFilePath: string;
+	configs: SubConfig[];
 	environment: NodeJS.ProcessEnv;
 	nodePath: string | undefined;
 	nodeArgv: string[];
-	serial: boolean;
 	debuggerPort: number;
 	debuggerSkipFiles: string[];
 }

@@ -26,7 +26,6 @@ If it cannot find AVA, install it locally for the project(s).
 - Does not collect details on why a test failed, yet.
 - Does not display log or console output from tests, yet.
 - AVA does not provide the location of tests for the Test Explorer CodeLens.
-- Supporting multiple AVA configurations is planned but not yet implemented.
 
 In order to avoid having AVA preprocess test files frequently, it is recommended
 that caching be enabled in your AVA configuration.
@@ -37,7 +36,7 @@ that caching be enabled in your AVA configuration.
 | ------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
 | `avaExplorer.cwd`               | The working directory for AVA relative to the workspace.                | The workspace folder.                  |
 | `avaExplorer.configs`           | Array of configurations, see [Sub-Configurations](#sub-configurations). | `[{}]`                                 |
-| `avaExplorer.env`               | Environment variables to be set when running the tests                  | `{}`                                   |
+| `avaExplorer.env`               | Environment variables for the background worker.                        | `{}`                                   |
 | `avaExplorer.nodePath`          | The path to the Node executable to use.                                 | Searches PATH or VSCode's installation |
 | `avaExplorer.nodeArgv`          | The arguments to the Node executable                                    |
 | `avaExplorer.debuggerPort`      | The port for running the debug sessions                                 | 9229                                   |
@@ -50,7 +49,6 @@ that caching be enabled in your AVA configuration.
 | Property            | Description                                                | Default |
 | ------------------- | ---------------------------------------------------------- | ------- |
 | `file`              | The configuration file relative to `avaExplorer.cwd`.      | `null`  |
-| `env`               | Environment variables to be set when running the tests     | `{}`    |
 | `serial`            | If `true` then test will be run serially.                  | `false` |
 | `debuggerSkipFiles` | An array of glob patterns for files to skip when debugging | `[]`    |
 
@@ -60,7 +58,7 @@ that caching be enabled in your AVA configuration.
 - AVA will expect `avaExplorer.cwd` to contain the project's 'package.json'.
 - The config `file` will default to 'ava.config.js' if such a file exist in `avaExplorer.cwd`.
 - `avaExplorer.configs` can currently only have one configuration.
-- `avaExplorer.env` is merged with the configuration specific `env`, prefering the latter.
+- `avaExplorer.env` will be the base environment for tests if not overwritten in their config file.
 - `avaExplorer.debuggerSkipFiles` is prepended to the configuration specific `debuggerSkipFiles`.
 - `avaExplorer.logpanel` and `avaExplorer.logfile` are for troubleshooting the plugin.
 
