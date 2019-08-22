@@ -16,14 +16,12 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import Emitter from 'events'
 import { Server, ServerSocket } from 'veza'
 import getPort from 'get-port'
 import random from 'random'
 import * as IPC from './ipc'
 import hash from './hash'
 import Suite from './worker/suite'
-import { TestResult } from './reporter'
 
 let connected = false
 const token = hash(process.cwd(), (): boolean => false,
@@ -31,18 +29,17 @@ const token = hash(process.cwd(), (): boolean => false,
 	random.int(0, 0xFFFF).toString(16))
 let logEnabled = process.env.NODE_ENV !== 'production'
 
-let suite: Suite | null = null
+const suite = new Suite()
 
 async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
-	suite = new Suite(info.file, logger)
-	await suite.load(logger)
 	const wait: Promise<unknown>[] = []
-	await suite.collectInfo((data: IPC.Tree): void => {
+	const send = (data: IPC.Tree): void => {
 		wait.push(client.send(data, {
 			receptive: false
 		}))
-	})
+	}
+	await suite.load(info.file, send, logger)
 	await Promise.all(wait)
 }
 
@@ -50,41 +47,13 @@ async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 	const s = suite
 	if (s) {
 		const logger = logEnabled ? console.log : undefined
-		const emit = new Emitter()
-		const wait: Promise<unknown>[] = [
-			new Promise<void>((resolve): void => {
-				emit.once('end', resolve)
-			})
-		]
+		const wait: Promise<unknown>[] = []
 		const send = (data: IPC.Event): void => {
 			wait.push(client.send(data, {
 				receptive: false
 			}))
 		}
-		emit.on('done', (file: string): void => {
-			const id = s.getFileID(file)
-			if (id) {
-				send({
-					type: 'done',
-					file: id
-				})
-			} else {
-				console.error(`Could not find ID of file: ${file}`)
-			}
-		})
-		emit.on('result', (result: TestResult): void => {
-			const id = s.getTestID(result.test, result.file)
-			if (id) {
-				send({
-					type: 'result',
-					test: id,
-					state: result.state
-				})
-			} else {
-				console.error(`Could not find ID of test: ${JSON.stringify(result)}`)
-			}
-		})
-		await s.run(emit, info.run, logger)
+		await s.run(send, info.run, logger)
 		await Promise.all(wait)
 	} else {
 		console.error('Attemped to run tests when no suite has been loaded.')
@@ -149,6 +118,7 @@ connection
 					})
 					return
 				case 'drop':
+					suite.drop(m.id)
 					return
 				case 'run':
 					runTests(m, client).finally((): void => {
