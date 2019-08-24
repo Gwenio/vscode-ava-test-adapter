@@ -28,7 +28,7 @@ export class AVAConfig {
 		event: vscode.ConfigurationChangeEvent,
 		...settings: string[]): boolean {
 		const base = `${configRoot}.`
-		for (const check in settings) {
+		for (const check of settings) {
 			if (event.affectsConfiguration(`${base}${check}`, uri)) {
 				return true
 			}
