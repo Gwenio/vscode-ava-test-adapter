@@ -18,6 +18,7 @@
 ### V0 Release 3, WIP
 
 - Implemented support for multiple AVA configuration files.
+- Now properly adjusts to setting changes without needing a reload.
 
 ---
 
