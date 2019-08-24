@@ -83,14 +83,27 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				this.log.info('Configuration changed')
 				const uri = this.workspace.uri
 				if (AVAConfig.affected(uri, configChange,
-					'cwd', 'configs', 'env', 'nodePath', 'nodeArgv')) {
+					'cwd', 'env', 'nodePath', 'nodeArgv')) {
+					this.log.info('Sending reload event')
+					await this.loadConfig(true)
+					this.load()
+
+				} else if (AVAConfig.affected(uri, configChange, 'configs')) {
 					this.log.info('Sending reload event')
 					await this.loadConfig()
 					this.load()
-
 				} else if (AVAConfig.affected(uri, configChange,
 					'debuggerPort', 'debuggerSkipFiles')) {
 					await this.loadConfig()
+				}
+				if (AVAConfig.affected(uri, configChange, 'logpanel', 'logfile')) {
+					this.log.info('Logging settings changed.')
+					this.spawnQueue.then((): void => {
+						const w = this.worker
+						if (w) {
+							w.send({ type: 'log', enable: this.log.enabled })
+						}
+					})
 				}
 			}))
 
@@ -277,11 +290,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.configMap.clear()
 	}
 
-	private async loadConfig(): Promise<LoadedConfig | null> {
-		const old = this.config
+	private async loadConfig(relaunch = false): Promise<LoadedConfig | null> {
 		const c = await AVAConfig.load(this.workspace.uri, this.log)
 		this.config = c
-		if (c && (!this.worker || (old && old.cwd !== c.cwd))) {
+		if (c && (!this.worker || relaunch)) {
 			this.spawn(c).then((): void => {
 				const w = this.worker
 				if (w) {
