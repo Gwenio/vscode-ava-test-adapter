@@ -89,7 +89,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.load()
 
 				} else if (AVAConfig.affected(uri, configChange,
-					'debuggerPort', 'debuggerConfig', 'breakOnFirstLine', 'debuggerSkipFiles')) {
+					'debuggerPort', 'debuggerSkipFiles')) {
 					await this.loadConfig()
 				}
 			}))
