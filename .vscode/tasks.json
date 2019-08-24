@@ -54,6 +54,9 @@
 				"rollup",
 				"-c"
 			],
+			"dependsOn": [
+				"compile"
+			],
 			"options": {
 				"env": {
 					"NODE_ENV": "production"
@@ -62,6 +65,70 @@
 			"presentation": {
 				"echo": true,
 				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"rimraf",
+				"tmp",
+				"dist",
+				"*.vsix"
+			],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "compile",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"tsc",
+				"-p",
+				"src/tsconfig.json"
+			],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [
+				"$tsc"
+			]
+		},
+		{
+			"label": "package",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"vsce",
+				"package"
+			],
+			"dependsOn": [
+				"compile",
+				"rollup-production"
+			],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
 				"focus": false,
 				"panel": "shared",
 				"showReuseMessage": true,
