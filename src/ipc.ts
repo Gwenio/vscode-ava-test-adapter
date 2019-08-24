@@ -67,7 +67,13 @@ export interface Done extends Base<'done'> {
 
 export interface Debug extends Base<'debug'> {
 	port: number;
-	serial: { [config: string]: boolean };
+	serial: {
+		/**
+		 * @summary A configuration is to be debugged serially if x !== list.includes(id).
+		 */
+		x: boolean;
+		list: string[];
+	};
 	run: string[];
 }
 

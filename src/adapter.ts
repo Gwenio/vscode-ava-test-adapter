@@ -214,9 +214,14 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		const serial: { [config: string]: boolean } = {}
+		const serial: string[] = []
+		const con: string[] = []
 		for (const [id, { serial: s }] of this.configMap) {
-			serial[id] = s
+			if (s) {
+				serial.push(id)
+			} else {
+				con.push(id)
+			}
 		}
 		await this.spawnQueue
 		const w = this.worker
@@ -227,7 +232,14 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				.send({
 					type: 'debug',
 					port: config.debuggerPort,
-					serial,
+					serial: serial.length > con.length ?
+						{
+							x: true,
+							list: con
+						} : {
+							x: false,
+							list: serial
+						},
 					run: testsToRun
 				})
 				.catch((error: Error): void => {
