@@ -111,7 +111,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					return
 				}
 				if (filename.startsWith(workPath)) {
-					this.log.info('Sending autorun event')
+					if (this.log.enabled) {
+						this.log.info('Sending autorun event')
+					}
 					this.autorunEmitter.fire()
 				}
 			}))
@@ -121,8 +123,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.testsEmitter.fire({ type: 'started' })
 		const config = this.config || await this.loadConfig()
 		if (!config) {
-			this.log.info(`config unavailable to load tests.`)
+			this.log.error(`config unavailable to load tests.`)
 			this.testsEmitter.fire({ type: 'finished', suite: undefined })
+			this.files.clear()
+			this.configMap.clear()
 			return
 		}
 		if (this.log.enabled) {
@@ -191,9 +195,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					run: testsToRun
 				})
 				.then((): void => {
-					if (this.log.enabled) {
-						this.log.info('Finished running tests.')
-					}
+					this.log.info('Finished running tests.')
 				})
 				.catch((error: Error): void => {
 					this.log.error(error)
@@ -248,9 +250,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 				})
 				.finally((): void => {
-					if (this.log.enabled) {
-						this.log.info('Done debugging.')
-					}
+					this.log.info('Done debugging.')
 					w.off('ready', l)
 				})
 		} else {
@@ -308,9 +308,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 		const p = this.spawnQueue.then((): Promise<void> => {
 			return new Promise<void>((resolve): void => {
-				if (log.enabled) {
-					log.debug('Spawning worker...')
-				}
+				log.debug('Spawning worker...')
 				const w = new Worker(config, resolve)
 					.on('stdout', append)
 					.on('stderr', append)
@@ -341,18 +339,14 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 							this.worker.disconnect()
 						}
 						this.worker = w
-						if (log.enabled) {
-							log.debug('Worker connected.')
-						}
+						log.debug('Worker connected.')
 					})
 					.once('disconnect', (): void => {
 						if (this.worker === w) {
 							this.worker = undefined
 						}
 						w.removeAllListeners()
-						if (log.enabled) {
-							log.debug('Worker disconnected.')
-						}
+						log.debug('Worker disconnected.')
 					})
 			})
 		})
@@ -362,9 +356,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 
 	private async connectDebugger(skipFiles: string[], id: string, port: number): Promise<void> {
-		if (this.log.enabled) {
-			this.log.info('Starting the debug session')
-		}
+		this.log.info('Starting the debug session')
 		const sub = this.configMap.get(id)
 		await vscode.debug.startDebugging(this.workspace,
 			{
