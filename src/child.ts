@@ -110,6 +110,7 @@ connection
 			const m = data as IPC.Parent
 			switch (m.type) {
 				case 'log':
+					console.log(`[Worker] Setting logging: ${m.enable}`)
 					logEnabled = m.enable
 					return
 				case 'load':

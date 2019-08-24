@@ -87,7 +87,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.log.info('Sending reload event')
 					await this.loadConfig(true)
 					this.load()
-
+					return
 				} else if (AVAConfig.affected(uri, configChange, 'configs')) {
 					this.log.info('Sending reload event')
 					await this.loadConfig()
@@ -97,7 +97,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					await this.loadConfig()
 				}
 				if (AVAConfig.affected(uri, configChange, 'logpanel', 'logfile')) {
-					this.log.info('Logging settings changed.')
+					this.channel.appendLine('[Main] Logging settings changed.')
 					this.spawnQueue.then((): void => {
 						const w = this.worker
 						if (w) {
