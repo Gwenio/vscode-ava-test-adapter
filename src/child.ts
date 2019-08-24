@@ -44,34 +44,26 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 }
 
 async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
-	const s = suite
-	if (s) {
-		const logger = logEnabled ? console.log : undefined
-		const wait: Promise<unknown>[] = []
-		const send = (data: IPC.Event): void => {
-			wait.push(client.send(data, {
-				receptive: false
-			}))
-		}
-		await s.run(send, info.run, logger)
-		await Promise.all(wait)
-	} else {
-		console.error('Attemped to run tests when no suite has been loaded.')
+	const logger = logEnabled ? console.log : undefined
+	const wait: Promise<unknown>[] = []
+	const send = (data: IPC.Event): void => {
+		wait.push(client.send(data, {
+			receptive: false
+		}))
 	}
+	await suite.run(send, info.run, logger)
+	await Promise.all(wait)
 }
 
 async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> {
-	const s = suite
-	if (s) {
-		const logger = logEnabled ? console.log : undefined
-		await s.debug(function (config: string, port: number): void {
-			client.send({
-				type: 'ready',
-				config,
-				port
-			})
-		}, info.run, info.port, info.serial, logger)
-	}
+	const logger = logEnabled ? console.log : undefined
+	await suite.debug(function (config: string, port: number): void {
+		client.send({
+			type: 'ready',
+			config,
+			port
+		})
+	}, info.run, info.port, info.serial, logger)
 }
 
 declare const connection: Server
@@ -127,9 +119,7 @@ connection
 					})
 					return
 				case 'stop':
-					if (suite) {
-						suite.cancel()
-					}
+					suite.cancel()
 					return
 				case 'debug':
 					debugTests(m, client).finally((): void => {
