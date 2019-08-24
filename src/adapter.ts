@@ -183,8 +183,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 		this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
 		await this.spawnQueue
-		if (this.worker) {
-			return this.worker
+		const w = this.worker
+		if (w) {
+			return w
 				.send({
 					type: 'run',
 					run: testsToRun
@@ -385,7 +386,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 		return new Promise<void>((resolve): void => {
 			const subscription = vscode.debug.onDidTerminateDebugSession((session): void => {
-				if (currentSession != session) {
+				if (currentSession !== session) {
 					return
 				}
 				this.log.info('AVA Debug session ended')
