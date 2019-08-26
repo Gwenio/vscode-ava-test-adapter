@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"rootDir": ".",
 		"outDir": "../tmp/src",
+		"declarationDir": "../tmp/src",
 		"baseUrl": ".",
 		"paths": {
 			"ava/lib/*": [
@@ -10,12 +11,12 @@
 			],
 			"ava/namespace": [
 				"../types/ava/namespace"
-			]
+			],
 		},
 		"allowSyntheticDefaultImports": true,
 		"importHelpers": true,
-		"declaration": false,
-		"composite": false,
+		"declaration": true,
+		"composite": true,
 		"esModuleInterop": true
 	}
 }
