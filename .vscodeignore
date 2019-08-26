@@ -1,6 +1,7 @@
 src/**
 tmp/**
 types/**
+test/**
 **/*.map
 yarn.lock
 tsconfig.json
@@ -30,4 +31,5 @@ yarn-error.log
 img/**
 !img/icon.png
 rollup.config.js
+ava.*.js
 .eslintignore
