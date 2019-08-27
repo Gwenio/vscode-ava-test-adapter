@@ -16,7 +16,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import hash from '../hash'
+import hash from './hash'
 import TestInfo from './test_info'
 import ConfigInfo from './config_info'
 
@@ -67,7 +67,7 @@ export default class FileInfo {
 	}
 
 	public getTestID(title: string): string | null {
-		const x = this.tests.find((t) => t.name === title)
+		const x = this.tests.find(t => t.name === title)
 		return x ? x.id : null
 	}
 

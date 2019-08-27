@@ -18,34 +18,28 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import Emitter from 'events'
-import hash from '../hash'
+import hash from './hash'
 import { setup, Setup } from './ava_setup'
 import { worker } from './ava_worker'
 import { Tree, Event } from '../ipc'
-import {
-	LoadReporter,
-	TestReporter,
-	TestEmitter,
-	DebugReporter,
-	TestResult
-} from '../reporter'
+import { LoadReporter, TestReporter, TestEmitter, DebugReporter, TestResult } from '../reporter'
 import FileInfo from './file_info'
 import TestInfo from './test_info'
 
 type Logger = (message: string) => void
 
 interface Loaded {
-	prefix: string;
+	prefix: string
 	info: {
-		file: string;
-		tests: string[];
-	}[];
+		file: string
+		tests: string[]
+	}[]
 }
 
 interface DebugPlan {
-	plan?: string[];
-	port: number;
-	serial: boolean;
+	plan?: string[]
+	port: number
+	serial: boolean
 }
 
 /**
@@ -125,7 +119,7 @@ export default class ConfigInfo {
 			type: 'prefix',
 			id: i,
 			file: this.name,
-			prefix: this.prefix
+			prefix: this.prefix,
 		})
 		for (const f of this.files.values()) {
 			const id = f.id
@@ -133,14 +127,14 @@ export default class ConfigInfo {
 				type: 'file',
 				id,
 				config: i,
-				file: f.name
+				file: f.name,
 			})
 			for (const t of f.entries) {
 				send({
 					type: 'case',
 					id: t.id,
 					file: id,
-					test: t.name
+					test: t.name,
 				})
 			}
 		}
@@ -180,23 +174,26 @@ export default class ConfigInfo {
 					reporter,
 					logger,
 					files,
-					interrupt: callback
+					interrupt: callback,
 				}).finally(done)
 			}
 		} else {
 			await worker(config, {
 				reporter,
 				logger,
-				interrupt: callback
+				interrupt: callback,
 			}).finally(done)
 		}
 	}
 
-	public async debug(ready: (port: number) => void,
-		plan: DebugPlan, logger?: Logger): Promise<void> {
+	public async debug(
+		ready: (port: number) => void,
+		plan: DebugPlan,
+		logger?: Logger
+	): Promise<void> {
 		const config = {
 			...this.config,
-			serial: plan.serial || this.config.serial
+			serial: plan.serial || this.config.serial,
 		}
 		const prefix = this.prefix
 		const from = config.resolveTestsFrom
@@ -212,7 +209,7 @@ export default class ConfigInfo {
 						reporter,
 						logger,
 						port: await reporter.selectPort(),
-						files: [f]
+						files: [f],
 					}).finally(done)
 				}
 			}
@@ -222,7 +219,7 @@ export default class ConfigInfo {
 					reporter,
 					logger,
 					port: await reporter.selectPort(),
-					files: [path.relative(from, prefix + f.name)]
+					files: [path.relative(from, prefix + f.name)],
 				}).finally(done)
 			}
 		}

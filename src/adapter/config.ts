@@ -24,9 +24,11 @@ import { detectNodePath } from 'vscode-test-adapter-util/out/misc'
 const configRoot = 'avaExplorer'
 
 export class AVAConfig {
-	public static affected(uri: vscode.Uri,
+	public static affected(
+		uri: vscode.Uri,
 		event: vscode.ConfigurationChangeEvent,
-		...settings: string[]): boolean {
+		...settings: string[]
+	): boolean {
 		const base = `${configRoot}.`
 		for (const check of settings) {
 			if (event.affectsConfiguration(`${base}${check}`, uri)) {
@@ -45,8 +47,8 @@ export class AVAConfig {
 			{
 				file: 'ava.config.js',
 				serial: false,
-				debuggerSkipFiles: []
-			}
+				debuggerSkipFiles: [],
+			},
 		]
 
 		let nodePath: string | undefined = adapterConfig.get<string>('nodePath') || undefined
@@ -55,7 +57,7 @@ export class AVAConfig {
 		}
 
 		const configEnvironment: NodeJS.ProcessEnv = {
-			...(adapterConfig.get('env') || {})
+			...(adapterConfig.get('env') || {}),
 		}
 		if (log.enabled) {
 			const output = JSON.stringify(configEnvironment)
@@ -64,7 +66,7 @@ export class AVAConfig {
 		const environment: NodeJS.ProcessEnv = { ...process.env }
 		for (const key in configEnvironment) {
 			const value = configEnvironment[key]
-			if ((value === undefined) || (value === null)) {
+			if (value === undefined || value === null) {
 				delete environment.key
 			} else {
 				environment[key] = String(value)
@@ -82,18 +84,20 @@ export class AVAConfig {
 
 		return {
 			cwd,
-			configs: configs.map((c): SubConfig => {
-				return {
-					file: c.file || 'ava.config.js',
-					serial: c.serial || false,
-					debuggerSkipFiles: c.debuggerSkipFiles
+			configs: configs.map(
+				(c): SubConfig => {
+					return {
+						file: c.file || 'ava.config.js',
+						serial: c.serial || false,
+						debuggerSkipFiles: c.debuggerSkipFiles,
+					}
 				}
-			}),
+			),
 			environment,
 			nodePath,
 			nodeArgv,
 			debuggerPort,
-			debuggerSkipFiles
+			debuggerSkipFiles,
 		}
 	}
 
@@ -103,17 +107,17 @@ export class AVAConfig {
 }
 
 export interface SubConfig {
-	file: string;
-	serial: boolean;
-	debuggerSkipFiles: string[];
+	file: string
+	serial: boolean
+	debuggerSkipFiles: string[]
 }
 
 export interface LoadedConfig {
-	cwd: string;
-	configs: SubConfig[];
-	environment: NodeJS.ProcessEnv;
-	nodePath: string | undefined;
-	nodeArgv: string[];
-	debuggerPort: number;
-	debuggerSkipFiles: string[];
+	cwd: string
+	configs: SubConfig[]
+	environment: NodeJS.ProcessEnv
+	nodePath: string | undefined
+	nodeArgv: string[]
+	debuggerPort: number
+	debuggerSkipFiles: string[]
 }

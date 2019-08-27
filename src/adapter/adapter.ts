@@ -24,15 +24,15 @@ import {
 	TestRunStartedEvent,
 	TestRunFinishedEvent,
 	TestSuiteEvent,
-	TestEvent
+	TestEvent,
 } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
 import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
-import { Worker } from './worker'
+import { Worker } from '../worker'
 
 interface IDisposable {
-	dispose(): void;
+	dispose(): void
 }
 
 type TestStates = TestRunStartedEvent | TestRunFinishedEvent | TestSuiteEvent | TestEvent
@@ -78,63 +78,73 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.disposables.push(this.testStatesEmitter)
 		this.disposables.push(this.autorunEmitter)
 
-		this.disposables.push(vscode.workspace.onDidChangeConfiguration(
-			async (configChange): Promise<void> => {
-				this.log.info('Configuration changed')
-				const uri = this.workspace.uri
-				if (AVAConfig.affected(uri, configChange,
-					'cwd', 'env', 'nodePath', 'nodeArgv')) {
-					this.log.info('Sending reload event')
-					await this.loadConfig(true)
-					this.load()
-					return
-				} else if (AVAConfig.affected(uri, configChange, 'configs')) {
-					this.log.info('Sending reload event')
-					await this.loadConfig()
-					this.load()
-				} else if (AVAConfig.affected(uri, configChange,
-					'debuggerPort', 'debuggerSkipFiles')) {
-					await this.loadConfig()
+		this.disposables.push(
+			vscode.workspace.onDidChangeConfiguration(
+				async (configChange): Promise<void> => {
+					this.log.info('Configuration changed')
+					const uri = this.workspace.uri
+					if (
+						AVAConfig.affected(uri, configChange, 'cwd', 'env', 'nodePath', 'nodeArgv')
+					) {
+						this.log.info('Sending reload event')
+						await this.loadConfig(true)
+						this.load()
+						return
+					} else if (AVAConfig.affected(uri, configChange, 'configs')) {
+						this.log.info('Sending reload event')
+						await this.loadConfig()
+						this.load()
+					} else if (
+						AVAConfig.affected(uri, configChange, 'debuggerPort', 'debuggerSkipFiles')
+					) {
+						await this.loadConfig()
+					}
+					if (AVAConfig.affected(uri, configChange, 'logpanel', 'logfile')) {
+						this.channel.appendLine('[Main] Logging settings changed.')
+						this.spawnQueue.then((): void => {
+							const w = this.worker
+							if (w) {
+								w.send({ type: 'log', enable: this.log.enabled })
+							}
+						})
+					}
 				}
-				if (AVAConfig.affected(uri, configChange, 'logpanel', 'logfile')) {
-					this.channel.appendLine('[Main] Logging settings changed.')
-					this.spawnQueue.then((): void => {
-						const w = this.worker
-						if (w) {
-							w.send({ type: 'log', enable: this.log.enabled })
-						}
-					})
-				}
-			}))
+			)
+		)
 
-		this.disposables.push(vscode.workspace.onDidSaveTextDocument(
-			async (document): Promise<void> => {
-				if (!this.config) return
-				const filename = document.uri.fsPath
-				const workPath = this.workspace.uri.fsPath
-				if (this.log.enabled) {
-					this.log.info(`${filename} was saved - checking if this affects ${workPath}`)
-				}
-				const f = this.files
-				if (f.has(filename)) {
+		this.disposables.push(
+			vscode.workspace.onDidSaveTextDocument(
+				async (document): Promise<void> => {
+					if (!this.config) return
+					const filename = document.uri.fsPath
+					const workPath = this.workspace.uri.fsPath
 					if (this.log.enabled) {
-						this.log.info(`Sending reload event because ${filename} was saved.`)
+						this.log.info(
+							`${filename} was saved - checking if this affects ${workPath}`
+						)
 					}
-					this.load()
-					return
-				}
-				if (filename.startsWith(workPath)) {
-					if (this.log.enabled) {
-						this.log.info('Sending autorun event')
+					const f = this.files
+					if (f.has(filename)) {
+						if (this.log.enabled) {
+							this.log.info(`Sending reload event because ${filename} was saved.`)
+						}
+						this.load()
+						return
 					}
-					this.autorunEmitter.fire()
+					if (filename.startsWith(workPath)) {
+						if (this.log.enabled) {
+							this.log.info('Sending autorun event')
+						}
+						this.autorunEmitter.fire()
+					}
 				}
-			}))
+			)
+		)
 	}
 
 	public async load(): Promise<void> {
 		this.testsEmitter.fire({ type: 'started' })
-		const config = this.config || await this.loadConfig()
+		const config = this.config || (await this.loadConfig())
 		if (!config) {
 			this.log.error(`config unavailable to load tests.`)
 			this.testsEmitter.fire({ type: 'finished', suite: undefined })
@@ -145,11 +155,13 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
-		this.spawnQueue = this.spawnQueue.then(async (): Promise<void> => {
-			if (!this.worker) {
-				await this.spawn(config)
+		this.spawnQueue = this.spawnQueue.then(
+			async (): Promise<void> => {
+				if (!this.worker) {
+					await this.spawn(config)
+				}
 			}
-		})
+		)
 		const m = this.configMap
 		await this.spawnQueue
 		const tree = new TestTree(this.log, config.cwd)
@@ -159,7 +171,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const p = tree.pushPrefix.bind(tree)
 			const f = tree.pushFile.bind(tree)
 			const c = tree.pushTest.bind(tree)
-			w.on('prefix', p).on('file', f).on('case', c)
+			w.on('prefix', p)
+				.on('file', f)
+				.on('case', c)
 			const subs = config.configs
 			for (const sub of subs) {
 				await w
@@ -173,7 +187,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 						this.log.error(error)
 					})
 			}
-			w.off('prefix', p).off('file', f).off('case', c)
+			w.off('prefix', p)
+				.off('file', f)
+				.off('case', c)
 			tree.build()
 			this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
 			this.files = tree.getFiles()
@@ -205,7 +221,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			return w
 				.send({
 					type: 'run',
-					run: testsToRun
+					run: testsToRun,
 				})
 				.then((): void => {
 					this.log.info('Finished running tests.')
@@ -223,7 +239,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 
 	public async debug(testsToRun: string[]): Promise<void> {
 		const config = this.config
-		if (!config || (testsToRun.length === 0)) {
+		if (!config || testsToRun.length === 0) {
 			return
 		}
 		if (this.log.enabled) {
@@ -248,19 +264,20 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				.send({
 					type: 'debug',
 					port: config.debuggerPort,
-					serial: serial.length > con.length ?
-						{
-							x: true,
-							list: con
-						} : {
-							x: false,
-							list: serial
-						},
-					run: testsToRun
+					serial:
+						serial.length > con.length
+							? {
+									x: true,
+									list: con,
+							  }
+							: {
+									x: false,
+									list: serial,
+							  },
+					run: testsToRun,
 				})
 				.catch((error: Error): void => {
 					this.log.error(error)
-
 				})
 				.finally((): void => {
 					this.log.info('Done debugging.')
@@ -299,7 +316,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				if (w) {
 					w.send({
 						type: 'log',
-						enable: this.log.enabled
+						enable: this.log.enabled,
 					})
 				}
 			})
@@ -318,71 +335,73 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				this.channel.append(chunk.toString())
 			}
 		}
-		const p = this.spawnQueue.then((): Promise<void> => {
-			return new Promise<void>((resolve): void => {
-				log.debug('Spawning worker...')
-				const w = new Worker(config, resolve)
-					.on('stdout', append)
-					.on('stderr', append)
-					.on('error', (error): void => {
-						log.error(error)
-					})
-					.on('message', (message): void => {
-						if (log.enabled) {
-							log.info(`Worker Message: ${message}`)
-						}
-					})
-					.on('result', (result): void => {
-						this.testStatesEmitter.fire({
-							type: 'test',
-							state: result.state,
-							test: result.test
+		const p = this.spawnQueue.then(
+			(): Promise<void> => {
+				return new Promise<void>((resolve): void => {
+					log.debug('Spawning worker...')
+					const w = new Worker(config, resolve)
+						.on('stdout', append)
+						.on('stderr', append)
+						.on('error', (error): void => {
+							log.error(error)
 						})
-					})
-					.on('done', (file): void => {
-						this.testStatesEmitter.fire({
-							type: 'suite',
-							suite: file,
-							state: 'completed'
+						.on('message', (message): void => {
+							if (log.enabled) {
+								log.info(`Worker Message: ${message}`)
+							}
 						})
-					})
-					.once('connect', (): void => {
-						if (this.worker) {
-							this.worker.disconnect()
-						}
-						this.worker = w
-						log.debug('Worker connected.')
-					})
-					.once('disconnect', (): void => {
-						if (this.worker === w) {
-							this.worker = undefined
-						}
-						w.removeAllListeners()
-						log.debug('Worker disconnected.')
-					})
-			})
-		})
+						.on('result', (result): void => {
+							this.testStatesEmitter.fire({
+								type: 'test',
+								state: result.state,
+								test: result.test,
+							})
+						})
+						.on('done', (file): void => {
+							this.testStatesEmitter.fire({
+								type: 'suite',
+								suite: file,
+								state: 'completed',
+							})
+						})
+						.once('connect', (): void => {
+							if (this.worker) {
+								this.worker.disconnect()
+							}
+							this.worker = w
+							log.debug('Worker connected.')
+						})
+						.once('disconnect', (): void => {
+							if (this.worker === w) {
+								this.worker = undefined
+							}
+							w.removeAllListeners()
+							log.debug('Worker disconnected.')
+						})
+				})
+			}
+		)
 		this.spawnQueue = p
 		return p
 	}
 
-
 	private async connectDebugger(skipFiles: string[], id: string, port: number): Promise<void> {
 		this.log.info('Starting the debug session')
 		const sub = this.configMap.get(id)
-		await vscode.debug.startDebugging(this.workspace,
-			{
-				name: 'Debug AVA Tests',
-				type: 'node',
-				request: 'attach',
-				port,
-				protocol: 'inspector',
-				timeout: 30000,
-				stopOnEntry: false,
-				skipFiles: sub ? skipFiles.concat(sub.debuggerSkipFiles) : skipFiles
-			})
+		await vscode.debug.startDebugging(this.workspace, {
+			name: 'Debug AVA Tests',
+			type: 'node',
+			request: 'attach',
+			port,
+			protocol: 'inspector',
+			timeout: 30000,
+			stopOnEntry: false,
+			skipFiles: sub ? skipFiles.concat(sub.debuggerSkipFiles) : skipFiles,
+		})
 		// workaround for Microsoft/vscode#70125
-		await new Promise((resolve): void => { setImmediate(resolve) })
+		await new Promise((resolve): void => {
+			setImmediate(resolve)
+		})
 		const currentSession = vscode.debug.activeDebugSession
 		if (!currentSession) {
 			this.log.error('No active AVA debug session - aborting')

@@ -19,8 +19,8 @@ PERFORMANCE OF THIS SOFTWARE.
 import vscode from 'vscode'
 import { TestHub, testExplorerExtensionId } from 'vscode-test-adapter-api'
 import { TestAdapterRegistrar } from 'vscode-test-adapter-util/out/registrar'
-import { AVAAdapter } from './adapter'
-import { AVAConfig } from './config'
+import { AVAAdapter } from './adapter/adapter'
+import { AVAConfig } from './adapter/config'
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	const workspaceFolder = (vscode.workspace.workspaceFolders || [])[0]
@@ -33,10 +33,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	if (testExplorerExtension) {
 		const testHub = testExplorerExtension.exports
 
-		context.subscriptions.push(new TestAdapterRegistrar(
-			testHub,
-			(workspaceFolder): AVAAdapter => new AVAAdapter(workspaceFolder, channel, log),
-			log
-		))
+		context.subscriptions.push(
+			new TestAdapterRegistrar(
+				testHub,
+				(workspaceFolder): AVAAdapter => new AVAAdapter(workspaceFolder, channel, log),
+				log
+			)
+		)
 	}
 }

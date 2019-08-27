@@ -17,20 +17,17 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import path from 'path'
-import {
-	TestInfo,
-	TestSuiteInfo,
-} from 'vscode-test-adapter-api'
+import { TestInfo, TestSuiteInfo } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
-import { Prefix, TestFile, TestCase } from './ipc'
+import { Prefix, TestFile, TestCase } from '../ipc'
 
 interface Info {
-	id: string;
-	label: string;
-	file: string;
+	id: string
+	label: string
+	file: string
 }
 
-function sortTestInfo(suite: (TestInfo | TestSuiteInfo)): TestSuiteInfo {
+function sortTestInfo(suite: TestInfo | TestSuiteInfo): TestSuiteInfo {
 	const s = suite as TestSuiteInfo
 	if (s.children) {
 		s.children = s.children.sort((a, b): number => {
@@ -47,7 +44,7 @@ export default class TestTree {
 		type: 'suite',
 		id: 'root',
 		label: 'AVA',
-		children: []
+		children: [],
 	}
 	private readonly base: string
 	private readonly files = new Set<string>()
@@ -80,7 +77,7 @@ export default class TestTree {
 			label,
 			file,
 			tooltip: process.env.NODE_ENV === 'production' ? label : id,
-			children: []
+			children: [],
 		}
 		this.prefix = prefix
 		this.suiteHash.set(id, x)
@@ -110,7 +107,7 @@ export default class TestTree {
 			label,
 			file,
 			tooltip: process.env.NODE_ENV === 'production' ? label : id,
-			children: []
+			children: [],
 		}
 		this.suiteHash.set(id, x)
 		this.prefixHash.set(id, prefix)
@@ -135,7 +132,7 @@ export default class TestTree {
 			id,
 			label,
 			tooltip: process.env.NODE_ENV === 'production' ? label : id,
-			file: suite.file
+			file: suite.file,
 		}
 		suite.children.push(x)
 	}

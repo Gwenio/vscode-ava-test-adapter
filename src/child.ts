@@ -20,13 +20,16 @@ import { Server, ServerSocket } from 'veza'
 import getPort from 'get-port'
 import random from 'random'
 import * as IPC from './ipc'
-import hash from './hash'
+import hash from './worker/hash'
 import Suite from './worker/suite'
 
 let connected = false
-const token = hash(process.cwd(), (): boolean => false,
+const token = hash(
+	process.cwd(),
+	(): boolean => false,
 	process.cwd().length.toString(16),
-	random.int(0, 0xFFFF).toString(16))
+	random.int(0, 0xffff).toString(16)
+)
 let logEnabled = process.env.NODE_ENV !== 'production'
 
 const suite = new Suite()
@@ -35,9 +38,11 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
 	const send = (data: IPC.Tree): void => {
-		wait.push(client.send(data, {
-			receptive: false
-		}))
+		wait.push(
+			client.send(data, {
+				receptive: false,
+			})
+		)
 	}
 	await suite.load(info.file, send, logger)
 	await Promise.all(wait)
@@ -47,9 +52,11 @@ async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
 	const send = (data: IPC.Event): void => {
-		wait.push(client.send(data, {
-			receptive: false
-		}))
+		wait.push(
+			client.send(data, {
+				receptive: false,
+			})
+		)
 	}
 	await suite.run(send, info.run, logger)
 	await Promise.all(wait)
@@ -57,13 +64,19 @@ async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 
 async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
-	await suite.debug(function (config: string, port: number): void {
-		client.send({
-			type: 'ready',
-			config,
-			port
-		})
-	}, info.run, info.port, info.serial, logger)
+	await suite.debug(
+		function(config: string, port: number): void {
+			client.send({
+				type: 'ready',
+				config,
+				port,
+			})
+		},
+		info.run,
+		info.port,
+		info.serial,
+		logger
+	)
 }
 
 declare const connection: Server

@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import hashSum from 'hash-sum'
 import random from 'random'
 
-const generate = random.uniformInt(0, 0xFFFF)
+const generate = random.uniformInt(0, 0xffff)
 
 type Checker = (h: string) => boolean
 

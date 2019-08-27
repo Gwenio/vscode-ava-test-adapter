@@ -16,7 +16,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import hash from '../hash'
+import hash from './hash'
 import FileInfo from './file_info'
 
 /**
