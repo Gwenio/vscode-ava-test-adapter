@@ -1,7 +1,7 @@
 {
 	"all": true,
 	"cache": true,
-	"exclude": ["tmp/nyc/*.js"],
+	"exclude": ["tmp/nyc/*.js", "rollup.config.js", "ava.*.js"],
 	"exclude-after-remap": false,
 	"reporter": "html",
 	"report-dir": "tmp/nyc",
