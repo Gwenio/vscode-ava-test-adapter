@@ -1,0 +1,10 @@
+{
+	"all": true,
+	"cache": true,
+	"exclude": ["tmp/nyc/*.js"],
+	"exclude-after-remap": false,
+	"reporter": "html",
+	"report-dir": "tmp/nyc",
+	"skip-full": false,
+	"temp-dir": "tmp/nyc/raw"
+}

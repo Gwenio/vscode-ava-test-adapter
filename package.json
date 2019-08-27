@@ -21,6 +21,7 @@
 	"scripts": {
 		"clean": "rimraf tmp dist *.vsix",
 		"compile": "tsc -p src/tsconfig.json",
+		"coverage": "nyc -r text ava",
 		"rollup": "rollup -c",
 		"build": "yarn run compile && yarn run rollup",
 		"rebuild": "yarn run clean && yarn run build",
@@ -66,6 +67,7 @@
 		"husky": "^3.0.4",
 		"lint-staged": "^9.2.5",
 		"markdownlint-cli": "^0.18.0",
+		"nyc": "^14.1.1",
 		"prettier": "1.18.2",
 		"random": "^2.1.1",
 		"rimraf": "^3.0.0",
