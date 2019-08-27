@@ -33,3 +33,5 @@ img/**
 rollup.config.js
 ava.*.js
 .eslintignore
+.prettierignore
+.prettierrc.json

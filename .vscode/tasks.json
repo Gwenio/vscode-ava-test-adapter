@@ -7,35 +7,21 @@
 			"label": "lint",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"eslint",
-				"${file}"
-			],
-			"problemMatcher": [
-				"$eslint-stylish"
-			]
+			"args": ["eslint", "${file}"],
+			"problemMatcher": ["$eslint-stylish"]
 		},
 		{
 			"label": "fix",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"eslint",
-				"--fix",
-				"${file}"
-			],
-			"problemMatcher": [
-				"$eslint-stylish"
-			]
+			"args": ["eslint", "--fix", "${file}"],
+			"problemMatcher": ["$eslint-stylish"]
 		},
 		{
 			"label": "rollup-watch",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"rollup",
-				"-cw"
-			],
+			"args": ["rollup", "-cw"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,
@@ -50,13 +36,8 @@
 			"label": "rollup-production",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"rollup",
-				"-c"
-			],
-			"dependsOn": [
-				"compile"
-			],
+			"args": ["rollup", "-c"],
+			"dependsOn": ["compile"],
 			"options": {
 				"env": {
 					"NODE_ENV": "production"
@@ -75,12 +56,7 @@
 			"label": "clean",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"rimraf",
-				"tmp",
-				"dist",
-				"*.vsix"
-			],
+			"args": ["rimraf", "tmp", "dist", "*.vsix"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,
@@ -95,11 +71,7 @@
 			"label": "compile",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"tsc",
-				"-p",
-				"src/tsconfig.json"
-			],
+			"args": ["tsc", "-p", "src/tsconfig.json"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,
@@ -109,22 +81,14 @@
 				"showReuseMessage": true,
 				"clear": false
 			},
-			"problemMatcher": [
-				"$tsc"
-			]
+			"problemMatcher": ["$tsc"]
 		},
 		{
 			"label": "package",
 			"type": "shell",
 			"command": "npx",
-			"args": [
-				"vsce",
-				"package"
-			],
-			"dependsOn": [
-				"compile",
-				"rollup-production"
-			],
+			"args": ["vsce", "package"],
+			"dependsOn": ["compile", "rollup-production"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,

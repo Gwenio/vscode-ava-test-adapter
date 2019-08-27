@@ -15,34 +15,17 @@
 		"node": true,
 		"es6": true
 	},
-	"plugins": [
-		"unicorn",
-		"promise"
-	],
+	"plugins": ["unicorn", "promise"],
 	"extends": [
 		"eslint:recommended",
 		"plugin:node/recommended",
 		"plugin:unicorn/recommended",
-		"plugin:promise/recommended"
+		"plugin:promise/recommended",
+		"prettier"
 	],
 	"rules": {
-		"max-len": [
-			"warn",
-			{
-				"code": 100
-			}
-		],
-		"indent": [
-			"error",
-			"tab"
-		],
-		"semi": [
-			"warn",
-			"never"
-		],
 		"new-parens": 2,
 		"no-bitwise": 2,
-		"no-consecutive-blank-lines": "off",
 		"no-console": 0,
 		"no-debugger": 0,
 		"node/no-unpublished-require": 0,

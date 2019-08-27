@@ -6,6 +6,7 @@
 		"davidanson.vscode-markdownlint",
 		"ban.spellright",
 		"dbaeumer.vscode-eslint",
-		"hbenl.vscode-test-explorer"
+		"hbenl.vscode-test-explorer",
+		"esbenp.prettier-vscode"
 	]
 }

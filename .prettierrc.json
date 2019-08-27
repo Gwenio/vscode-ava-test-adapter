@@ -1,0 +1,53 @@
+{
+	"overrides": [
+		{
+			"files": ["**.ts"],
+			"options": {
+				"parser": "typescript",
+				"trailingComma": "es5",
+				"tabWidth": 4,
+				"useTabs": true,
+				"semi": false,
+				"singleQuote": true,
+				"printWidth": 100
+			}
+		},
+		{
+			"files": ["*.js"],
+			"options": {
+				"parser": "babel",
+				"trailingComma": "es5",
+				"tabWidth": 4,
+				"useTabs": true,
+				"semi": false,
+				"singleQuote": true,
+				"printWidth": 100
+			}
+		},
+		{
+			"files": ["**.json"],
+			"excludeFiles": [".vscode/*.json"],
+			"options": {
+				"parser": "json",
+				"trailingComma": "es5",
+				"tabWidth": 4,
+				"useTabs": true,
+				"semi": false,
+				"singleQuote": true,
+				"printWidth": 100
+			}
+		},
+		{
+			"files": [".vscode/*.json"],
+			"options": {
+				"parser": "json5",
+				"trailingComma": "all",
+				"tabWidth": 4,
+				"useTabs": true,
+				"semi": false,
+				"singleQuote": true,
+				"printWidth": 100
+			}
+		}
+	]
+}
