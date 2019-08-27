@@ -18,13 +18,13 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-import AVA from "../namespace"
+import AVA from '../namespace'
 
 declare module 'ava/lib/run-status' {
 	export default class Status implements AVA.Status {
-		constructor(files: string[], parallelRuns: null | number);
-		on(tag: string, handler: (event: Event) => void): () => void;
-		suggestExitCode(circumstances: { matching: boolean }): number;
-		emitStateChange(event: Event): void;
+		constructor(files: string[], parallelRuns: null | number)
+		on(tag: string, handler: (event: Event) => void): () => void
+		suggestExitCode(circumstances: { matching: boolean }): number
+		emitStateChange(event: Event): void
 	}
 }

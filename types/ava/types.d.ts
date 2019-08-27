@@ -21,85 +21,87 @@ PERFORMANCE OF THIS SOFTWARE.
 import { Event } from './events'
 
 export interface BabelConfig {
-	extensions?: string[];
+	extensions?: string[]
 	testOptions: {
-		babelrc: boolean;
-		configFile: boolean;
-	};
+		babelrc: boolean
+		configFile: boolean
+	}
 }
 
 export interface Configuration {
-	files?: string[];
-	helpers?: string[];
-	sources?: string[];
-	match?: string[];
-	color?: boolean;
-	cache?: boolean;
-	concurrency?: string;
-	failFast?: boolean;
-	failWithoutAssertions?: boolean;
-	environmentVariables?: { [key: string]: string };
-	tap?: boolean;
-	verbose?: boolean;
-	serial?: boolean;
-	snapshotDir?: string;
-	updateSnapshots?: boolean;
-	compileEnhancements?: boolean;
-	extensions?: string[];
-	require?: string[];
-	babel?: false | {
-		[K in keyof BabelConfig]?: BabelConfig[K]
-	};
-	timeout?: number;
-	watch?: boolean;
+	files?: string[]
+	helpers?: string[]
+	sources?: string[]
+	match?: string[]
+	color?: boolean
+	cache?: boolean
+	concurrency?: string
+	failFast?: boolean
+	failWithoutAssertions?: boolean
+	environmentVariables?: { [key: string]: string }
+	tap?: boolean
+	verbose?: boolean
+	serial?: boolean
+	snapshotDir?: string
+	updateSnapshots?: boolean
+	compileEnhancements?: boolean
+	extensions?: string[]
+	require?: string[]
+	babel?:
+		| false
+		| {
+				[K in keyof BabelConfig]?: BabelConfig[K]
+		  }
+	timeout?: number
+	watch?: boolean
 }
 
 export interface Parameters {
-	configFile?: string;
-	resolveFrom: string;
-	defaults: Configuration;
+	configFile?: string
+	resolveFrom: string
+	defaults: Configuration
 }
 
 export interface Globs {
-	extensions: string[];
-	testPatterns: string[];
-	helperPatterns: string[];
-	sourcePatterns: string[];
+	extensions: string[]
+	testPatterns: string[]
+	helperPatterns: string[]
+	sourcePatterns: string[]
 }
 
 export interface Extensions {
-	all: string[];
-	enhancementsOnly: string[];
-	full: string[];
+	all: string[]
+	enhancementsOnly: string[]
+	full: string[]
 }
 
 export interface Status {
-	on(tag: string, handler: (event: Event) => void): () => void;
-	suggestExitCode(circumstances: { matching: boolean }): number;
-	emitStateChange(event: Event): void;
+	on(tag: string, handler: (event: Event) => void): () => void
+	suggestExitCode(circumstances: { matching: boolean }): number
+	emitStateChange(event: Event): void
 }
 
 export interface RuntimeOptions {
-	clearLogOnNextRun?: boolean;
-	previousFailures?: number;
-	runOnlyExclusive?: boolean;
-	runVector?: number;
-	updateSnapshots?: boolean;
+	clearLogOnNextRun?: boolean
+	previousFailures?: number
+	runOnlyExclusive?: boolean
+	runVector?: number
+	updateSnapshots?: boolean
 }
 
 export interface Plan {
-	clearLogOnNextRun: boolean;
-	failFastEnabled: boolean;
-	filePathPrefix: string;
-	files: string[];
-	matching: boolean;
-	previousFailures: number;
-	runOnlyExclusive: boolean;
-	runVector: number;
-	status: Status;
+	clearLogOnNextRun: boolean
+	failFastEnabled: boolean
+	filePathPrefix: string
+	files: string[]
+	matching: boolean
+	previousFailures: number
+	runOnlyExclusive: boolean
+	runVector: number
+	status: Status
 }
 
 export interface Reporter {
-	startRun(plan: AVA.Plan): void;
-	endRun(): void;
+	startRun(plan: AVA.Plan): void
+	endRun(): void
 }

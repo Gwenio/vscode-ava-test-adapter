@@ -40,7 +40,7 @@
 		{
 			"files": [".vscode/*.json"],
 			"options": {
-				"parser": "json5",
+				"parser": "json",
 				"trailingComma": "all",
 				"tabWidth": 4,
 				"useTabs": true,

@@ -12,23 +12,12 @@
 			"arrowFunctions": true
 		}
 	},
-	"plugins": [
-		"@typescript-eslint"
-	],
-	"extends": [
-		"plugin:@typescript-eslint/recommended"
-	],
+	"plugins": ["@typescript-eslint"],
+	"extends": ["plugin:@typescript-eslint/recommended", "prettier"],
 	"rules": {
-		"indent": 0,
-		"@typescript-eslint/indent": [
-			"error",
-			"tab"
-		],
-		"semi": 0,
-		"@typescript-eslint/semi": [
-			"warn",
-			"never"
-		],
+		"@typescript-eslint/member-delimiter-style": "off",
+		"@typescript-eslint/indent": "off",
+		"@typescript-eslint/semi": "off",
 		"new-parens": 2,
 		"no-bitwise": 2,
 		"no-consecutive-blank-lines": "off",

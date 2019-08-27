@@ -17,69 +17,69 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 interface Base<T extends string> {
-	type: T;
+	type: T
 }
 
 export interface Logging extends Base<'log'> {
-	enable: boolean;
+	enable: boolean
 }
 
 export interface Load extends Base<'load'> {
-	file: string;
+	file: string
 }
 
 export interface Drop extends Base<'drop'> {
-	id?: string;
+	id?: string
 }
 
 export interface Prefix extends Base<'prefix'> {
-	id: string;
-	file: string;
-	prefix: string;
+	id: string
+	file: string
+	prefix: string
 }
 
 export interface TestFile extends Base<'file'> {
-	id: string;
-	config: string;
-	file: string;
+	id: string
+	config: string
+	file: string
 }
 
 export interface TestCase extends Base<'case'> {
-	id: string;
-	file: string;
-	test: string;
+	id: string
+	file: string
+	test: string
 }
 
 export interface Run extends Base<'run'> {
-	run: string[];
+	run: string[]
 }
 
 export type Stop = Base<'stop'>
 
 export interface Result extends Base<'result'> {
-	test: string;
-	state: 'running' | 'passed' | 'failed' | 'skipped' | 'errored';
+	test: string
+	state: 'running' | 'passed' | 'failed' | 'skipped' | 'errored'
 }
 
 export interface Done extends Base<'done'> {
-	file: string;
+	file: string
 }
 
 export interface Debug extends Base<'debug'> {
-	port: number;
+	port: number
 	serial: {
 		/**
 		 * @summary A configuration is to be debugged serially if x !== list.includes(id).
 		 */
-		x: boolean;
-		list: string[];
-	};
-	run: string[];
+		x: boolean
+		list: string[]
+	}
+	run: string[]
 }
 
 export interface Ready extends Base<'ready'> {
-	config: string;
-	port: number;
+	config: string
+	port: number
 }
 
 export type Action = Load | Drop | Run | Stop | Debug

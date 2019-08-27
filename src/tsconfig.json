@@ -6,12 +6,8 @@
 		"declarationDir": "../tmp/src",
 		"baseUrl": ".",
 		"paths": {
-			"ava/lib/*": [
-				"../types/ava/lib/*"
-			],
-			"ava/namespace": [
-				"../types/ava/namespace"
-			],
+			"ava/lib/*": ["../types/ava/lib/*"],
+			"ava/namespace": ["../types/ava/namespace"]
 		},
 		"allowSyntheticDefaultImports": true,
 		"importHelpers": true,

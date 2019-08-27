@@ -22,20 +22,20 @@ import AbstractReporter from './reporter'
 type Logger = (message: string) => void
 
 export interface TestResult {
-	state: 'skipped' | 'passed' | 'failed';
-	file: string;
-	test: string;
+	state: 'skipped' | 'passed' | 'failed'
+	file: string
+	test: string
 }
 
 export interface TestEmitter {
-	emit(event: 'end'): void;
-	emit(event: 'done', message: string): void;
-	emit(event: 'result', message: TestResult): void;
+	emit(event: 'end'): void
+	emit(event: 'done', message: string): void
+	emit(event: 'result', message: TestResult): void
 }
 
 export class TestReporter extends AbstractReporter {
 	private readonly reporter: TestEmitter
-	private readonly log: Logger = (_message: string): void => { }
+	private readonly log: Logger = (_message: string): void => {}
 	private readonly prefix: number
 	private running = false
 
@@ -65,7 +65,7 @@ export class TestReporter extends AbstractReporter {
 					this.reporter.emit('result', {
 						state: 'skipped',
 						file: event.testFile.slice(this.prefix),
-						test: event.title
+						test: event.title,
 					})
 				}
 				return
@@ -73,14 +73,14 @@ export class TestReporter extends AbstractReporter {
 				this.reporter.emit('result', {
 					state: 'passed',
 					file: event.testFile.slice(this.prefix),
-					test: event.title
+					test: event.title,
 				})
 				return
 			case 'test-failed':
 				this.reporter.emit('result', {
 					state: 'failed',
 					file: event.testFile.slice(this.prefix),
-					test: event.title
+					test: event.title,
 				})
 				return
 			case 'worker-failed':

@@ -16,20 +16,17 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import {
-	Tree,
-	Event
-} from '../ipc'
+import { Tree, Event } from '../ipc'
 import ConfigInfo from './config_info'
 
 type Logger = (message: string) => void
 
 interface Loaded {
-	prefix: string;
+	prefix: string
 	info: {
-		file: string;
-		tests: string[];
-	}[];
+		file: string
+		tests: string[]
+	}[]
 }
 
 export default class Suite {
@@ -79,20 +76,27 @@ export default class Suite {
 		await Promise.all(wait)
 	}
 
-	public async debug(ready: (config: string, port: number) => void, plan: string[],
-		port: number, serial: { x: boolean; list: string[] }, logger?: Logger): Promise<void> {
+	public async debug(
+		ready: (config: string, port: number) => void,
+		plan: string[],
+		port: number,
+		serial: { x: boolean; list: string[] },
+		logger?: Logger
+	): Promise<void> {
 		const v = this.configs.values()
 		const { x, list } = serial
 		const s = list.includes.bind(list)
 		if (plan.includes('root')) {
 			for (const c of v) {
-				await c.debug(ready.bind(null, c.id),
-					{ port, serial: x !== s(c.id) }, logger)
+				await c.debug(ready.bind(null, c.id), { port, serial: x !== s(c.id) }, logger)
 			}
 		} else {
 			for (const c of v) {
-				await c.debug(ready.bind(null, c.id),
-					{ plan, port, serial: x !== s(c.id) || false }, logger)
+				await c.debug(
+					ready.bind(null, c.id),
+					{ plan, port, serial: x !== s(c.id) || false },
+					logger
+				)
 			}
 		}
 	}

@@ -25,7 +25,7 @@ type Ready = (port: number) => void
 
 export default class DebugReporter extends AbstractReporter {
 	private readonly ready: Ready
-	private readonly log: Logger = (_message: string): void => { }
+	private readonly log: Logger = (_message: string): void => {}
 	private readonly defaultPort: number
 	private port: number
 	private static running = false
@@ -57,7 +57,7 @@ export default class DebugReporter extends AbstractReporter {
 	}
 
 	/* eslint @typescript-eslint/no-empty-function: "off" */
-	public consumeStateChange(_event: AVA.Event): void { }
+	public consumeStateChange(_event: AVA.Event): void {}
 
 	public endRun(): void {
 		if (DebugReporter.running) {

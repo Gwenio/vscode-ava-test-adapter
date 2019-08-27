@@ -20,25 +20,23 @@ import Emitter from 'events'
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import Status from 'ava/lib/run-status'
-import {
-	LoadReporter,
-	TestReporter,
-	DebugReporter
-} from '../../src/reporter'
+import { LoadReporter, TestReporter, DebugReporter } from '../../src/reporter'
 
 interface Context {
 	/**
 	 * @summary Isolated sinon sandbox.
 	 */
-	sandbox: SinonSandbox;
+	sandbox: SinonSandbox
 }
 
 const test = anyTest as TestInterface<Context>
 
 // Setup isolated sandbox
-test.beforeEach(async (t): Promise<void> => {
-	t.context.sandbox = sinon.createSandbox()
-})
+test.beforeEach(
+	async (t): Promise<void> => {
+		t.context.sandbox = sinon.createSandbox()
+	}
+)
 
 const basePlan = {
 	clearLogOnNextRun: false,
@@ -48,7 +46,7 @@ const basePlan = {
 	matching: true,
 	previousFailures: 0,
 	runOnlyExclusive: true,
-	runVector: 0
+	runVector: 0,
 }
 
 test('LoadReporter begin and end log', async (t): Promise<void> => {
@@ -57,7 +55,7 @@ test('LoadReporter begin and end log', async (t): Promise<void> => {
 	const r = new LoadReporter([], l)
 	r.startRun({
 		...basePlan,
-		status
+		status,
 	})
 	r.endRun()
 	r.endRun()
@@ -71,7 +69,7 @@ test('TestReporter begin and end log', async (t): Promise<void> => {
 	const r = new TestReporter(emit, 0, l)
 	r.startRun({
 		...basePlan,
-		status
+		status,
 	})
 	r.endRun()
 	r.endRun()
@@ -82,15 +80,15 @@ test('DebugReporter begin and end log', async (t): Promise<void> => {
 	const l = t.context.sandbox.spy()
 	const s1 = new Status([], null)
 	const s2 = new Status([], null)
-	const r = new DebugReporter((_p: number): void => { }, 9229, l)
+	const r = new DebugReporter((_p: number): void => {}, 9229, l)
 	r.startRun({
 		...basePlan,
-		status: s1
+		status: s1,
 	})
 	t.throws((): void => {
 		r.startRun({
 			...basePlan,
-			status: s2
+			status: s2,
 		})
 	})
 	r.endRun()

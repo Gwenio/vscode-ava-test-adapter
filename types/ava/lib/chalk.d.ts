@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
 import { Chalk, ChalkOptions } from 'chalk'
-import AVA from "../namespace"
+import AVA from '../namespace'
 
 declare module 'ava/lib/chalk' {
 	export function get(): Chalk

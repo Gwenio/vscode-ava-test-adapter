@@ -32,8 +32,9 @@ export default abstract class Reporter implements AVA.Reporter {
 
 	public startRun(plan: AVA.Plan): void {
 		this.reset()
-		this.removeListener = plan.status.on('stateChange',
-			(event): void => { this.consumeStateChange(event) })
+		this.removeListener = plan.status.on('stateChange', (event): void => {
+			this.consumeStateChange(event)
+		})
 	}
 
 	public abstract consumeStateChange(event: AVA.Event): void

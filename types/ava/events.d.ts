@@ -19,131 +19,132 @@ PERFORMANCE OF THIS SOFTWARE.
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
 export interface FileStats {
-	declaredTests: number;
-	failedHooks: number;
-	failedTests: number;
-	internalErrors: number;
-	remainingTests: number;
-	passedKnownFailingTests: number;
-	passedTests: number;
-	selectedTests: number;
-	skippedTests: number;
-	todoTests: number;
-	uncaughtExceptions: number;
-	unhandledRejections: number;
+	declaredTests: number
+	failedHooks: number
+	failedTests: number
+	internalErrors: number
+	remainingTests: number
+	passedKnownFailingTests: number
+	passedTests: number
+	selectedTests: number
+	skippedTests: number
+	todoTests: number
+	uncaughtExceptions: number
+	unhandledRejections: number
 }
 
-export interface TestStats implements FileStats {
-	byFile: Map<string, Stats>;
-	failedWorkers: number;
-	files: number;
-	parallelRuns: null | number;
-	finishedWorkers: number;
-	timeouts: number;
-	uncaughtExceptions: number;
-	unhandledRejections: number;
+export interface TestStats {
+	byFile: Map<string, Stats>
+	failedWorkers: number
+	files: number
+	parallelRuns: null | number
+	finishedWorkers: number
+	timeouts: number
+	uncaughtExceptions: number
+	unhandledRejections: number
 }
 
 export namespace Events {
 	interface DeclareTest {
-		type: 'declared-test';
-		title: string;
-		knownFailing: boolean;
-		todo: boolean;
-		testFile: string;
+		type: 'declared-test'
+		title: string
+		knownFailing: boolean
+		todo: boolean
+		testFile: string
 	}
 	interface SelectTest {
-		type: 'selected-test';
-		title: string;
-		knownFailing: boolean;
-		skip: boolean;
-		todo: boolean;
-		testFile: string;
+		type: 'selected-test'
+		title: string
+		knownFailing: boolean
+		skip: boolean
+		todo: boolean
+		testFile: string
 	}
 
 	interface TestPassed {
-		type: 'test-passed';
-		title: string;
-		duration: number;
-		knownFailing: boolean;
-		logs: [];
-		testFile: string;
+		type: 'test-passed'
+		title: string
+		duration: number
+		knownFailing: boolean
+		logs: []
+		testFile: string
 	}
 
 	interface ErrorSource {
-		isDependency: boolean;
-		isWithinProject: boolean;
-		file: string;
-		line: number;
+		isDependency: boolean
+		isWithinProject: boolean
+		file: string
+		line: number
 	}
 
 	interface ErrorInfo {
-		avaAssertionError: boolean;
-		nonErrorObject: boolean;
-		source: ErrorSource;
-		stack: string;
-		improperUsage: boolean;
-		message: string;
-		name: string;
-		statements: [],
+		avaAssertionError: boolean
+		nonErrorObject: boolean
+		source: ErrorSource
+		stack: string
+		improperUsage: boolean
+		message: string
+		name: string
+		statements: []
 		values: {
-			"label": string;
-			"formatted": string;
-		}[],
-		summary: string;
+			label: string
+			formatted: string
+		}[]
+		summary: string
 	}
 
 	interface TestFailed {
-		type: 'test-failed';
-		title: string;
-		duration: number;
-		knownFailing: boolean;
-		err: ErrorInfo;
-		logs: [];
-		testFile: string;
+		type: 'test-failed'
+		title: string
+		duration: number
+		knownFailing: boolean
+		err: ErrorInfo
+		logs: []
+		testFile: string
 	}
 
 	interface HookFinished {
-		type: 'hook-finished';
-		title: string;
-		duration: number;
-		logs: [];
-		testFile: string;
+		type: 'hook-finished'
+		title: string
+		duration: number
+		logs: []
+		testFile: string
 	}
 
 	interface WorkerFinished {
-		type: 'worker-finished';
-		forcedExit: boolean;
-		testFile: string;
+		type: 'worker-finished'
+		forcedExit: boolean
+		testFile: string
 	}
 
 	interface WorkerFailed {
-		type: 'worker-failed';
-		testFile: string;
+		type: 'worker-failed'
+		testFile: string
 	}
 
 	interface Stats {
-		type: 'stats';
-		stats: TestStats;
+		type: 'stats'
+		stats: TestStats
 	}
 
 	interface Interrrupt {
-		type: 'interrupt';
+		type: 'interrupt'
 	}
 
 	interface Output {
-		type: 'worker-stderr' | 'worker-stdout';
-		chunk: string | Uint8Array;
+		type: 'worker-stderr' | 'worker-stdout'
+		chunk: string | Uint8Array
 	}
 }
 
-export type Event = Events.DeclareTest |
-	Events.HookFinished |
-	Events.SelectTest |
-	Events.Stats |
-	Events.TestPassed |
-	Events.TestFailed |
-	Events.WorkerFinished |
-	Events.WorkerFailed |
-	Events.Output |
-	Events.Interrrupt
+export type Event =
+	| Events.DeclareTest
+	| Events.HookFinished
+	| Events.SelectTest
+	| Events.Stats
+	| Events.TestPassed
+	| Events.TestFailed
+	| Events.WorkerFinished
+	| Events.WorkerFailed
+	| Events.Output
+	| Events.Interrrupt

@@ -33,7 +33,7 @@ import {
 	Extensions,
 	Status,
 	RuntimeOptions,
-	Reporter
+	Reporter,
 } from './types'
 
 export {
@@ -45,5 +45,5 @@ export {
 	Extensions,
 	Status,
 	RuntimeOptions,
-	Reporter
+	Reporter,
 }

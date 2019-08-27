@@ -18,12 +18,13 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-import AVA from "../namespace"
+import AVA from '../namespace'
 
 declare module 'ava/lib/globs' {
 	export function normalizeGlobs(
 		testPatterns?: string[],
 		helperPatterns?: string[],
 		sourcePatterns?: string[],
-		extensions?: string[]): AVA.Globs
+		extensions?: string[]
+	): AVA.Globs
 }

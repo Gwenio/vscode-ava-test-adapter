@@ -20,10 +20,4 @@ import LoadReporter from './load'
 import { TestReporter, TestEmitter, TestResult } from './test'
 import DebugReporter from './debug'
 
-export {
-	LoadReporter,
-	TestReporter,
-	TestEmitter,
-	TestResult,
-	DebugReporter
-}
+export { LoadReporter, TestReporter, TestEmitter, TestResult, DebugReporter }

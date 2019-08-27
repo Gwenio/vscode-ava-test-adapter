@@ -18,9 +18,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-import AVA from "../namespace"
+import AVA from '../namespace'
 
 declare module 'ava/lib/extensions' {
-	export default (enhancementsOnly: string[],
-		babelConfig: AVA.BabelConfig) => AVA.Extensions
+	export default (enhancementsOnly: string[], babelConfig: AVA.BabelConfig) => AVA.Extensions
 }

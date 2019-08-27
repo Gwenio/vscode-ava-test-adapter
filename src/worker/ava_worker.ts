@@ -23,11 +23,11 @@ import { Setup } from './ava_setup'
 type Logger = (message: string) => void
 
 export interface WorkerOptions {
-	reporter: AVA.Reporter;
-	logger?: Logger;
-	files?: string[];
-	port?: number;
-	interrupt?: (cb: () => void) => void;
+	reporter: AVA.Reporter
+	logger?: Logger
+	files?: string[]
+	port?: number
+	interrupt?: (cb: () => void) => void
 }
 
 export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
@@ -37,12 +37,12 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 		...setup,
 		color: false,
 		parallelRuns: null,
-		ranFromCli: true
+		ranFromCli: true,
 	})
 
 	if (options.port) {
 		const original = api._computeForkExecArgv.bind(api)
-		api._computeForkExecArgv = async function (): Promise<string[]> {
+		api._computeForkExecArgv = async function(): Promise<string[]> {
 			const base = await original()
 			const filtered = base.filter((a): boolean => !a.startsWith('--inspect'))
 			return filtered.concat(`--inspect-brk=${options.port}`)

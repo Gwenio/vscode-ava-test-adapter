@@ -17,7 +17,7 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import path from 'path'
-import arrify from "arrify"
+import arrify from 'arrify'
 import loadAVAConfig from 'ava/lib/load-config'
 import { validate as validateBabel } from 'ava/lib/babel-pipeline'
 import normalizeExtensions from 'ava/lib/extensions'
@@ -28,25 +28,25 @@ import AVA from 'ava/namespace'
 type Logger = (message: string) => void
 
 export interface Setup {
-	babelConfig: AVA.BabelConfig;
-	cacheEnabled: boolean;
-	compileEnhancements: boolean;
-	concurrency: number;
-	environmentVariables: { [key: string]: string };
-	extensions: AVA.Extensions;
-	failFast: boolean;
-	failWithoutAssertions: boolean;
-	globs: AVA.Globs;
-	match: string[];
-	projectDir: string;
-	require: string[];
-	resolveTestsFrom: string;
-	serial: boolean;
-	snapshotDir: string | null;
-	timeout?: number;
-	updateSnapshots: boolean;
-	workerArgv: string[];
-	testOnlyExecArgv?: string[];
+	babelConfig: AVA.BabelConfig
+	cacheEnabled: boolean
+	compileEnhancements: boolean
+	concurrency: number
+	environmentVariables: { [key: string]: string }
+	extensions: AVA.Extensions
+	failFast: boolean
+	failWithoutAssertions: boolean
+	globs: AVA.Globs
+	match: string[]
+	projectDir: string
+	require: string[]
+	resolveTestsFrom: string
+	serial: boolean
+	snapshotDir: string | null
+	timeout?: number
+	updateSnapshots: boolean
+	workerArgv: string[]
+	testOnlyExecArgv?: string[]
 }
 
 export function setup(configFile: string, logger?: Logger): Setup {
@@ -55,16 +55,21 @@ export function setup(configFile: string, logger?: Logger): Setup {
 
 	const {
 		/* eslint unicorn/prevent-abbreviations: "off" */
-		projectDir
+		projectDir,
 	} = avaConfig
 	const babelConfig = validateBabel(avaConfig.babel)
 	const environmentVariables = validateEnvironmentVariables(avaConfig.environmentVariables)
 	const extensions = normalizeExtensions(avaConfig.extensions || [], babelConfig)
-	const globs = normalizeGlobs(avaConfig.files, avaConfig.helpers,
-		avaConfig.sources, extensions.all)
+	const globs = normalizeGlobs(
+		avaConfig.files,
+		avaConfig.helpers,
+		avaConfig.sources,
+		extensions.all
+	)
 	const match = arrify(avaConfig.match)
-	const snapshotDir = avaConfig.snapshotDir ?
-		path.resolve(projectDir, avaConfig.snapshotDir) : null
+	const snapshotDir = avaConfig.snapshotDir
+		? path.resolve(projectDir, avaConfig.snapshotDir)
+		: null
 	if (logger) logger('Config loaded.')
 	return {
 		babelConfig,
@@ -84,6 +89,6 @@ export function setup(configFile: string, logger?: Logger): Setup {
 		snapshotDir,
 		timeout: avaConfig.timeout,
 		updateSnapshots: avaConfig.updateSnapshots === true,
-		workerArgv: [] // cli.flags['--']
+		workerArgv: [], // cli.flags['--']
 	}
 }

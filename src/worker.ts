@@ -31,16 +31,16 @@ import {
 	TestCase,
 	TestFile,
 	Result,
-	Logging
+	Logging,
 } from './ipc'
 
 const script = './child.js'
 
 interface WorkerConfig {
-	cwd: string;
-	environment: NodeJS.ProcessEnv;
-	nodePath: string | undefined;
-	nodeArgv: string[];
+	cwd: string
+	environment: NodeJS.ProcessEnv
+	nodePath: string | undefined
+	nodeArgv: string[]
 }
 
 type Basic = 'error' | 'exit' | 'message' | 'connect' | 'disconnect'
@@ -64,7 +64,7 @@ export class Worker {
 				env: config.environment,
 				execPath: config.nodePath,
 				execArgv: config.nodeArgv,
-				stdio: ['pipe', 'pipe', 'pipe', 'ipc']
+				stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
 			}
 		)
 		const child = this.child
@@ -87,8 +87,7 @@ export class Worker {
 	}
 
 	private connect(port: number, token: string, resolve: () => void): void {
-		const emit: (event: Events, ...m) => void =
-			this.emitter.emit.bind(this.emitter)
+		const emit: (event: Events, ...m) => void = this.emitter.emit.bind(this.emitter)
 		const c = new Client(token)
 			.once('connect', (c): void => {
 				this.connection = c
@@ -189,12 +188,14 @@ export class Worker {
 				case 'debug':
 				case 'run':
 				case 'load':
-					return c.send(message, {
-						receptive: true
-					}).then((): void => { })
+					return c
+						.send(message, {
+							receptive: true,
+						})
+						.then((): void => {})
 				default:
 					c.send(message, {
-						receptive: false
+						receptive: false,
 					})
 					return
 			}

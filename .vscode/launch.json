@@ -6,13 +6,9 @@
 			"request": "launch",
 			"name": "AVA Adapter",
 			"runtimeExecutable": "${execPath}",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}"
-			],
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
 			"sourceMaps": true,
-			"outFiles": [
-				"${workspaceFolder}/dist"
-			]
+			"outFiles": ["${workspaceFolder}/dist"]
 		},
 		{
 			"type": "node",

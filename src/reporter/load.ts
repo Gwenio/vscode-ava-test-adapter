@@ -24,29 +24,29 @@ import AbstractReporter from './reporter'
 type Logger = (message: string) => void
 
 interface Info {
-	file: string;
-	tests: string[];
+	file: string
+	tests: string[]
 }
 
 interface Loaded {
-	prefix: string;
-	info: Info[];
+	prefix: string
+	info: Info[]
 }
 
 interface TestCase {
-	file: string;
-	title: string;
+	file: string
+	title: string
 }
 
 export default class LoadReporter extends AbstractReporter {
-	private readonly log: Logger = (_message: string): void => { }
+	private readonly log: Logger = (_message: string): void => {}
 	private running = false
 	private readonly filter: string[]
 	private files: Set<string> = new Set<string>()
 	private tests: TestCase[] = []
 	private data: Loaded = {
 		prefix: '',
-		info: []
+		info: [],
 	}
 
 	public constructor(filter: string[], log?: Logger) {
@@ -75,7 +75,7 @@ export default class LoadReporter extends AbstractReporter {
 				this.files.add(event.testFile)
 				this.tests.push({
 					title: event.title,
-					file: event.testFile
+					file: event.testFile,
 				})
 				return
 			case 'worker-stderr':
@@ -102,17 +102,21 @@ export default class LoadReporter extends AbstractReporter {
 			const tests = this.tests
 			this.data = {
 				prefix,
-				info: files.map((file): Info => {
-					const list = tests.filter((value): boolean => {
-						return value.file.slice(length) === file
-					}).map((value): string => {
-						return value.title
-					})
-					return {
-						file,
-						tests: matcher(list, this.filter)
+				info: files.map(
+					(file): Info => {
+						const list = tests
+							.filter((value): boolean => {
+								return value.file.slice(length) === file
+							})
+							.map((value): string => {
+								return value.title
+							})
+						return {
+							file,
+							tests: matcher(list, this.filter),
+						}
 					}
-				})
+				),
 			}
 			this.log('Run Complete.')
 		}

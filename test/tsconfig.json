@@ -5,18 +5,14 @@
 		"outDir": "../tmp/test",
 		"baseUrl": ".",
 		"paths": {
-			"ava/lib/*": [
-				"../types/ava/lib/*"
-			],
-			"ava/namespace": [
-				"../types/ava/namespace"
-			],
+			"ava/lib/*": ["../types/ava/lib/*"],
+			"ava/namespace": ["../types/ava/namespace"]
 		},
 		"allowSyntheticDefaultImports": true,
 		"importHelpers": true,
 		"declaration": false,
 		"composite": false,
-		"esModuleInterop": true,
+		"esModuleInterop": true
 	},
 	"references": [
 		{

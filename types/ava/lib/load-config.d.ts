@@ -18,13 +18,14 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-import AVA from "../namespace"
+import AVA from '../namespace'
 
 declare module 'ava/lib/load-config' {
 	export default function loadConfig({
 		configFile,
 		resolveFrom = process.cwd(),
-		defaults = {} }: AVA.Parameters = {}): AVA.Configuration & {
-			projectDir: string;
-		}
+		defaults = {},
+	}: AVA.Parameters = {}): AVA.Configuration & {
+		projectDir: string
+	}
 }

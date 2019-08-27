@@ -18,12 +18,12 @@ PERFORMANCE OF THIS SOFTWARE.
 
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
-import AVA from "../namespace"
+import AVA from '../namespace'
 
 interface Environment {
-	[key: string]: string;
+	[key: string]: string
 }
 
 declare module 'ava/lib/environment-variables' {
-	export default function (variables: Environment | unknown): Environment
+	export default function(variables: Environment | unknown): Environment
 }
