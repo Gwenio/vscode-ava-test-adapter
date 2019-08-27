@@ -65,6 +65,7 @@
 		"hash-sum": "^2.0.0",
 		"husky": "^3.0.4",
 		"lint-staged": "^9.2.4",
+		"markdownlint-cli": "^0.18.0",
 		"prettier": "1.18.2",
 		"random": "^2.1.1",
 		"rimraf": "^3.0.0",
@@ -97,6 +98,7 @@
 	"lint-staged": {
 		"*.js": ["prettier --write", "git add", "eslint"],
 		"**.ts": ["prettier --write", "git add", "eslint"],
+		"*.md": ["markdownlint-cli -c ./.markdownlint.json"],
 		"**.json": ["prettier --write", "git add"]
 	},
 	"extensionDependencies": ["hbenl.vscode-test-explorer"],
