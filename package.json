@@ -15,14 +15,8 @@
 	"bugs": {
 		"url": "https://github.com/Gwenio/vscode-ava-test-adapter/issues"
 	},
-	"categories": [
-		"Other"
-	],
-	"keywords": [
-		"ava",
-		"test",
-		"testing"
-	],
+	"categories": ["Other"],
+	"keywords": ["ava", "test", "testing"],
 	"main": "dist/main.js",
 	"scripts": {
 		"clean": "rimraf tmp dist *.vsix",
@@ -69,6 +63,8 @@
 		"esm": "^3.2.25",
 		"globby": "^10.0.1",
 		"hash-sum": "^2.0.0",
+		"husky": "^3.0.4",
+		"lint-staged": "^9.2.4",
 		"prettier": "1.18.2",
 		"random": "^2.1.1",
 		"rimraf": "^3.0.0",
@@ -93,12 +89,18 @@
 	"esm": {
 		"cjs": true
 	},
-	"extensionDependencies": [
-		"hbenl.vscode-test-explorer"
-	],
-	"activationEvents": [
-		"*"
-	],
+	"husky": {
+		"hooks": {
+			"pre-commit": "npx lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.js": ["prettier --write", "git add", "eslint"],
+		"**.ts": ["prettier --write", "git add", "eslint"],
+		"**.json": ["prettier --write", "git add"]
+	},
+	"extensionDependencies": ["hbenl.vscode-test-explorer"],
+	"activationEvents": ["*"],
 	"contributes": {
 		"configuration": {
 			"type": "object",
@@ -124,10 +126,7 @@
 						"properties": {
 							"file": {
 								"description": "The configuration file relative to 'avaExplorer.cwd'.",
-								"type": [
-									"string",
-									"null"
-								],
+								"type": ["string", "null"],
 								"default": null
 							},
 							"serial": {
@@ -164,10 +163,7 @@
 				},
 				"avaExplorer.nodePath": {
 					"description": "The path to the node executable to use. By default it will attempt to find it on your PATH, if it can't find it or if this option is set to `null`, it will use the one shipped with VS Code",
-					"type": [
-						"string",
-						"null"
-					],
+					"type": ["string", "null"],
 					"default": "default",
 					"scope": "resource"
 				},

@@ -29,7 +29,7 @@
 			"excludeFiles": [".vscode/*.json"],
 			"options": {
 				"parser": "json",
-				"trailingComma": "es5",
+				"trailingComma": "none",
 				"tabWidth": 4,
 				"useTabs": true,
 				"semi": false,
