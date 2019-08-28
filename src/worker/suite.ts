@@ -21,14 +21,6 @@ import ConfigInfo from './config_info'
 
 type Logger = (message: string) => void
 
-interface Loaded {
-	prefix: string
-	info: {
-		file: string
-		tests: string[]
-	}[]
-}
-
 export default class Suite {
 	private readonly configs = new Map<string, ConfigInfo>()
 
