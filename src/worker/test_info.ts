@@ -19,37 +19,31 @@ PERFORMANCE OF THIS SOFTWARE.
 import hash from './hash'
 import FileInfo from './file_info'
 
-/**
- * @summary Stores information on a test case.
- */
+/** Stores information on a test case. */
 export default class TestInfo {
-	/**
-	 * @summary The ID of the test case.
-	 */
+	/** The ID of the test case. */
 	public readonly id: string
 
-	/**
-	 * @summary The name of the test case.
-	 */
+	/** The name of the test case. */
 	public readonly name: string
 
-	/**
-	 * @summary The test file of the test case.
-	 */
+	/** The test file of the test case. */
 	private readonly file: FileInfo
 
-	/**
-	 * @summary Set of active test IDs.
-	 */
+	/** Set of active test IDs. */
 	private static readonly testSet = new Set<string>()
 
-	/**
-	 * @summary Used to check if an ID is in use.
-	 */
+	/** Used to check if an ID is in use. */
 	private static readonly idExists = TestInfo.testSet.has.bind(TestInfo.testSet)
 
+	/** Removes the TestInfo from testSet. */
 	public readonly dispose: () => void
 
+	/**
+	 * Constructor.
+	 * @param name The title of the test.
+	 * @param file The FileInfo the test belongs to.
+	 */
 	public constructor(name: string, file: FileInfo) {
 		this.name = name
 		this.file = file
@@ -60,6 +54,7 @@ export default class TestInfo {
 		this.dispose = s.delete.bind(s, i)
 	}
 
+	/** The name of the file containing the test. */
 	public get fileName(): string {
 		return this.file.name
 	}
