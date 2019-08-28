@@ -21,12 +21,17 @@ import { TestInfo, TestSuiteInfo } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
 import { Prefix, TestFile, TestCase } from '../ipc'
 
+/** Interface for TestTree info. */
 interface Info {
+	/** The ID of the Info. */
 	id: string
+	/** The label of the Info. */
 	label: string
+	/** The file the Info is from. */
 	file: string
 }
 
+/** Sorts the children of a TestSuiteInfo. */
 function sortTestInfo(suite: TestInfo | TestSuiteInfo): TestSuiteInfo {
 	const s = suite as TestSuiteInfo
 	if (s.children) {
@@ -38,27 +43,45 @@ function sortTestInfo(suite: TestInfo | TestSuiteInfo): TestSuiteInfo {
 	return s
 }
 
+/** Tree of test information. */
 export default class TestTree {
+	/** The common prefix of test files in the latest configuration. */
 	private prefix: string
+	/** The root of the tree. */
 	private rootSuite: TestSuiteInfo = {
 		type: 'suite',
 		id: 'root',
 		label: 'AVA',
 		children: [],
 	}
+	/** The path configuration files are relative to. */
 	private readonly base: string
+	/** The set of files. */
 	private readonly files = new Set<string>()
+	/** Maps file IDs to TestSuiteInfo. */
 	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
+	/** Map of IDs to prefixes. */
 	private readonly prefixHash = new Map<string, string>()
+	/** Map of configuration file names to IDs. */
 	private readonly configMap = new Map<string, string>()
+	/** The Log to output to. */
 	private readonly log: Log
 
+	/**
+	 * Constructor.
+	 * @param log The Log to output to.
+	 * @param base The path configuration files are relative to.
+	 */
 	public constructor(log: Log, base: string) {
 		this.log = log
 		this.prefix = base
 		this.base = base
 	}
 
+	/**
+	 * Pushes a configuration into the tree.
+	 * @param meta Metadata to push.
+	 */
 	public pushPrefix(meta: Prefix): void {
 		const log = this.log
 		const id = meta.id
@@ -87,6 +110,10 @@ export default class TestTree {
 		this.rootSuite.children.push(x)
 	}
 
+	/**
+	 * Pushes a test file into the tree.
+	 * @param meta Metadata to push.
+	 */
 	public pushFile(meta: TestFile): void {
 		const log = this.log
 		if (log.enabled) {
@@ -115,6 +142,10 @@ export default class TestTree {
 		this.files.add(file)
 	}
 
+	/**
+	 * Pushes a test case into the tree.
+	 * @param meta Metadata to push.
+	 */
 	public pushTest(meta: TestCase): void {
 		const log = this.log
 		const id = meta.id
@@ -137,19 +168,23 @@ export default class TestTree {
 		suite.children.push(x)
 	}
 
+	/** Finishes building the tree. */
 	public build(): void {
 		this.suiteHash.clear()
 		sortTestInfo(this.rootSuite)
 	}
 
+	/** Gets the root. */
 	public get rootNode(): TestSuiteInfo {
 		return this.rootSuite
 	}
 
+	/** Gets an iterator for the configuration map. */
 	public getConfigs(): IterableIterator<[string, string]> {
 		return this.configMap.entries()
 	}
 
+	/** Gets the files. */
 	public getFiles(): Set<string> {
 		return this.files
 	}
