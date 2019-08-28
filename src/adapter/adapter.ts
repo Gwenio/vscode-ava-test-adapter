@@ -29,7 +29,7 @@ import {
 import { Log } from 'vscode-test-adapter-util/out/log'
 import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
-import { Worker } from '../worker'
+import { Worker } from './worker'
 
 interface IDisposable {
 	dispose(): void

@@ -32,7 +32,7 @@ import {
 	TestFile,
 	Result,
 	Logging,
-} from './ipc'
+} from '../ipc'
 
 const script = './child.js'
 
