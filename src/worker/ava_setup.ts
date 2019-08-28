@@ -25,30 +25,54 @@ import { normalizeGlobs } from 'ava/lib/globs'
 import validateEnvironmentVariables from 'ava/lib/environment-variables'
 import AVA from 'ava/namespace'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
 
+/** The configuration for an AVA worker. */
 export interface Setup {
+	/** The babelConfig for the worker. */
 	babelConfig: AVA.BabelConfig
+	/** Sets if caching is enabled. */
 	cacheEnabled: boolean
+	/** Sets if compiling enhancements is enabled. */
 	compileEnhancements: boolean
+	/** The concurrency for the worker. */
 	concurrency: number
+	/** The environment variables for the worker. */
 	environmentVariables: { [key: string]: string }
+	/** The allowed test file extensions. */
 	extensions: AVA.Extensions
+	/** Sets whether test runs quit on first failure. */
 	failFast: boolean
+	/** Sets whether a test fails if no assertions are made. */
 	failWithoutAssertions: boolean
+	/** File globs. */
 	globs: AVA.Globs
+	/** Array of matcher experssions to filter test titles with. */
 	match: string[]
+	/** The directory containing the configuration file. */
 	projectDir: string
+	/** Array of modules to preload for tests. */
 	require: string[]
+	/** The directory test files are resolved relative to. */
 	resolveTestsFrom: string
+	/** Sets whether tests are forced to run serially. */
 	serial: boolean
+	/** Optional directory to store snapshots in. */
 	snapshotDir: string | null
+	/** Optional number of milliseconds of no activity after which a run fails. */
 	timeout?: number
+	/** Sets whether to update snapshots. */
 	updateSnapshots: boolean
+	/** CLI arguments to append when forking test workers. */
 	workerArgv: string[]
-	testOnlyExecArgv?: string[]
 }
 
+/**
+ * Sets up for creating AVA workers.
+ * @param configFile The configuration file to load.
+ * @param logger The logging callback.
+ */
 export function setup(configFile: string, logger?: Logger): Setup {
 	if (logger) logger('Loading AVA config file...')
 	const avaConfig = loadAVAConfig({ configFile, resolveFrom: process.cwd(), defaults: {} })
