@@ -20,42 +20,34 @@ import hash from './hash'
 import TestInfo from './test_info'
 import ConfigInfo from './config_info'
 
-/**
- * @summary Stores information on a test file.
- */
+/** Stores information on a test file. */
 export default class FileInfo {
-	/**
-	 * @summary The ID of the test case.
-	 */
+	/** The ID of the test case. */
 	public readonly id: string
 
-	/**
-	 * @summary The name of the test file.
-	 */
+	/** The name of the test file. */
 	public readonly name: string
 
-	/**
-	 * @summary The test configuration of the test file.
-	 */
+	/** The ConfigInfo the FileInfo belongs to */
 	private readonly config: ConfigInfo
 
-	/**
-	 * @summary The test cases from the test file.
-	 */
+	/** The test cases from the test file. */
 	private readonly tests: TestInfo[] = []
 
-	/**
-	 * @summary Set of active file IDs.
-	 */
+	/** Set of active file IDs. */
 	private static readonly fileSet = new Set<string>()
 
-	/**
-	 * @summary Used to check if an ID is in use.
-	 */
+	/** Used to check if an ID is in use. */
 	private static readonly idExists = FileInfo.fileSet.has.bind(FileInfo.fileSet)
 
+	/** Removes the FileInfo from fileSet. */
 	public readonly dispose: () => void
 
+	/**
+	 * Constructor.
+	 * @param name The name of the test file.
+	 * @param config The ConfigInfo the FileInfo belongs to.
+	 */
 	public constructor(name: string, config: ConfigInfo) {
 		this.name = name
 		this.config = config
@@ -66,15 +58,24 @@ export default class FileInfo {
 		this.dispose = s.delete.bind(s, i)
 	}
 
+	/**
+	 * Gets the ID of a test in the file.
+	 * @param title The title of the test to fetch the ID of.
+	 */
 	public getTestID(title: string): string | null {
 		const x = this.tests.find(t => t.name === title)
 		return x ? x.id : null
 	}
 
+	/**
+	 * Addes a test to the file.
+	 * @param t The TestInfo to add.
+	 */
 	public addTest(t: TestInfo): void {
 		this.tests.push(t)
 	}
 
+	/** Gets an iterator for the file's tests. */
 	public get entries(): IterableIterator<TestInfo> {
 		return this.tests.values()
 	}
