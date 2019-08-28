@@ -21,9 +21,18 @@ import vscode from 'vscode'
 import { Log } from 'vscode-test-adapter-util/out/log'
 import { detectNodePath } from 'vscode-test-adapter-util/out/misc'
 
+/** The root for the extension's VSCode configurations. */
 const configRoot = 'avaExplorer'
 
+/** Contains utilities for managing configuration. */
 export class AVAConfig {
+	/**
+	 * Checks if a configuration change affects certain options.
+	 * @param uri The URI for the workspace.
+	 * @param event The ConfigurationChangeEvent.
+	 * @param settings The settings to check if they are affected.
+	 * @returns Whether or not the set of options were affected.
+	 */
 	public static affected(
 		uri: vscode.Uri,
 		event: vscode.ConfigurationChangeEvent,
@@ -38,6 +47,11 @@ export class AVAConfig {
 		return false
 	}
 
+	/**
+	 * Loads the configuration.
+	 * @param uri The URI for the workspace.
+	 * @param log The Log to output to.
+	 */
 	public static async load(uri: vscode.Uri, log: Log): Promise<LoadedConfig | null> {
 		const adapterConfig = vscode.workspace.getConfiguration(configRoot, uri)
 
@@ -106,18 +120,30 @@ export class AVAConfig {
 	}
 }
 
+/** Stores configuration for as specific AVA configuration. */
 export interface SubConfig {
+	/** The AVA configuration file name. */
 	file: string
+	/** Whether to run tests serially while debugging. */
 	serial: boolean
+	/** Additional files to skip while debugging. */
 	debuggerSkipFiles: string[]
 }
 
+/** The loaded configuration. */
 export interface LoadedConfig {
+	/** The current working directory for the worker. */
 	cwd: string
+	/** The sub-configurations. */
 	configs: SubConfig[]
+	/** The environment for the Worker. */
 	environment: NodeJS.ProcessEnv
+	/** The path to the NodeJS executable to use. */
 	nodePath: string | undefined
+	/** The CLI arguments for Node. */
 	nodeArgv: string[]
+	/** The preferred inspect port. */
 	debuggerPort: number
+	/** Files to skip while debugging. */
 	debuggerSkipFiles: string[]
 }
