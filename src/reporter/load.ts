@@ -21,34 +21,61 @@ import commonFilePrefix from 'common-path-prefix'
 import matcher from 'matcher'
 import AbstractReporter from './reporter'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
 
+/** The information for a test file. */
 interface Info {
+	/** The test file name. */
 	file: string
+
+	/** The titles of tests in the file. */
 	tests: string[]
 }
 
+/** The loaded data for LoadReporter. */
 interface Loaded {
+	/** The common prefix of test files. */
 	prefix: string
+
+	/** Test file info. */
 	info: Info[]
 }
 
+/** A record of test information. */
 interface TestCase {
 	file: string
 	title: string
 }
 
+/** Reporter for loading test information. */
 export default class LoadReporter extends AbstractReporter {
+	/** Logging callback. */
 	private readonly log: Logger = (_message: string): void => {}
+
+	/** Tracks if there is an active run. */
 	private running = false
+
+	/** Array of matcher expressions for test titles to accept. */
 	private readonly filter: string[]
+
+	/** The set of test files. */
 	private files: Set<string> = new Set<string>()
+
+	/** Stores the declared tests. */
 	private tests: TestCase[] = []
+
+	/** The data for this.report. */
 	private data: Loaded = {
 		prefix: '',
 		info: [],
 	}
 
+	/**
+	 * Constructor.
+	 * @param filter Array of matcher expressions for test titles to accept.
+	 * @param log Logger function.
+	 */
 	public constructor(filter: string[], log?: Logger) {
 		super()
 		this.filter = filter
@@ -57,19 +84,22 @@ export default class LoadReporter extends AbstractReporter {
 		}
 	}
 
-	public reset(): void {
+	/** @inheritdoc */
+	protected reset(): void {
 		super.reset()
 		this.running = true
 		this.files.clear()
 		this.tests = []
 	}
 
+	/** @inheritdoc */
 	public startRun(plan: AVA.Plan): void {
 		super.startRun(plan)
 		this.log('Begin Run.')
 	}
 
-	public consumeStateChange(event: AVA.Event): void {
+	/** @inheritdoc */
+	protected consumeStateChange(event: AVA.Event): void {
 		switch (event.type) {
 			case 'declared-test':
 				this.files.add(event.testFile)
@@ -89,6 +119,7 @@ export default class LoadReporter extends AbstractReporter {
 		}
 	}
 
+	/** @inheritdoc */
 	public endRun(): void {
 		if (this.running) {
 			this.running = false
@@ -122,6 +153,7 @@ export default class LoadReporter extends AbstractReporter {
 		}
 	}
 
+	/** The report produced by the previous run. */
 	public get report(): Loaded {
 		return this.data
 	}

@@ -19,26 +19,64 @@ PERFORMANCE OF THIS SOFTWARE.
 import AVA from 'ava/namespace'
 import AbstractReporter from './reporter'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
 
+/** Contains the result of a test. */
 export interface TestResult {
+	/** The test state. */
 	state: 'skipped' | 'passed' | 'failed'
+
+	/** The test file containing the test. */
 	file: string
+
+	/** The title of the test. */
 	test: string
 }
 
+/** Emitter interface for forwarding test results. */
 export interface TestEmitter {
+	/**
+	 * Emit an end event.
+	 * @param event The type of event.
+	 */
 	emit(event: 'end'): void
+
+	/**
+	 * Emit a done event.
+	 * @param event The type of event.
+	 * @param message The file that was completed.
+	 */
 	emit(event: 'done', message: string): void
+
+	/**
+	 * Emit a result event.
+	 * @param event The type of event.
+	 * @param message The result of the test.
+	 */
 	emit(event: 'result', message: TestResult): void
 }
 
+/** Reporter for running tests. */
 export class TestReporter extends AbstractReporter {
+	/** Emitter to forward test results to. */
 	private readonly reporter: TestEmitter
+
+	/** Logging callback. */
 	private readonly log: Logger = (_message: string): void => {}
+
+	/** The length of the common prefix of file names. */
 	private readonly prefix: number
+
+	/** Tracks if there is an active run. */
 	private running = false
 
+	/**
+	 * Constructor.
+	 * @param reporter Emitter to forward test results to.
+	 * @param prefix The length of the common prefix of file names.
+	 * @param log The logging callback.
+	 */
 	public constructor(reporter: TestEmitter, prefix: number, log?: Logger) {
 		super()
 		this.reporter = reporter
@@ -48,17 +86,20 @@ export class TestReporter extends AbstractReporter {
 		}
 	}
 
-	public reset(): void {
+	/** @inheritdoc */
+	protected reset(): void {
 		super.reset()
 		this.running = true
 	}
 
+	/** @inheritdoc */
 	public startRun(plan: AVA.Plan): void {
 		super.startRun(plan)
 		this.log('Begin Run.')
 	}
 
-	public consumeStateChange(event: AVA.Event): void {
+	/** @inheritdoc */
+	protected consumeStateChange(event: AVA.Event): void {
 		switch (event.type) {
 			case 'selected-test':
 				if (event.skip) {
@@ -101,6 +142,7 @@ export class TestReporter extends AbstractReporter {
 		}
 	}
 
+	/** @inheritdoc */
 	public endRun(): void {
 		if (this.running) {
 			this.running = false

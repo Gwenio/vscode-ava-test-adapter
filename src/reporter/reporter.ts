@@ -18,18 +18,26 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import AVA from 'ava/namespace'
 
+/** Callback type for removing a listener. */
 type RemoveListener = () => void
 
+/** The base class for reporters. */
 export default abstract class Reporter implements AVA.Reporter {
+	/** Function to remove current event subscription. */
 	private removeListener: null | RemoveListener = null
 
-	public reset(): void {
+	/** Resets the Reporter. */
+	protected reset(): void {
 		if (this.removeListener) {
 			this.removeListener()
 			this.removeListener = null
 		}
 	}
 
+	/**
+	 * Begins a new run.
+	 * @param plan The test plan for the run.
+	 */
 	public startRun(plan: AVA.Plan): void {
 		this.reset()
 		this.removeListener = plan.status.on('stateChange', (event): void => {
@@ -37,6 +45,12 @@ export default abstract class Reporter implements AVA.Reporter {
 		})
 	}
 
-	public abstract consumeStateChange(event: AVA.Event): void
+	/**
+	 * Called with a test event occurs during a run.
+	 * @param event The test event.
+	 */
+	protected abstract consumeStateChange(event: AVA.Event): void
+
+	/** Signals the current run has ended. */
 	public abstract endRun(): void
 }

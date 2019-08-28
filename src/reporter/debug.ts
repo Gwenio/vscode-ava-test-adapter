@@ -20,16 +20,35 @@ import getPort from 'get-port'
 import AVA from 'ava/namespace'
 import AbstractReporter from './reporter'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
+
+/** Callback type to signal the tests are ready to be debugged. */
 type Ready = (port: number) => void
 
+/** Reporter for debugging tests. */
 export default class DebugReporter extends AbstractReporter {
+	/** Callback to signal the tests are ready to be debugged. */
 	private readonly ready: Ready
+
+	/** Logging callback. */
 	private readonly log: Logger = (_message: string): void => {}
+
+	/** The preferred port for the debugger to connect on. */
 	private readonly defaultPort: number
+
+	/** The port for the next debug session */
 	private port: number
+
+	/** Tracks if there is an active run. */
 	private static running = false
 
+	/**
+	 * Constructor.
+	 * @param ready Callback to signal the tests are ready to be debugged.
+	 * @param port The preferred port for the debugger to connect on.
+	 * @param log The logging callback.
+	 */
 	public constructor(ready: Ready, port: number, log?: Logger) {
 		super()
 		this.ready = ready
@@ -40,12 +59,14 @@ export default class DebugReporter extends AbstractReporter {
 		}
 	}
 
+	/** Selects a port for the next debug session. */
 	public async selectPort(): Promise<number> {
 		const p = await getPort({ port: this.defaultPort })
 		this.port = p
 		return p
 	}
 
+	/** @inheritdoc */
 	public startRun(plan: AVA.Plan): void {
 		if (DebugReporter.running) {
 			throw new Error('Cannot start a new debugging session while another is in progress.')
@@ -57,8 +78,10 @@ export default class DebugReporter extends AbstractReporter {
 	}
 
 	/* eslint @typescript-eslint/no-empty-function: "off" */
-	public consumeStateChange(_event: AVA.Event): void {}
+	/** @inheritdoc */
+	protected consumeStateChange(_event: AVA.Event): void {}
 
+	/** @inheritdoc */
 	public endRun(): void {
 		if (DebugReporter.running) {
 			DebugReporter.running = false
