@@ -23,17 +23,26 @@ import * as IPC from './ipc'
 import hash from './worker/hash'
 import Suite from './worker/suite'
 
+/** Whether a connection has been established. */
 let connected = false
+/** The name for the parent's veza Client. */
 const token = hash(
 	process.cwd(),
 	(): boolean => false,
 	process.cwd().length.toString(16),
 	random.int(0, 0xffff).toString(16)
 )
+/** Whether logging is enabled. */
 let logEnabled = process.env.NODE_ENV !== 'production'
 
+/** The suite for managing AVA configurations. */
 const suite = new Suite()
 
+/**
+ * Loads test information.
+ * @param info The Load message begin handled.
+ * @param client The socket to send messages too.
+ */
 async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
@@ -48,6 +57,11 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 	await Promise.all(wait)
 }
 
+/**
+ * Runs tests.
+ * @param info The Run message being handled.
+ * @param client The socket to send messages too.
+ */
 async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
@@ -62,6 +76,11 @@ async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 	await Promise.all(wait)
 }
 
+/**
+ * Debugs tests.
+ * @param info The Debug message being handled.
+ * @param client The socket to send messages too.
+ */
 async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	await suite.debug(
@@ -79,6 +98,7 @@ async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> 
 	)
 }
 
+/** The veza server. Constructed externally. */
 declare const connection: Server
 connection
 	.on('error', (error, client): void => {
@@ -147,6 +167,7 @@ connection
 		}
 	})
 
+/** Called to begin serving the connection. */
 async function serve(): Promise<void> {
 	const port = await getPort()
 	try {
