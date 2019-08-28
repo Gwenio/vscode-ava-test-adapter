@@ -19,17 +19,25 @@ PERFORMANCE OF THIS SOFTWARE.
 import { Tree, Event } from '../ipc'
 import ConfigInfo from './config_info'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
 
+/** Manages test configurations. */
 export default class Suite {
+	/** Map of IDs to the associated ConfigInfo. */
 	private readonly configs = new Map<string, ConfigInfo>()
 
+	/** Cancels active test runs. */
 	public cancel(): void {
 		for (const c of this.configs.values()) {
 			c.cancel()
 		}
 	}
 
+	/**
+	 * Drops configurations.
+	 * @param id The ID of the configuration to drop or undefined to drop all.
+	 */
 	public drop(id?: string): void {
 		const configs = this.configs
 		if (id) {
@@ -46,6 +54,12 @@ export default class Suite {
 		}
 	}
 
+	/**
+	 * Loads a test configuration.
+	 * @param file The file name of the configuration to load.
+	 * @param send Callback to send loaded information.
+	 * @param logger Optional logger callback.
+	 */
 	public async load(file: string, send: (data: Tree) => void, logger?: Logger): Promise<void> {
 		const c = new ConfigInfo(file, logger)
 		await c.load(logger)
@@ -53,6 +67,12 @@ export default class Suite {
 		return c.collectInfo(send, logger)
 	}
 
+	/**
+	 * Runs tests.
+	 * @param send Callback to send test results.
+	 * @param plan IDs to include in the test run.
+	 * @param logger Optional logger callback.
+	 */
 	public async run(send: (data: Event) => void, plan: string[], logger?: Logger): Promise<void> {
 		const wait: Promise<unknown>[] = []
 		const v = this.configs.values()
@@ -68,6 +88,14 @@ export default class Suite {
 		await Promise.all(wait)
 	}
 
+	/**
+	 *
+	 * @param ready Callback to singal debug session is ready.
+	 * @param plan IDs to include in the test run.
+	 * @param port The preferred the inspect port.
+	 * @param serial Information about which configurations to run serially.
+	 * @param logger Optional logger callback.
+	 */
 	public async debug(
 		ready: (config: string, port: number) => void,
 		plan: string[],
