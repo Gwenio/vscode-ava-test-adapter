@@ -22,6 +22,10 @@ import { TestAdapterRegistrar } from 'vscode-test-adapter-util/out/registrar'
 import { AVAAdapter } from './adapter/adapter'
 import { AVAConfig } from './adapter/config'
 
+/**
+ * Activates the extension.
+ * @param context The ExtensionContext.
+ */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	const workspaceFolder = (vscode.workspace.workspaceFolders || [])[0]
 	const channel = vscode.window.createOutputChannel('AVA Tests')
