@@ -34,24 +34,42 @@ import {
 	Logging,
 } from '../ipc'
 
+/** The file name of the worker script. */
 const script = './child.js'
 
+/** Interface for the configuration of the worker. */
 interface WorkerConfig {
+	/** The current working directory of the worker. */
 	cwd: string
+	/** The environment for the worker. */
 	environment: NodeJS.ProcessEnv
+	/** The path to the NodeJS executable to use. */
 	nodePath: string | undefined
+	/** The CLI arguments for Node. */
 	nodeArgv: string[]
 }
 
+/** Basic events. */
 type Basic = 'error' | 'exit' | 'message' | 'connect' | 'disconnect'
+/** Worker console output events. */
 type Output = 'stdout' | 'stderr'
+/** The Worker event types. */
 type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
 
+/** Manages a worker process. */
 export class Worker {
+	/** The child process. */
 	private readonly child: ChildProcess
+	/** The veza connection, if connected. */
 	private connection?: ClientSocket
+	/** The emitter for worker events. */
 	private readonly emitter: Emitter = new Emitter()
 
+	/**
+	 * Constructor.
+	 * @param config The worker configuration.
+	 * @param resolve Callback to resolve promise waiting on the worker connection.
+	 */
 	public constructor(config: WorkerConfig, resolve: () => void) {
 		const emitter = this.emitter
 		this.child = fork(
@@ -86,6 +104,12 @@ export class Worker {
 		})
 	}
 
+	/**
+	 * Connects to the worker.
+	 * @param port The port to connect on.
+	 * @param token The name for the veza client.
+	 * @param resolve The resolve callback from the constructor.
+	 */
 	private connect(port: number, token: string, resolve: () => void): void {
 		const emit: (event: Events, ...m) => void = this.emitter.emit.bind(this.emitter)
 		const c = new Client(token)
@@ -134,6 +158,11 @@ export class Worker {
 	}
 
 	/* eslint no-dupe-class-members: "off" */
+	/**
+	 * Listen for an event.
+	 * @param event The event type to listen for.
+	 * @param handler The event listener.
+	 */
 	public on(event: 'error', handler: (error: Error) => void): Worker
 	public on(event: 'exit', handler: (code: number | null) => void): Worker
 	public on(event: 'message', handler: (message: string) => void): Worker
@@ -152,6 +181,11 @@ export class Worker {
 		return this
 	}
 
+	/**
+	 * Listen for an event once.
+	 * @param event The event type to listen for.
+	 * @param handler The event listener.
+	 */
 	public once(event: 'error', handler: (error: Error) => void): Worker
 	public once(event: 'exit', handler: (code: number | null) => void): Worker
 	public once(event: 'message', handler: (message: string) => void): Worker
@@ -169,17 +203,36 @@ export class Worker {
 		return this
 	}
 
+	/**
+	 * Removes all listeners on emitter.
+	 * @returns this
+	 */
 	public removeAllListeners(): Worker {
 		this.emitter.removeAllListeners()
 		return this
 	}
 
+	/**
+	 * Removes a listener.
+	 * @param event The event to remove a listener for.
+	 * @param listener The listener to remove.
+	 * @returns this
+	 */
 	public off(event: Events, listener: (...a) => void): Worker {
 		this.emitter.off(event, listener)
 		return this
 	}
 
+	/**
+	 * Sends a message to the worker.
+	 * @param message The message to send.
+	 * @returns A promise to await for the triggered action to complete.
+	 */
 	public send(message: Load | Run | Debug): Promise<void>
+	/**
+	 * Sends a message to the worker.
+	 * @param message The message to send.
+	 */
 	public send(message: Drop | Stop | Logging): void
 	public send(message: Parent): void | Promise<void> {
 		const c = this.connection
@@ -204,6 +257,7 @@ export class Worker {
 		}
 	}
 
+	/** Disconnects the worker. */
 	public disconnect(): void {
 		const c = this.connection
 		if (c) {
