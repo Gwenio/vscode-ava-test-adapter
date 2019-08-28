@@ -31,43 +31,74 @@ import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
 import { Worker } from './worker'
 
+/** Disposable interface. */
 interface IDisposable {
+	/** Dispose of the object. */
 	dispose(): void
 }
 
+/** Events for test states. */
 type TestStates = TestRunStartedEvent | TestRunFinishedEvent | TestSuiteEvent | TestEvent
+/** Test Start and Finish events. */
 type TestEvents = TestLoadStartedEvent | TestLoadFinishedEvent
 
+/** The test adapter. */
 export class AVAAdapter implements TestAdapter, IDisposable {
+	/** Array of objects to dispose of when dispose() is called. */
 	private disposables: IDisposable[] = []
-
+	/** Emits test events. */
 	private readonly testsEmitter = new vscode.EventEmitter<TestEvents>()
+	/** Emits test state events. */
 	private readonly testStatesEmitter = new vscode.EventEmitter<TestStates>()
+	/** Triggers auto test runs. */
 	private readonly autorunEmitter = new vscode.EventEmitter<void>()
-
+	/** The set of files to watch for changes. */
 	private files = new Set<string>()
+	/** Map of configuration IDs to SubConfigs. */
 	private readonly configMap = new Map<string, SubConfig>()
+	/** The loaded settings. */
 	private config: LoadedConfig | null = null
-
+	/** The Worker, if there is one. */
 	private worker?: Worker
+	/** Queue to spawn a Worker. */
 	private spawnQueue: Promise<void> = Promise.resolve()
-
+	/** The VSCode Workspace. */
 	public readonly workspace: vscode.WorkspaceFolder
+	/** The VSCode output channel. */
 	public readonly channel: vscode.OutputChannel
+	/** The output Log. */
 	private readonly log: Log
 
+	/**
+	 * @override
+	 * @inheritdoc
+	 */
 	public get tests(): vscode.Event<TestLoadStartedEvent | TestLoadFinishedEvent> {
 		return this.testsEmitter.event
 	}
 
+	/**
+	 * @override
+	 * @inheritdoc
+	 */
 	public get testStates(): vscode.Event<TestStates> {
 		return this.testStatesEmitter.event
 	}
 
+	/**
+	 * @override
+	 * @inheritdoc
+	 */
 	public get autorun(): vscode.Event<void> | undefined {
 		return this.autorunEmitter.event
 	}
 
+	/**
+	 * Constructs the adapter and sets up the VSCode event handlers.
+	 * @param workspace The VSCode Workspace.
+	 * @param channel The VSCode output channel.
+	 * @param log The output Log.
+	 */
 	public constructor(workspace: vscode.WorkspaceFolder, channel: vscode.OutputChannel, log: Log) {
 		this.workspace = workspace
 		this.channel = channel
@@ -142,6 +173,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		)
 	}
 
+	/**
+	 * @override
+	 * @inheritdoc
+	 */
 	public async load(): Promise<void> {
 		this.testsEmitter.fire({ type: 'started' })
 		const config = this.config || (await this.loadConfig())
@@ -207,6 +242,11 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 	}
 
+	/**
+	 * @param testsToRun Array of IDs to run tests for.
+	 * @override
+	 * @inheritdoc
+	 */
 	public async run(testsToRun: string[]): Promise<void> {
 		const config = this.config
 		if (!config) return
@@ -237,6 +277,11 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 	}
 
+	/**
+	 * @param testsToRun Array of IDs to run tests for.
+	 * @override
+	 * @inheritdoc
+	 */
 	public async debug(testsToRun: string[]): Promise<void> {
 		const config = this.config
 		if (!config || testsToRun.length === 0) {
@@ -288,6 +333,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 	}
 
+	/**
+	 * @override
+	 * @inheritdoc
+	 */
 	public cancel(): void {
 		if (this.worker) {
 			this.log.info('Stopping running test process...')
@@ -295,6 +344,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 	}
 
+	/**
+	 * @override
+	 * @inheritdoc
+	 */
 	public dispose(): void {
 		if (this.worker) {
 			this.worker.disconnect()
@@ -307,6 +360,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.configMap.clear()
 	}
 
+	/**
+	 * Reloads the configuration.
+	 * @param relaunch Indicates whether worker needs to be relaunched.
+	 */
 	private async loadConfig(relaunch = false): Promise<LoadedConfig | null> {
 		const c = await AVAConfig.load(this.workspace.uri, this.log)
 		this.config = c
@@ -326,6 +383,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		return c
 	}
 
+	/**
+	 * Spawns a new Worker.
+	 * @param config The configuration to use.
+	 */
 	private spawn(config: LoadedConfig): Promise<void> {
 		const log = this.log
 		const append = (chunk): void => {
@@ -385,6 +446,12 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		return p
 	}
 
+	/**
+	 * Connects a debug session.
+	 * @param skipFiles Files to skip.
+	 * @param id The SubConfig ID.
+	 * @param port The port to connect on.
+	 */
 	private async connectDebugger(skipFiles: string[], id: string, port: number): Promise<void> {
 		this.log.info('Starting the debug session')
 		const sub = this.configMap.get(id)
