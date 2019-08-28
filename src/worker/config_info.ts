@@ -26,6 +26,7 @@ import { LoadReporter, TestReporter, TestEmitter, DebugReporter, TestResult } fr
 import FileInfo from './file_info'
 import TestInfo from './test_info'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
 
 interface Loaded {
@@ -42,60 +43,43 @@ interface DebugPlan {
 	serial: boolean
 }
 
-/**
- * @summary Stores information on a test configuration.
- */
+/** Stores information on a test configuration. */
 export default class ConfigInfo {
-	/**
-	 * @summary The ID of the test configuration.
-	 */
+	/** The ID of the test configuration. */
 	public readonly id: string
 
-	/**
-	 * @summary The name of the file containing the configuration.
-	 */
+	/** The name of the file containing the configuration. */
 	public readonly name: string
 
-	/**
-	 * @summary The common prefix of test files in the configuration.
-	 */
+	/** The common prefix of test files in the configuration. */
 	private prefix = ''
 
-	/**
-	 * @summary The loaded AVA configuration.
-	 */
+	/** The loaded AVA configuration. */
 	private readonly config: Setup
 
-	/**
-	 * @summary The IDs associated with the configuration.
-	 */
+	/** The IDs associated with the configuration. */
 	private readonly idSet = new Set<string>()
 
-	/**
-	 * @summary The test files included by the configuration.
-	 */
+	/** The test files included by the configuration. */
 	private readonly files = new Map<string, FileInfo>()
 
-	/**
-	 * @summary The test cases from the configuration.
-	 */
+	/** The test cases from the configuration. */
 	private readonly tests = new Map<string, TestInfo>()
 
-	/**
-	 * @summary Used to cancel a test run, if one is active.
-	 */
+	/** Used to cancel a test run, if one is active. */
 	private stop?: () => void
 
-	/**
-	 * @summary Set of active configuration IDs.
-	 */
+	/** Set of active configuration IDs. */
 	private static readonly configSet = new Set<string>()
 
-	/**
-	 * @summary Used to check if an ID is in use.
-	 */
+	/** Used to check if an ID is in use. */
 	private static readonly idExists = ConfigInfo.configSet.has.bind(ConfigInfo.configSet)
 
+	/**
+	 * Constructor.
+	 * @param name The configuration file name.
+	 * @param logger Optional logger callback.
+	 */
 	public constructor(name: string, logger?: Logger) {
 		this.config = setup(name, logger)
 		this.name = name
@@ -104,6 +88,11 @@ export default class ConfigInfo {
 		ConfigInfo.configSet.add(i)
 	}
 
+	/**
+	 * Load the configuration.
+	 * @param logger Optional logger callback.
+	 * @returns this
+	 */
 	public async load(logger?: Logger): Promise<ConfigInfo> {
 		const c = this.config
 		const reporter = new LoadReporter(c.match, logger)
@@ -113,6 +102,11 @@ export default class ConfigInfo {
 		return this
 	}
 
+	/**
+	 * Collects information on the configuration.
+	 * @param send Callback to to send information.
+	 * @param _logger Unused. Optional logger callback.
+	 */
 	public async collectInfo(send: (data: Tree) => void, _logger?: Logger): Promise<void> {
 		const i = this.id
 		send({
@@ -140,6 +134,12 @@ export default class ConfigInfo {
 		}
 	}
 
+	/**
+	 * Runs tests.
+	 * @param send Callback to send results.
+	 * @param plan The IDs to include in the run.
+	 * @param logger Optional logger callback.
+	 */
 	public async run(send: (data: Event) => void, plan?: string[], logger?: Logger): Promise<void> {
 		const config = this.config
 		const emitter: Emitter & TestEmitter = new Emitter()
@@ -186,6 +186,12 @@ export default class ConfigInfo {
 		}
 	}
 
+	/**
+	 * Debugs tests.
+	 * @param ready Callback to singal debug session is ready.
+	 * @param plan IDs to include in the test run.
+	 * @param logger Optional logger callback.
+	 */
 	public async debug(
 		ready: (port: number) => void,
 		plan: DebugPlan,
@@ -225,6 +231,7 @@ export default class ConfigInfo {
 		}
 	}
 
+	/** Cancels the active test run. */
 	public cancel(): void {
 		const s = this.stop
 		if (s) {
@@ -232,6 +239,7 @@ export default class ConfigInfo {
 		}
 	}
 
+	/** Disposes of the configuration. */
 	public dispose(): void {
 		this.cancel()
 		ConfigInfo.configSet.delete(this.id)
@@ -243,6 +251,11 @@ export default class ConfigInfo {
 		}
 	}
 
+	/**
+	 * Gets the ID of a file.
+	 * @param file The name of the file.
+	 * @returns The ID or null if not found.
+	 */
 	public getFileID(file: string): string | null {
 		for (const f of this.files.values()) {
 			if (f.name === file) {
@@ -252,6 +265,12 @@ export default class ConfigInfo {
 		return null
 	}
 
+	/**
+	 * Gets the ID of a test case.
+	 * @param title The title of the test case.
+	 * @param file The name of the file containing the test case.
+	 * @returns The ID or null if not found.
+	 */
 	public getTestID(title: string, file: string): string | null {
 		for (const f of this.files.values()) {
 			if (f.name === file) {
@@ -261,6 +280,11 @@ export default class ConfigInfo {
 		return null
 	}
 
+	/**
+	 * Processes loaded configuration information.
+	 * @param data The loaded data.
+	 * @param _logger Unused. Optional logger callback.
+	 */
 	private async build(data: Loaded, _logger?: Logger): Promise<void> {
 		this.prefix = data.prefix
 		const files = this.files
@@ -279,6 +303,11 @@ export default class ConfigInfo {
 		}
 	}
 
+	/**
+	 * Processes the plan for a test run.
+	 * @param plan The IDs in the run.
+	 * @param from The path test files will be resolved relative to.
+	 */
 	private processPlan(plan: string[], from: string): { files: string[]; match?: string[] } {
 		const prefix = this.prefix
 		const files = this.files
