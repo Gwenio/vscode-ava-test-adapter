@@ -19,10 +19,22 @@ PERFORMANCE OF THIS SOFTWARE.
 import hashSum from 'hash-sum'
 import random from 'random'
 
+/** Generates random integers to salt hashes with. */
 const generate = random.uniformInt(0, 0xffff)
 
+/**
+ * Callback type to check if a hash is already in use.
+ * @param h The hash to check for.
+ */
 type Checker = (h: string) => boolean
 
+/**
+ * Generates a hash for a string.
+ * @param text The text generate a hash from.
+ * @param has Callback to check if a hash is already in use.
+ * @param prefix Optional prefix to apply to the hash.
+ * @param suffix Optional suffix to apply to the hash.
+ */
 export default function hash(text: string, has: Checker, prefix?: string, suffix?: string): string {
 	let x = hashSum(text)
 	let f = (t: string): string => t
