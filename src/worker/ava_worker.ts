@@ -20,16 +20,29 @@ import avaApi from 'ava/lib/api'
 import AVA from 'ava/namespace'
 import { Setup } from './ava_setup'
 
+/** Logger callback type. */
 type Logger = (message: string) => void
 
+/** Options for creating the worker. */
 export interface WorkerOptions {
+	/** The Reporter to send events to. */
 	reporter: AVA.Reporter
+	/** Optional logging callback. */
 	logger?: Logger
+	/** Optional list of test files to run. */
 	files?: string[]
+	/** Optional inspect port number. */
 	port?: number
+	/** Optional callback to send an function for interrupting the run. */
 	interrupt?: (cb: () => void) => void
 }
 
+/**
+ * Executes a test run.
+ * @param setup The setup configuration for the worker.
+ * @param options Additional options for the worker.
+ * @returns A Promise of the run's Status.
+ */
 export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
 	const reporter = options.reporter
 	const logger = options.logger
