@@ -77,14 +77,23 @@ export namespace Events {
 		line: number
 	}
 
-	interface ErrorInfo {
+	interface BaseErrorInfo {
 		avaAssertionError: boolean
 		nonErrorObject: boolean
-		source: ErrorSource
-		stack: string
-		improperUsage: boolean
-		message: string
-		name: string
+		source: ErrorSource | null
+		stack?: string
+		message?: string
+		name?: string
+		summary?: string
+		formatted?: string
+	}
+
+	interface ErrorInfo extends BaseErrorInfo {
+		avaAssertionError: false
+	}
+
+	interface AVAErrorInfo extends BaseErrorInfo {
+		avaAssertionError: true
 		statements: []
 		values: {
 			label: string
@@ -93,12 +102,24 @@ export namespace Events {
 		summary: string
 	}
 
+	interface InternalError {
+		type: 'internal-error'
+		err: ErrorInfo | AVAErrorInfo
+		testFile?: string
+	}
+
+	interface UncaughtException {
+		type: 'uncaught-exception' | 'unhandled-rejection'
+		err: ErrorInfo | AVAErrorInfo
+		testFile: string
+	}
+
 	interface TestFailed {
 		type: 'test-failed'
 		title: string
 		duration: number
 		knownFailing: boolean
-		err: ErrorInfo
+		err: ErrorInfo | AVAErrorInfo
 		logs: []
 		testFile: string
 	}
@@ -111,6 +132,13 @@ export namespace Events {
 		testFile: string
 	}
 
+	interface HookFailed {
+		type: 'hook-failed'
+		title: string
+		err: ErrorInfo | AVAErrorInfo
+		testFile: string
+	}
+
 	interface WorkerFinished {
 		type: 'worker-finished'
 		forcedExit: boolean
@@ -119,6 +147,7 @@ export namespace Events {
 
 	interface WorkerFailed {
 		type: 'worker-failed'
+		nonZeroExitCode: number
 		testFile: string
 	}
 
@@ -131,6 +160,15 @@ export namespace Events {
 		type: 'interrupt'
 	}
 
+	interface Timeout {
+		type: 'timeout'
+	}
+
+	interface MissingAVA {
+		type: 'missing-ava-import'
+		testFile: string
+	}
+
 	interface Output {
 		type: 'worker-stderr' | 'worker-stdout'
 		chunk: string | Uint8Array
@@ -140,6 +178,7 @@ export namespace Events {
 export type Event =
 	| Events.DeclareTest
 	| Events.HookFinished
+	| Events.HookFailed
 	| Events.SelectTest
 	| Events.Stats
 	| Events.TestPassed
@@ -148,3 +187,7 @@ export type Event =
 	| Events.WorkerFailed
 	| Events.Output
 	| Events.Interrrupt
+	| Events.Timeout
+	| Events.InternalError
+	| Events.UncaughtException
+	| Events.MissingAVA
