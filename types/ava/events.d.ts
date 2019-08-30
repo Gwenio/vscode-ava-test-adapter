@@ -44,6 +44,38 @@ export interface TestStats {
 	unhandledRejections: number
 }
 
+interface ErrorSource {
+	isDependency: boolean
+	isWithinProject: boolean
+	file: string
+	line: number
+}
+
+interface BaseErrorInfo {
+	avaAssertionError: boolean
+	nonErrorObject: boolean
+	source: ErrorSource | null
+	stack?: string
+	message?: string
+	name?: string
+	summary?: string
+	formatted?: string
+}
+
+interface GenericErrorInfo extends BaseErrorInfo {
+	avaAssertionError: false
+}
+
+interface AVAErrorInfo extends BaseErrorInfo {
+	avaAssertionError: true
+	statements: []
+	values: {
+		label: string
+		formatted: string
+	}[]
+	summary: string
+}
+
 export namespace Events {
 	interface DeclareTest {
 		type: 'declared-test'
@@ -70,47 +102,17 @@ export namespace Events {
 		testFile: string
 	}
 
-	interface ErrorSource {
-		isDependency: boolean
-		isWithinProject: boolean
-		file: string
-		line: number
-	}
-
-	interface BaseErrorInfo {
-		avaAssertionError: boolean
-		nonErrorObject: boolean
-		source: ErrorSource | null
-		stack?: string
-		message?: string
-		name?: string
-		summary?: string
-		formatted?: string
-	}
-
-	interface ErrorInfo extends BaseErrorInfo {
-		avaAssertionError: false
-	}
-
-	interface AVAErrorInfo extends BaseErrorInfo {
-		avaAssertionError: true
-		statements: []
-		values: {
-			label: string
-			formatted: string
-		}[]
-		summary: string
-	}
+	type ErrorInfo = GenericErrorInfo | AVAErrorInfo
 
 	interface InternalError {
 		type: 'internal-error'
-		err: ErrorInfo | AVAErrorInfo
+		err: ErrorInfo
 		testFile?: string
 	}
 
 	interface UncaughtException {
 		type: 'uncaught-exception' | 'unhandled-rejection'
-		err: ErrorInfo | AVAErrorInfo
+		err: ErrorInfo
 		testFile: string
 	}
 
@@ -119,7 +121,7 @@ export namespace Events {
 		title: string
 		duration: number
 		knownFailing: boolean
-		err: ErrorInfo | AVAErrorInfo
+		err: ErrorInfo
 		logs: []
 		testFile: string
 	}
@@ -135,7 +137,7 @@ export namespace Events {
 	interface HookFailed {
 		type: 'hook-failed'
 		title: string
-		err: ErrorInfo | AVAErrorInfo
+		err: ErrorInfo
 		testFile: string
 	}
 

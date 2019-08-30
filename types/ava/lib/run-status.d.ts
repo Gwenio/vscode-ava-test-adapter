@@ -24,6 +24,7 @@ declare module 'ava/lib/run-status' {
 	export default class Status implements AVA.Status {
 		constructor(files: string[], parallelRuns: null | number)
 		on(tag: string, handler: (event: Event) => void): () => void
+		once(tag: string, handler: (event: Event) => void): Promise<void>
 		suggestExitCode(circumstances: { matching: boolean }): number
 		emitStateChange(event: Event): void
 	}

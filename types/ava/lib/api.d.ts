@@ -52,7 +52,8 @@ declare module 'ava/lib/api' {
 	export default class Api {
 		constructor(Options)
 		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>
-		on(tag: 'run', handler: (plan: AVA.Plan) => void): void
+		on(tag: 'run', handler: (plan: AVA.Plan) => void): () => void
+		once(tag: 'run', handler: (plan: AVA.Plan) => void): Promise<void>
 		_interruptHandler(): void
 		async _computeForkExecArgv(): Promise<string[]>
 	}
