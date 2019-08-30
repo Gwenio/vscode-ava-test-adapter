@@ -66,26 +66,35 @@ export default class DebugReporter extends AbstractReporter {
 		return p
 	}
 
-	/** @inheritdoc */
-	public startRun(plan: AVA.Plan): void {
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
+	public startRun(_plan: AVA.Plan): void {
 		if (DebugReporter.running) {
 			throw new Error('Cannot start a new debugging session while another is in progress.')
+		} else {
+			DebugReporter.running = true
+			this.log('Begin Debug Run.')
+			this.ready(this.port)
 		}
-		DebugReporter.running = true
-		super.startRun(plan)
-		this.log('Begin Run.')
-		this.ready(this.port)
 	}
 
 	/* eslint @typescript-eslint/no-empty-function: "off" */
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	protected consumeStateChange(_event: AVA.Event): void {}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	public endRun(): void {
 		if (DebugReporter.running) {
 			DebugReporter.running = false
-			this.log('Run Complete.')
+			this.log('Debug Run Complete.')
 		}
 	}
 }
