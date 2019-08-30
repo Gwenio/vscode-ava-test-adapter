@@ -19,5 +19,6 @@ PERFORMANCE OF THIS SOFTWARE.
 import LoadReporter from './load'
 import { TestReporter, TestEmitter, TestResult } from './test'
 import DebugReporter from './debug'
+import ErrorReporter from './error'
 
-export { LoadReporter, TestReporter, TestEmitter, TestResult, DebugReporter }
+export { LoadReporter, TestReporter, TestEmitter, TestResult, DebugReporter, ErrorReporter }
