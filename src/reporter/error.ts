@@ -51,49 +51,30 @@ export default class ErrorReporter extends AbstractReporter {
 		switch (event.type) {
 			case 'missing-ava-import':
 				console.error(
-					`[Worker] [ERROR] No AVA import in: ${path.relative('.', event.testFile)}`
+					`[Worker] [ERROR] No AVA import in: ${this.formatFile(event.testFile)}`
 				)
 				return
 			case 'internal-error':
 				if (event.testFile) {
 					console.error(
-						`[Worker] [ERROR] AVA Internal Error: ${path.relative('.', event.testFile)}`
+						`[Worker] [ERROR] AVA Internal Error: ${this.formatFile(event.testFile)}`
 					)
 				} else {
 					console.error('[Worker] [ERROR] AVA Internal Error')
 				}
-				if (event.err.message) {
-					console.error(event.err.message)
-				}
-				if (event.err.stack) {
-					console.error(event.err.stack)
-				}
+				this.logError(event.err)
 				return
 			case 'unhandled-rejection':
 				console.error(
-					`[Worker] [ERROR] Unhandled Rejection: ${path.relative('.', event.testFile)}`
+					`[Worker] [ERROR] Unhandled Rejection: ${this.formatFile(event.testFile)}`
 				)
-				if (event.err.message) {
-					console.error(event.err.message)
-				} else if (event.err.formatted) {
-					console.error(event.err.formatted)
-				}
-				if (event.err.stack) {
-					console.error(event.err.stack)
-				}
+				this.logError(event.err)
 				return
 			case 'uncaught-exception':
 				console.error(
-					`[Worker] [ERROR] Uncaught Exception: ${path.relative('.', event.testFile)}`
+					`[Worker] [ERROR] Uncaught Exception: ${this.formatFile(event.testFile)}`
 				)
-				if (event.err.message) {
-					console.error(event.err.message)
-				} else if (event.err.formatted) {
-					console.error(event.err.formatted)
-				}
-				if (event.err.stack) {
-					console.error(event.err.stack)
-				}
+				this.logError(event.err)
 				return
 			case 'interrupt':
 				console.error('Test run cancelled.')
@@ -115,5 +96,34 @@ export default class ErrorReporter extends AbstractReporter {
 	public endRun(): void {
 		this.sub.endRun()
 		this.reset()
+	}
+
+	/**
+	 * Prepares a file name for printing.
+	 * @param file File name to format.
+	 */
+	private formatFile(file: string): string {
+		return path.relative('.', file)
+	}
+
+	/**
+	 * Logs an error.
+	 * @param error The error to log.
+	 */
+	private logError(error: AVA.Events.ErrorInfo): void {
+		if (error.summary) {
+			console.error(error.summary)
+		} else if (error.message) {
+			if (error.name) {
+				console.error(`${error.name}: ${error.message}`)
+			} else {
+				console.error(error.message)
+			}
+		} else if (error.formatted) {
+			console.error(error.formatted)
+		}
+		if (error.stack) {
+			console.error(error.stack)
+		}
 	}
 }
