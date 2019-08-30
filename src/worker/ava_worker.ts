@@ -19,6 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import avaApi from 'ava/lib/api'
 import AVA from 'ava/namespace'
 import { Setup } from './ava_setup'
+import { ErrorReporter } from '../reporter'
 
 /** Logger callback type. */
 type Logger = (message: string) => void
@@ -44,7 +45,7 @@ export interface WorkerOptions {
  * @returns A Promise of the run's Status.
  */
 export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
-	const reporter = options.reporter
+	const reporter = new ErrorReporter(options.reporter)
 	const logger = options.logger
 	const api = new avaApi({
 		...setup,
@@ -63,12 +64,7 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 	}
 
 	if (options.interrupt) {
-		options.interrupt((): void => {
-			if (logger) {
-				logger('Interrupting AVA worker...')
-			}
-			api._interruptHandler()
-		})
+		options.interrupt(api._interruptHandler.bind(api))
 	}
 
 	if (logger) logger('Attaching reporter')
