@@ -221,7 +221,7 @@ export default [
 	{
 		input: 'tmp/src/child.js',
 		external: builtins
-			.concat('common-path-prefix', 'arrify', 'matcher', 'get-port', 'veza', 'binarytf')
+			.concat('arrify', 'matcher', 'get-port', 'veza', 'binarytf')
 			.concat(avaFiles),
 		plugins: configurePlugins(),
 		output: outputBundle('dist/child.js', avaIntro),
