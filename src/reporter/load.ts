@@ -17,7 +17,6 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import AVA from 'ava/namespace'
-import commonFilePrefix from 'common-path-prefix'
 import matcher from 'matcher'
 import AbstractReporter from './reporter'
 
@@ -71,6 +70,9 @@ export default class LoadReporter extends AbstractReporter {
 		info: [],
 	}
 
+	/** The common prefix length. */
+	private length = 0
+
 	/**
 	 * Constructor.
 	 * @param filter Array of matcher expressions for test titles to accept.
@@ -84,7 +86,10 @@ export default class LoadReporter extends AbstractReporter {
 		}
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	protected reset(): void {
 		super.reset()
 		this.running = true
@@ -92,21 +97,37 @@ export default class LoadReporter extends AbstractReporter {
 		this.tests = []
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	public startRun(plan: AVA.Plan): void {
 		super.startRun(plan)
-		this.log('Begin Run.')
+		this.log('Begin Loading.')
+		const p = plan.filePathPrefix
+		this.data.prefix = p
+		this.length = p.length
+		console.log(`File prefix: ${p}`)
 	}
 
-	/** @inheritdoc */
+	/**
+	 * Pushes information on a test.
+	 * @param title The test's title.
+	 * @param file The file containing the test.
+	 */
+	private push(title: string, file: string): void {
+		this.files.add(file)
+		this.tests.push({ title, file })
+	}
+
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	protected consumeStateChange(event: AVA.Event): void {
 		switch (event.type) {
 			case 'declared-test':
-				this.files.add(event.testFile)
-				this.tests.push({
-					title: event.title,
-					file: event.testFile,
-				})
+				this.push(event.title, event.testFile.slice(this.length))
 				return
 			case 'worker-stderr':
 				process.stderr.write(event.chunk)
@@ -119,37 +140,40 @@ export default class LoadReporter extends AbstractReporter {
 		}
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	public endRun(): void {
 		if (this.running) {
 			this.running = false
-			let files: string[] = []
-			this.files.forEach((value): void => {
-				files.push(value)
-			})
-			const prefix: string = commonFilePrefix(files)
-			const length = prefix.length
-			files = files.map((value): string => value.slice(length))
 			const tests = this.tests
-			this.data = {
-				prefix,
-				info: files.map(
-					(file): Info => {
-						const list = tests
-							.filter((value): boolean => {
-								return value.file.slice(length) === file
-							})
-							.map((value): string => {
-								return value.title
-							})
-						return {
-							file,
-							tests: matcher(list, this.filter),
-						}
-					}
-				),
+			const i: Info[] = []
+			for (const file of this.files) {
+				const x = tests
+					.filter(({ file: y }): boolean => y === file)
+					.map(({ title: z }): string => z)
+				if (x.length > 0) {
+					i.push({
+						file,
+						tests: x,
+					})
+				}
 			}
-			this.log('Run Complete.')
+			const filter = this.filter
+			if (i.length > 0 && filter.length > 0) {
+				const x: Info[] = []
+				for (const y of i) {
+					const z = matcher(y.tests, filter)
+					if (z.length > 0) {
+						x.push({ file: y.file, tests: z })
+					}
+				}
+				this.data.info = x
+			} else {
+				this.data.info = i
+			}
+			this.log('Loading Complete.')
 		}
 	}
 
