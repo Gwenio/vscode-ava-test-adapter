@@ -16,7 +16,6 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import path from 'path'
 import Emitter from 'events'
 import hash from './hash'
 import { setup, Setup } from './ava_setup'
@@ -97,7 +96,6 @@ export default class ConfigInfo {
 		const c = this.config
 		const reporter = new LoadReporter(c.match, logger)
 		await worker({ ...c, match: [''] }, { reporter, logger })
-		reporter.endRun()
 		this.build(reporter.report)
 		return this
 	}
@@ -164,10 +162,9 @@ export default class ConfigInfo {
 		}
 		const done = (): void => {
 			this.stop = undefined
-			reporter.endRun()
 		}
 		if (plan && !plan.includes(this.id)) {
-			const { files, match } = this.processPlan(plan, config.resolveTestsFrom)
+			const { files, match } = this.processPlan(plan)
 			if (files.length > 0) {
 				const c = match ? { ...config, match } : config
 				await worker(c, {
@@ -181,6 +178,7 @@ export default class ConfigInfo {
 			await worker(config, {
 				reporter,
 				logger,
+				files: [...this.files.values()].map((value): string => value.name),
 				interrupt: callback,
 			}).finally(done)
 		}
@@ -201,13 +199,10 @@ export default class ConfigInfo {
 			...this.config,
 			serial: plan.serial || this.config.serial,
 		}
-		const prefix = this.prefix
-		const from = config.resolveTestsFrom
 		const reporter = new DebugReporter(ready, plan.port, logger)
-		const done = reporter.endRun.bind(reporter)
 		const p = plan.plan
 		if (p && !p.includes(this.id)) {
-			const { files, match } = this.processPlan(p, config.resolveTestsFrom)
+			const { files, match } = this.processPlan(p)
 			if (files.length > 0) {
 				const c = match ? { ...config, match } : config
 				for (const f of files) {
@@ -216,7 +211,7 @@ export default class ConfigInfo {
 						logger,
 						port: await reporter.selectPort(),
 						files: [f],
-					}).finally(done)
+					})
 				}
 			}
 		} else {
@@ -225,8 +220,8 @@ export default class ConfigInfo {
 					reporter,
 					logger,
 					port: await reporter.selectPort(),
-					files: [path.relative(from, prefix + f.name)],
-				}).finally(done)
+					files: [f.name],
+				})
 			}
 		}
 	}
@@ -286,7 +281,9 @@ export default class ConfigInfo {
 	 * @param _logger Unused. Optional logger callback.
 	 */
 	private async build(data: Loaded, _logger?: Logger): Promise<void> {
-		this.prefix = data.prefix
+		const p = data.prefix
+		this.prefix = p
+		this.config.resolveTestsFrom = p
 		const files = this.files
 		const t = this.tests
 		const i = this.idSet.add.bind(this.idSet)
@@ -306,10 +303,8 @@ export default class ConfigInfo {
 	/**
 	 * Processes the plan for a test run.
 	 * @param plan The IDs in the run.
-	 * @param from The path test files will be resolved relative to.
 	 */
-	private processPlan(plan: string[], from: string): { files: string[]; match?: string[] } {
-		const prefix = this.prefix
+	private processPlan(plan: string[]): { files: string[]; match?: string[] } {
 		const files = this.files
 		const tests = this.tests
 		const f = new Set<string>()
@@ -331,11 +326,10 @@ export default class ConfigInfo {
 				}
 			}
 		}
-		const select = [...f].map((x): string => path.relative(from, prefix + x))
 		if (m.size > 0) {
-			return { files: select, match: [...m] }
+			return { files: [...f], match: [...m] }
 		} else {
-			return { files: select }
+			return { files: [...f] }
 		}
 	}
 }
