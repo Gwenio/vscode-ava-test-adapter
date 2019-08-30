@@ -86,19 +86,28 @@ export class TestReporter extends AbstractReporter {
 		}
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	protected reset(): void {
 		super.reset()
 		this.running = true
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	public startRun(plan: AVA.Plan): void {
 		super.startRun(plan)
-		this.log('Begin Run.')
+		this.log('Begin Test Run.')
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	protected consumeStateChange(event: AVA.Event): void {
 		switch (event.type) {
 			case 'selected-test':
@@ -134,19 +143,19 @@ export class TestReporter extends AbstractReporter {
 			case 'worker-stdout':
 				process.stdout.write(event.chunk)
 				return
-			case 'interrupt':
-				this.log('Testing interrupted.')
-				return
 			default:
 				return
 		}
 	}
 
-	/** @inheritdoc */
+	/**
+	 * @inheritdoc
+	 * @override
+	 */
 	public endRun(): void {
 		if (this.running) {
 			this.running = false
-			this.log('Run Complete.')
+			this.log('Test Run Complete.')
 			this.reporter.emit('end')
 		}
 	}
