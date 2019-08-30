@@ -107,7 +107,9 @@ export default class LoadReporter extends AbstractReporter {
 		const p = plan.filePathPrefix
 		this.data.prefix = p
 		this.length = p.length
-		console.log(`File prefix: ${p}`)
+		if (process.env.NODE_ENV !== 'production') {
+			this.log(`File prefix: ${p}`)
+		}
 	}
 
 	/**
