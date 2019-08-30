@@ -44,7 +44,7 @@ export interface WorkerOptions {
  * @param options Additional options for the worker.
  * @returns A Promise of the run's Status.
  */
-export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.Status> {
+export async function worker(setup: Setup, options: WorkerOptions): Promise<void> {
 	const reporter = new ErrorReporter(options.reporter)
 	const logger = options.logger
 	const api = new avaApi({
@@ -63,22 +63,18 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<AVA.
 		}
 	}
 
-	if (options.interrupt) {
-		options.interrupt(api._interruptHandler.bind(api))
-	}
-
-	if (logger) logger('Attaching reporter')
-
 	api.on('run', (plan): void => {
 		reporter.startRun(plan)
-		plan.status.on('stateChange', (event): void => {
-			if (event.type === 'interrupt') {
-				reporter.endRun()
-			}
-		})
+		if (options.interrupt) {
+			options.interrupt(api._interruptHandler.bind(api))
+		}
 	})
 
 	if (logger) logger('Running AVA')
 
-	return api.run(options.files || [])
+	try {
+		await api.run(options.files || [])
+	} finally {
+		reporter.endRun()
+	}
 }
