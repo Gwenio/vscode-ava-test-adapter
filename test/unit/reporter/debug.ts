@@ -48,40 +48,55 @@ const basePlan = {
 	runVector: 0,
 }
 
-test('begin and end log', async (t): Promise<void> => {
-	const l = t.context.sandbox.spy()
-	const ready = t.context.sandbox.spy()
-	const s1 = new Status([], null)
-	const s2 = new Status([], null)
-	const r = new DebugReporter(ready, 9229, l)
-	r.startRun({
-		...basePlan,
-		status: s1,
-	})
-	t.throws((): void => {
-		r.startRun({
+test.serial(
+	'begin and end log',
+	async (t): Promise<void> => {
+		const spy = t.context.sandbox.spy
+		const l1 = spy((_: string): void => {})
+		const l2 = spy((_: string): void => {})
+		const ready = spy((_: number): void => {})
+		const s1 = new Status([], null)
+		const s2 = new Status([], null)
+		const r1 = new DebugReporter(ready, 9229, l1)
+		const r2 = new DebugReporter(ready, 9229, l2)
+		r1.startRun({
 			...basePlan,
-			status: s2,
+			status: s1,
 		})
-	})
-	r.endRun()
-	r.endRun()
-	t.is(l.callCount, 2)
-	t.is(ready.callCount, 1)
-})
-
-test('select inspect port', async (t): Promise<void> => {
-	const ready = t.context.sandbox.spy()
-	const status = new Status([], null)
-	const r = new DebugReporter(ready, 9229)
-	t.notThrows((): void => {
-		const port = r.selectPort()
-		r.startRun({
-			...basePlan,
-			status,
+		t.throws((): void => {
+			r2.startRun({
+				...basePlan,
+				status: s2,
+			})
 		})
-		r.endRun()
+		r1.endRun()
+		r2.endRun()
+		t.is(l1.callCount, 2)
+		t.true(l1.calledWith('Begin Debug Run.'))
+		t.true(l1.calledWith('Debug Run Complete.'))
+		t.is(l2.callCount, 0)
 		t.is(ready.callCount, 1)
-		t.true(ready.calledWith(port))
-	})
-})
+		t.true(ready.calledWith(9229))
+	}
+)
+
+test.serial(
+	'select inspect port',
+	async (t): Promise<void> => {
+		const ready = t.context.sandbox.spy((_: number): void => {})
+		const status = new Status([], null)
+		const r = new DebugReporter(ready, 9229)
+		await t.notThrowsAsync(
+			async (): Promise<void> => {
+				const port = await r.selectPort()
+				r.startRun({
+					...basePlan,
+					status,
+				})
+				r.endRun()
+				t.is(ready.callCount, 1)
+				t.true(ready.calledWith(port))
+			}
+		)
+	}
+)
