@@ -9,7 +9,7 @@ export default {
 		//"@babel/register",
 		'esm',
 	],
-	files: ['tmp/test/unit/*.js'],
+	files: ['tmp/test/unit/reporter/*.js'],
 	sources: ['tmp/src/*.js', 'tmp/src/reporter/*.js', 'tmp/src/worker/*.js'],
 	babel: {
 		testOptions: {

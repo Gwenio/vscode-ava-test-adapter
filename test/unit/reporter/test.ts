@@ -20,7 +20,7 @@ import Emitter from 'events'
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import Status from 'ava/lib/run-status'
-import { LoadReporter, TestReporter, DebugReporter } from '../../src/reporter'
+import { TestReporter } from '../../../src/reporter'
 
 interface Context {
 	/**
@@ -49,19 +49,6 @@ const basePlan = {
 	runVector: 0,
 }
 
-test('LoadReporter begin and end log', async (t): Promise<void> => {
-	const l = t.context.sandbox.spy()
-	const status = new Status([], null)
-	const r = new LoadReporter([], l)
-	r.startRun({
-		...basePlan,
-		status,
-	})
-	r.endRun()
-	r.endRun()
-	t.is(l.callCount, 2)
-})
-
 test('TestReporter begin and end log', async (t): Promise<void> => {
 	const l = t.context.sandbox.spy()
 	const emit = new Emitter()
@@ -70,26 +57,6 @@ test('TestReporter begin and end log', async (t): Promise<void> => {
 	r.startRun({
 		...basePlan,
 		status,
-	})
-	r.endRun()
-	r.endRun()
-	t.is(l.callCount, 2)
-})
-
-test('DebugReporter begin and end log', async (t): Promise<void> => {
-	const l = t.context.sandbox.spy()
-	const s1 = new Status([], null)
-	const s2 = new Status([], null)
-	const r = new DebugReporter((_p: number): void => {}, 9229, l)
-	r.startRun({
-		...basePlan,
-		status: s1,
-	})
-	t.throws((): void => {
-		r.startRun({
-			...basePlan,
-			status: s2,
-		})
 	})
 	r.endRun()
 	r.endRun()
