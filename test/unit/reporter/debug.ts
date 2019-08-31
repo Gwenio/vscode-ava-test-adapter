@@ -48,7 +48,7 @@ const basePlan = {
 	runVector: 0,
 }
 
-test('DebugReporter begin and end log', async (t): Promise<void> => {
+test('begin and end log', async (t): Promise<void> => {
 	const l = t.context.sandbox.spy()
 	const s1 = new Status([], null)
 	const s2 = new Status([], null)
