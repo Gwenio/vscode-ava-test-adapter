@@ -19,6 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
 import AVA from '../namespace'
+import { Typed } from 'emittery'
 
 interface Options {
 	babelConfig: AVA.BabalConfig
@@ -49,11 +50,9 @@ interface Options {
 }
 
 declare module 'ava/lib/api' {
-	export default class Api {
+	export default class Api extends Typed<{ run: AVA.Plan }> {
 		constructor(Options)
 		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>
-		on(tag: 'run', handler: (plan: AVA.Plan) => void): () => void
-		once(tag: 'run', handler: (plan: AVA.Plan) => void): Promise<void>
 		_interruptHandler(): void
 		async _computeForkExecArgv(): Promise<string[]>
 	}
