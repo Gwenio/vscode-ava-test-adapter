@@ -19,4 +19,5 @@ export default {
 	},
 	compileEnhancements: true,
 	cache: true,
+	failFast: false,
 }
