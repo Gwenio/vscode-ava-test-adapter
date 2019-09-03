@@ -22,9 +22,7 @@ import Status from 'ava/lib/run-status'
 import { ErrorReporter } from '../../../src/reporter'
 
 interface Context {
-	/**
-	 * @summary Isolated sinon sandbox.
-	 */
+	/** Isolated sinon sandbox. */
 	sandbox: SinonSandbox
 }
 
