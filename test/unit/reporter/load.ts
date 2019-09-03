@@ -24,14 +24,22 @@ import { LoadReporter } from '../../../src/reporter'
 interface Context {
 	/** Isolated sinon sandbox. */
 	sandbox: SinonSandbox
+	/** Test Status Tracker. */
+	status: Status
 }
 
 const test = anyTest as TestInterface<Context>
 
-// Setup isolated sandbox
 test.beforeEach(
 	async (t): Promise<void> => {
 		t.context.sandbox = sinon.createSandbox()
+		t.context.status = new Status([], null)
+	}
+)
+
+test.afterEach(
+	async (t): Promise<void> => {
+		t.context.status.clearListeners()
 	}
 )
 
@@ -49,7 +57,16 @@ const testTitles = ['a0', 'a1', 'a2', 'a10', 'b1', 'b2', 'b3', 'c0', 'c2']
 const testCount = testTitles.length * basePlan.files.length
 const prefixSize = basePlan.filePathPrefix.length
 
-function mockConfig(status: Status): void {
+function mockConfig(status: Status): Promise<void> {
+	const p = new Promise<void>((resolve): void => {
+		let count = 0
+		status.on('stateChange', (_): void => {
+			count += 1
+			if (count >= testCount) {
+				setImmediate(resolve)
+			}
+		})
+	})
 	const x = (testFile: string, title: string): void => {
 		status.emitSerial('stateChange', {
 			type: 'declared-test',
@@ -64,23 +81,12 @@ function mockConfig(status: Status): void {
 			x(f, t)
 		}
 	}
-}
-
-function waitTests(status: Status): Promise<void> {
-	return new Promise<void>((resolve): void => {
-		let count = 0
-		status.on('stateChange', (_): void => {
-			count += 1
-			if (count >= testCount) {
-				setImmediate(resolve)
-			}
-		})
-	})
+	return p
 }
 
 test('begin and end log', async (t): Promise<void> => {
 	const l = t.context.sandbox.spy()
-	const status = new Status([], null)
+	const status = t.context.status
 	const r1 = new LoadReporter([], l)
 	const r2 = new LoadReporter([])
 	r1.startRun({
@@ -102,54 +108,42 @@ test('begin and end log', async (t): Promise<void> => {
 })
 
 test('no filter', async (t): Promise<void> => {
-	const status = new Status([], null)
-	try {
-		const r = new LoadReporter([])
-		r.startRun({
-			...basePlan,
-			status,
-		})
-		const done = waitTests(status)
-		mockConfig(status)
-		await done
-		r.endRun()
-		t.deepEqual(r.report, {
-			prefix: basePlan.filePathPrefix,
-			info: basePlan.files.map((f): object => {
-				return {
-					file: f.slice(prefixSize),
-					tests: testTitles,
-				}
-			}),
-		})
-	} finally {
-		status.clearListeners()
-	}
+	const status = t.context.status
+	const r = new LoadReporter([])
+	r.startRun({
+		...basePlan,
+		status,
+	})
+	await mockConfig(status)
+	r.endRun()
+	t.deepEqual(r.report, {
+		prefix: basePlan.filePathPrefix,
+		info: basePlan.files.map((f): object => {
+			return {
+				file: f.slice(prefixSize),
+				tests: testTitles,
+			}
+		}),
+	})
 })
 
 test('with filter', async (t): Promise<void> => {
-	const status = new Status([], null)
-	try {
-		const r = new LoadReporter(['a*', '!a1', 'b2', 'c1'])
-		r.startRun({
-			...basePlan,
-			status,
-		})
-		const done = waitTests(status)
-		mockConfig(status)
-		await done
-		r.endRun()
-		const titles = ['a0', 'a2', 'a10', 'b2']
-		t.deepEqual(r.report, {
-			prefix: basePlan.filePathPrefix,
-			info: basePlan.files.map((f): object => {
-				return {
-					file: f.slice(prefixSize),
-					tests: titles,
-				}
-			}),
-		})
-	} finally {
-		status.clearListeners()
-	}
+	const status = t.context.status
+	const r = new LoadReporter(['a*', '!a1', 'b2', 'c1'])
+	r.startRun({
+		...basePlan,
+		status,
+	})
+	await mockConfig(status)
+	r.endRun()
+	const titles = ['a0', 'a2', 'a10', 'b2']
+	t.deepEqual(r.report, {
+		prefix: basePlan.filePathPrefix,
+		info: basePlan.files.map((f): object => {
+			return {
+				file: f.slice(prefixSize),
+				tests: titles,
+			}
+		}),
+	})
 })
