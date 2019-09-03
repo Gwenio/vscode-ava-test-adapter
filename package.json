@@ -5,7 +5,7 @@
 	"icon": "img/icon.png",
 	"author": "James Adam Armstrong",
 	"publisher": "gwenio",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"license": "ISC",
 	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",
 	"repository": {
@@ -103,7 +103,7 @@
 	"lint-staged": {
 		"*.js": ["prettier --write", "git add", "eslint"],
 		"**.ts": ["prettier --write", "git add", "eslint"],
-		"*.md": ["markdownlint-cli -c ./.markdownlint.json"],
+		"*.md": ["markdownlint -c ./.markdownlint.json"],
 		"**.json": ["prettier --write", "git add"]
 	},
 	"extensionDependencies": ["hbenl.vscode-test-explorer"],
