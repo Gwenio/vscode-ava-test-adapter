@@ -50,29 +50,27 @@ export default class ErrorReporter extends AbstractReporter {
 	protected consumeStateChange(event: AVA.Event): void {
 		switch (event.type) {
 			case 'missing-ava-import':
-				console.error(
-					`[Worker] [ERROR] No AVA import in: ${this.formatFile(event.testFile)}`
-				)
+				console.error(`[AVA] [ERROR] No AVA import in: ${this.formatFile(event.testFile)}`)
 				return
 			case 'internal-error':
 				if (event.testFile) {
 					console.error(
-						`[Worker] [ERROR] AVA Internal Error: ${this.formatFile(event.testFile)}`
+						`[AVA] [ERROR] AVA Internal Error: ${this.formatFile(event.testFile)}`
 					)
 				} else {
-					console.error('[Worker] [ERROR] AVA Internal Error')
+					console.error('[AVA] [ERROR] AVA Internal Error')
 				}
 				this.logError(event.err)
 				return
 			case 'unhandled-rejection':
 				console.error(
-					`[Worker] [ERROR] Unhandled Rejection: ${this.formatFile(event.testFile)}`
+					`[AVA] [ERROR] Unhandled Rejection: ${this.formatFile(event.testFile)}`
 				)
 				this.logError(event.err)
 				return
 			case 'uncaught-exception':
 				console.error(
-					`[Worker] [ERROR] Uncaught Exception: ${this.formatFile(event.testFile)}`
+					`[AVA] [ERROR] Uncaught Exception: ${this.formatFile(event.testFile)}`
 				)
 				this.logError(event.err)
 				return
