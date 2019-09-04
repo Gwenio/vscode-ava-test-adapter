@@ -17,8 +17,8 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import { ChildProcess, fork } from 'child_process'
-import Emitter from 'events'
-import { Client, ClientSocket } from 'veza'
+import Emitter from 'emittery'
+import { Client, ClientSocket, NetworkError } from 'veza'
 import {
 	Parent,
 	Load,
@@ -32,10 +32,13 @@ import {
 	TestFile,
 	Result,
 	Logging,
+	Ready,
 } from '../ipc'
 
 /** The file name of the worker script. */
 const script = './child.js'
+/** The timeout duration for the worker in milliseconds. */
+const timeout = 30000
 
 /** Interface for the configuration of the worker. */
 interface WorkerConfig {
@@ -49,12 +52,15 @@ interface WorkerConfig {
 	nodeArgv: string[]
 }
 
-/** Basic events. */
-type Basic = 'error' | 'exit' | 'message' | 'connect' | 'disconnect'
+/** Single occurance events. */
+type Single = 'exit' | 'connect' | 'disconnect'
 /** Worker console output events. */
 type Output = 'stdout' | 'stderr'
 /** The Worker event types. */
-type Events = Basic | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
+type Events = 'error' | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
+
+/** Worker Event Handler type. */
+type Handler = (_: any) => void // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /** Manages a worker process. */
 export class Worker {
@@ -63,15 +69,45 @@ export class Worker {
 	/** The veza connection, if connected. */
 	private connection?: ClientSocket
 	/** The emitter for worker events. */
-	private readonly emitter: Emitter = new Emitter()
+	private readonly emitter = new Emitter.Typed<
+		{
+			stdout: Buffer | string
+			stderr: Buffer | string
+			error: Error | NetworkError
+			prefix: Prefix
+			file: TestFile
+			case: TestCase
+			result: Result
+			ready: Ready
+			done: string
+			exit: Worker
+			connect: Worker
+			disconnect: Worker
+		},
+		Events | Single
+	>()
+	/** Indicates if the worker has exited. */
+	private alive = true
+	/** . */
+	private readonly onExit = this.emitter.once('exit')
+	/** . */
+	private readonly onConnect = this.emitter.once('connect')
+	/** . */
+	private readonly onDisconnect = this.emitter.once('disconnect')
+
+	public exitCode: number | null = null
 
 	/**
 	 * Constructor.
 	 * @param config The worker configuration.
 	 * @param resolve Callback to resolve promise waiting on the worker connection.
 	 */
-	public constructor(config: WorkerConfig, resolve: () => void) {
+	public constructor(config: WorkerConfig) {
 		const emitter = this.emitter
+		this.onExit.then(() => {
+			this.alive = false
+			emitter.clearListeners()
+		})
 		this.child = fork(
 			/* eslint node/no-missing-require: "off" */
 			require.resolve(script),
@@ -84,48 +120,60 @@ export class Worker {
 				execArgv: config.nodeArgv,
 				stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
 			}
-		)
+		).once('exit', (code): void => {
+			this.exitCode = code
+			emitter.emit('exit', this)
+		})
 		const child = this.child
 		if (child.stdout) {
 			child.stdout.on('data', emitter.emit.bind(emitter, 'stdout'))
 		}
 		if (child.stderr) {
-			child.stderr.on('data', emitter.emit.bind(emitter, 'stderr'))
+			child.stderr.on('data', emitter.emit.bind(emitter, 'stdout'))
 		}
-		const timer = setTimeout((): void => {
-			child.kill()
-			resolve()
-		}, 30000)
+		const cleanup = (): void => {
+			if (this.alive) {
+				child.kill()
+			}
+		}
+		const timer = setTimeout(cleanup, timeout)
 		child.once('message', (message: string): void => {
 			clearTimeout(timer)
 			const s = message.split(':')
 			child.disconnect()
-			this.connect(Number.parseInt(s[0], 16), s[1], resolve)
+			this.connect(Number.parseInt(s[0], 16), s[1])
 		})
+		this.onExit.then((): void => {
+			process.off('beforeExit', cleanup)
+		})
+		process.once('beforeExit', cleanup)
 	}
 
 	/**
 	 * Connects to the worker.
 	 * @param port The port to connect on.
 	 * @param token The name for the veza client.
-	 * @param resolve The resolve callback from the constructor.
 	 */
-	private connect(port: number, token: string, resolve: () => void): void {
-		const emit: (event: Events, ...m) => void = this.emitter.emit.bind(this.emitter)
+	private connect(port: number, token: string): void {
+		const emit = this.emitter.emit.bind(this.emitter)
 		const c = new Client(token)
 			.once('connect', (c): void => {
 				this.connection = c
-				emit('connect')
+				emit('connect', this)
 			})
 			.once('disconnect', (): void => {
 				this.connection = undefined
-				emit('disconnect')
+				const timer = setTimeout((): void => {
+					if (this.alive) {
+						this.child.kill()
+					}
+				}, timeout)
+				this.onExit.then(clearTimeout.bind(null, timer))
+				emit('disconnect', this)
 			})
-			.on('error', this.emitter.emit.bind(this.emitter, 'error'))
+			.on('error', emit.bind('error'))
 			.on('message', ({ data }): void => {
-				if (typeof data === 'string') {
-					emit('message', data)
-				} else if (typeof data === 'object' && data.type && typeof data.type === 'string') {
+				if (typeof data === 'object' && data.type && typeof data.type === 'string') {
 					const m = data as Child
 					switch (m.type) {
 						case 'prefix':
@@ -144,7 +192,7 @@ export class Worker {
 							emit('done', m.file)
 							return
 						case 'ready':
-							emit('ready', m.config, m.port)
+							emit('ready', m)
 							return
 						default:
 							emit('error', new TypeError(`Invalid message type: ${data.type}`))
@@ -154,52 +202,80 @@ export class Worker {
 					emit('error', new TypeError('Worker sent an invalid message.'))
 				}
 			})
-		c.connectTo({ port, host: '127.0.0.1' }).finally(resolve)
+		c.connectTo({ port, host: '127.0.0.1' })
 	}
 
 	/* eslint no-dupe-class-members: "off" */
 	/**
 	 * Listen for an event.
 	 * @param event The event type to listen for.
-	 * @param handler The event listener.
+	 * @param listener The event listener.
 	 */
-	public on(event: 'error', handler: (error: Error) => void): Worker
-	public on(event: 'exit', handler: (code: number | null) => void): Worker
-	public on(event: 'message', handler: (message: string) => void): Worker
-	public on(event: 'connect', handler: () => void): Worker
-	public on(event: 'disconnect', handler: () => void): Worker
-	public on(event: 'stdout', handler: (chunk) => void): Worker
-	public on(event: 'stderr', handler: (chunk) => void): Worker
-	public on(event: 'prefix', handler: (prefix: Prefix) => void): Worker
-	public on(event: 'file', handler: (file: TestFile) => void): Worker
-	public on(event: 'case', handler: (test: TestCase) => void): Worker
-	public on(event: 'result', handler: (result: Result) => void): Worker
-	public on(event: 'done', handler: (file: string) => void): Worker
-	public on(event: 'ready', handler: (id: string, port: number) => void): Worker
-	public on(event: Events, handler: (...args) => void): Worker {
-		this.emitter.on(event, handler)
+	public on(
+		event: 'error',
+		listener: (error: Error | NetworkError) => void,
+		remove?: (() => void)[]
+	): Worker
+	public on(
+		event: 'stdout',
+		listener: (chunk: Buffer | string) => void,
+		remove?: (() => void)[]
+	): Worker
+	public on(
+		event: 'stderr',
+		listener: (chunk: Buffer | string) => void,
+		remove?: (() => void)[]
+	): Worker
+	public on(event: 'prefix', listener: (prefix: Prefix) => void, remove?: (() => void)[]): Worker
+	public on(event: 'file', listener: (file: TestFile) => void, remove?: (() => void)[]): Worker
+	public on(event: 'case', listener: (test: TestCase) => void, remove?: (() => void)[]): Worker
+	public on(event: 'result', listener: (result: Result) => void, remove?: (() => void)[]): Worker
+	public on(event: 'done', listener: (file: string) => void, remove?: (() => void)[]): Worker
+	public on(event: 'ready', listener: (message: Ready) => void, remove?: (() => void)[]): Worker
+	public on(event: Events, listener: Handler, remove?: (() => void)[]): Worker {
+		if (this.alive) {
+			if (remove) {
+				remove.push(this.emitter.on(event, listener))
+			} else {
+				this.emitter.on(event, listener)
+			}
+		}
 		return this
 	}
 
 	/**
 	 * Listen for an event once.
 	 * @param event The event type to listen for.
-	 * @param handler The event listener.
+	 * @param listener The event listener.
 	 */
-	public once(event: 'error', handler: (error: Error) => void): Worker
-	public once(event: 'exit', handler: (code: number | null) => void): Worker
-	public once(event: 'message', handler: (message: string) => void): Worker
-	public once(event: 'connect', handler: () => void): Worker
-	public once(event: 'disconnect', handler: () => void): Worker
-	public once(event: 'stdout', handler: (chunk) => void): Worker
-	public once(event: 'stderr', handler: (chunk) => void): Worker
-	public once(event: 'prefix', handler: (prefix: Prefix) => void): Worker
-	public once(event: 'file', handler: (file: TestFile) => void): Worker
-	public once(event: 'case', handler: (test: TestCase) => void): Worker
-	public once(event: 'result', handler: (result: Result) => void): Worker
-	public once(event: 'ready', handler: (id: string, port: number) => void): Worker
-	public once(event: Events, handler: (...args) => void): Worker {
-		this.emitter.once(event, handler)
+	public once(event: 'error', listener: (error: Error | NetworkError) => void): Worker
+	public once(event: 'exit', listener: (worker: Worker) => void): Worker
+	public once(event: 'connect', listener: (worker: Worker) => void): Worker
+	public once(event: 'disconnect', listener: (worker: Worker) => void): Worker
+	public once(event: 'stdout', listener: (chunk: Buffer | string) => void): Worker
+	public once(event: 'stderr', listener: (chunk: Buffer | string) => void): Worker
+	public once(event: 'prefix', listener: (prefix: Prefix) => void): Worker
+	public once(event: 'file', listener: (file: TestFile) => void): Worker
+	public once(event: 'case', listener: (test: TestCase) => void): Worker
+	public once(event: 'result', listener: (result: Result) => void): Worker
+	public once(event: 'ready', listener: (message: Ready) => void): Worker
+	public once(event: Events | Single, listener: Handler): Worker {
+		switch (event) {
+			case 'exit':
+				this.onExit.then(listener)
+				break
+			case 'connect':
+				this.onConnect.then(listener)
+				break
+			case 'disconnect':
+				this.onDisconnect.then(listener)
+				break
+			default:
+				if (this.alive) {
+					this.emitter.once(event).then(listener)
+				}
+				break
+		}
 		return this
 	}
 
@@ -207,8 +283,8 @@ export class Worker {
 	 * Removes all listeners on emitter.
 	 * @returns this
 	 */
-	public removeAllListeners(): Worker {
-		this.emitter.removeAllListeners()
+	public clearListeners(): Worker {
+		this.emitter.clearListeners()
 		return this
 	}
 
@@ -218,7 +294,18 @@ export class Worker {
 	 * @param listener The listener to remove.
 	 * @returns this
 	 */
-	public off(event: Events, listener: (...a) => void): Worker {
+	public off(event: 'error', listener: (error: Error | NetworkError) => void): Worker
+	public off(event: 'exit', listener: (worker: Worker) => void): Worker
+	public off(event: 'connect', listener: (worker: Worker) => void): Worker
+	public off(event: 'disconnect', listener: (worker: Worker) => void): Worker
+	public off(event: 'stdout', listener: (chunk: Buffer | string) => void): Worker
+	public off(event: 'stderr', listener: (chunk: Buffer | string) => void): Worker
+	public off(event: 'prefix', listener: (prefix: Prefix) => void): Worker
+	public off(event: 'file', listener: (file: TestFile) => void): Worker
+	public off(event: 'case', listener: (test: TestCase) => void): Worker
+	public off(event: 'result', listener: (result: Result) => void): Worker
+	public off(event: 'ready', listener: (message: Ready) => void): Worker
+	public off(event: Events | Single, listener: Handler): Worker {
 		this.emitter.off(event, listener)
 		return this
 	}
@@ -262,6 +349,10 @@ export class Worker {
 		const c = this.connection
 		if (c) {
 			c.disconnect()
+		} else if (this.alive) {
+			this.emitter.once('connect').then((): void => {
+				this.disconnect()
+			})
 		}
 	}
 }
