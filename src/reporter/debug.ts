@@ -17,7 +17,7 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import getPort from 'get-port'
-import AVA from 'ava/namespace'
+import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
 import AbstractReporter from './reporter'
 
 /** Logger callback type. */

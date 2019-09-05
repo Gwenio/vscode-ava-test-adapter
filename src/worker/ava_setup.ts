@@ -23,7 +23,7 @@ import { validate as validateBabel } from 'ava/lib/babel-pipeline'
 import normalizeExtensions from 'ava/lib/extensions'
 import { normalizeGlobs } from 'ava/lib/globs'
 import validateEnvironmentVariables from 'ava/lib/environment-variables'
-import AVA from 'ava/namespace'
+import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
 
 /** Logger callback type. */
 type Logger = (message: string) => void

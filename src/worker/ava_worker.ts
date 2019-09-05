@@ -17,7 +17,7 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import avaApi from 'ava/lib/api'
-import AVA from 'ava/namespace'
+import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
 import { Setup } from './ava_setup'
 import { ErrorReporter } from '../reporter'
 

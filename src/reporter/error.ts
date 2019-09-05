@@ -17,7 +17,7 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import path from 'path'
-import AVA from 'ava/namespace'
+import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
 import AbstractReporter from './reporter'
 
 /** Reporter for errors. */
@@ -48,6 +48,9 @@ export default class ErrorReporter extends AbstractReporter {
 	 * @override
 	 */
 	protected consumeStateChange(event: AVA.Event): void {
+		if (typeof event === 'object' && event['err']) {
+			console.log(JSON.stringify(event['err']))
+		}
 		switch (event.type) {
 			case 'missing-ava-import':
 				console.error(`[AVA] [ERROR] No AVA import in: ${this.formatFile(event.testFile)}`)
