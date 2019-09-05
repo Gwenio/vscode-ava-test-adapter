@@ -14,16 +14,29 @@
 	},
 	"plugins": ["@typescript-eslint"],
 	"extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+	"settings": {
+		"node": {
+			"allowModules": [
+				"vscode",
+				"vscode-test-adapter-api",
+				"vscode-test-adapter-util",
+				"emittery",
+				"hash-sum",
+				"random"
+			],
+			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
+		}
+	},
 	"rules": {
 		"@typescript-eslint/indent": "off",
 		"@typescript-eslint/semi": "off",
 		"@typescript-eslint/member-delimiter-style": "off",
-		"new-parens": 2,
-		"no-bitwise": 2,
-		"no-console": 0,
+		"new-parens": "error",
+		"no-bitwise": "error",
+		"no-console": "off",
 		"@typescript-eslint/no-var-requires": "error",
 		"node/no-unpublished-require": "error",
-		"node/no-unsupported-features/es-syntax": 0,
+		"node/no-unsupported-features/es-syntax": "off",
 		"@typescript-eslint/no-unused-vars": [
 			"error",
 			{

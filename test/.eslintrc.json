@@ -13,6 +13,12 @@
 	},
 	"plugins": ["@typescript-eslint"],
 	"extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+	"settings": {
+		"node": {
+			"allowModules": ["sinon"],
+			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
+		}
+	},
 	"rules": {
 		"@typescript-eslint/member-delimiter-style": "off",
 		"@typescript-eslint/indent": "off",
