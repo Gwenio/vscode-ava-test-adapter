@@ -68,10 +68,40 @@
 			}
 		},
 		{
+			"label": "clean-tests",
+			"type": "shell",
+			"command": "npx",
+			"args": ["rimraf", "tmp/test"],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
 			"label": "clear-cache",
 			"type": "shell",
 			"command": "npx",
 			"args": ["rimraf", "node_modules/.cache"],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "reset-nyc",
+			"type": "shell",
+			"command": "npx",
+			"args": ["rimraf", "node_modules/.cache/nyc", "tmp/nyc"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,
