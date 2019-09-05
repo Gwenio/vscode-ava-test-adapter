@@ -56,13 +56,13 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	/** The set of files to watch for changes. */
 	private files = new Set<string>()
 	/** Map of configuration IDs to SubConfigs. */
-	private readonly configMap = new Map<string, SubConfig>()
+	private configMap = new Map<string, SubConfig>()
 	/** The loaded settings. */
 	private config: LoadedConfig | null = null
 	/** The Worker, if there is one. */
 	private worker?: Worker
 	/** Queue actions. */
-	private queue = new SerialQueue()
+	private readonly queue = new SerialQueue()
 	/** The VSCode Workspace. */
 	public readonly workspace: vscode.WorkspaceFolder
 	/** The VSCode output channel. */
@@ -187,7 +187,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			this.log.error(`config unavailable to load tests.`)
 			this.testsEmitter.fire({ type: 'finished', suite: undefined })
 			this.files.clear()
-			this.configMap.clear()
+			this.configMap = new Map<string, SubConfig>()
 			return
 		}
 		if (this.log.enabled) {
@@ -196,7 +196,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		return new Promise<void>((resolve): void => {
 			this.queue.add(
 				async (): Promise<void> => {
-					const m = this.configMap
+					const m = new Map<string, SubConfig>()
 					const tree = new TestTree(this.log, config.cwd)
 					const w = this.worker
 					if (w) {
@@ -230,11 +230,12 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 								m.set(id, sub)
 							}
 						}
+						this.configMap = m
 					} else {
 						this.log.error('No worker connected.')
 						this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
 						this.files = tree.getFiles()
-						m.clear()
+						this.configMap = m
 					}
 					resolve()
 				},
@@ -312,9 +313,11 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				(): void => {
 					const w = this.worker
 					if (w) {
+						const m = this.configMap
 						const serial: string[] = []
 						const con: string[] = []
-						for (const [id, { serial: s }] of this.configMap) {
+						const skip = config.debuggerSkipFiles
+						for (const [id, { serial: s }] of m) {
 							if (s) {
 								serial.push(id)
 							} else {
@@ -323,8 +326,13 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 						}
 						const off = ((): (() => void) => {
 							const x: (() => void)[] = []
-							w.on('ready', (x): void => {
-								this.connectDebugger(config.debuggerSkipFiles, x.config, x.port)
+							w.on('ready', ({ config, port }): void => {
+								const y = m.get(config)
+								if (y) {
+									this.connectDebugger(skip.concat(y.debuggerSkipFiles), port)
+								} else {
+									this.connectDebugger(skip, port)
+								}
 							})
 							return x[0]
 						})()
@@ -387,7 +395,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		}
 		this.disposables = []
 		this.files.clear()
-		this.configMap.clear()
+		this.configMap = new Map<string, SubConfig>()
 		this.queue.clear()
 	}
 
@@ -495,9 +503,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	 * @param id The SubConfig ID.
 	 * @param port The port to connect on.
 	 */
-	private async connectDebugger(skipFiles: string[], id: string, port: number): Promise<void> {
+	private async connectDebugger(skipFiles: string[], port: number): Promise<void> {
 		this.log.info('Starting the debug session')
-		const sub = this.configMap.get(id)
 		await vscode.debug.startDebugging(this.workspace, {
 			name: 'Debug AVA Tests',
 			type: 'node',
@@ -506,7 +513,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			protocol: 'inspector',
 			timeout: 30000,
 			stopOnEntry: false,
-			skipFiles: sub ? skipFiles.concat(sub.debuggerSkipFiles) : skipFiles,
+			skipFiles: skipFiles,
 		})
 		// workaround for Microsoft/vscode#70125
 		await new Promise((resolve): void => {
