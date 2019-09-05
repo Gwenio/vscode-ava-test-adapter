@@ -39,7 +39,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.5.5",
 		"@types/hash-sum": "^1.0.0",
-		"@types/node": "12.7.3",
+		"@types/node": "12.7.4",
 		"@types/random": "^2.1.0",
 		"@types/sinon": "^7.0.13",
 		"@types/through2": "^2.0.34",
@@ -58,7 +58,7 @@
 		"emittery": "^0.4.1",
 		"eslint": "6.3.0",
 		"eslint-config-prettier": "^6.1.0",
-		"eslint-plugin-node": "^9.1.0",
+		"eslint-plugin-node": "^10.0.0",
 		"eslint-plugin-promise": "^4.2.1",
 		"eslint-plugin-unicorn": "^10.0.0",
 		"esm": "^3.2.25",
@@ -83,7 +83,7 @@
 		"sinon": "^7.4.1",
 		"through2": "^3.0.1",
 		"tslib": "^1.9.3",
-		"typescript": "3.5.3",
+		"typescript": "3.6.2",
 		"vsce": "^1.65.0",
 		"vscode-test-adapter-api": "^1.7.0",
 		"vscode-test-adapter-util": "^0.7.0"
