@@ -20,102 +20,79 @@ PERFORMANCE OF THIS SOFTWARE.
 type Task<Result> = (() => PromiseLike<Result>) | (() => Result)
 /** Error handler callback type. */
 type ErrorHandler = (_: unknown) => void
+/** Callback to forward the result of a task. */
+type Resolver<Result> = (_: Result) => void
 /** Task cancellation callback type. */
 type Cancel = () => void
 /** Type for a packaged task. */
 type PackedTask = [() => Promise<void>, Cancel]
 
-/** Task options. */
-interface Options {
-	/** Optional cancellation callback. */
-	cancel?: Cancel
-	/** Optional error handler callback. */
-	handler?: ErrorHandler
-}
-
 /** Generic Queue interface. */
-export interface Queue<Q> {
+export interface Queue {
 	/**
 	 * Adds a task to the back of the queue.
 	 * @param task The task to place in the Queue.
-	 * @returns this
+	 * @returns A Promise that will resolve after the task is run.
 	 */
-	add<Result>(task: Task<Result>): Q
+	add<Result>(task: Task<Result>): Promise<Result | void>
 
-	/**
-	 * Adds a task to the back of the queue.
-	 * @param task The task to place in the Queue.
-	 * @param options Optional options for the task.
-	 * @returns this
-	 */
-	add<Result>(task: Task<Result>, options: Options): Q
-
-	/**
-	 * Cancel all pending tasks, calling their cancel callbacks.
-	 * @returns this
-	 */
-	clear(): Q
+	/** Cancel all pending tasks, calling their cancel callbacks. */
+	clear(): void
 }
-
-/** Fake cancel callback for tasks without one. */
-const fakeCancel: Cancel = (): void => {}
-/** Fake error handler callback for tasks without one. */
-const fakeHandler: ErrorHandler = (_: unknown): void => {}
 
 /** A Queue that only allows one task to run at a time. */
-export class SerialQueue implements Queue<SerialQueue> {
+export class SerialQueue implements Queue {
 	/** The pending tasks in the queue. */
 	private pending: PackedTask[] = []
 	/** Flag for whether their is a task currently running. */
 	private idle = true
-	/** The default error handler callback for tasks without one. */
-	public defaultHandler = fakeHandler
 
 	/**
-	 * Adds a task to the back of the queue.
-	 * @param task The task to place in the Queue.
-	 * @param options Optional options for the task.
-	 * @returns this
+	 * @inheritdoc
 	 * @override
 	 */
-	public add<Result>(task: Task<Result>, options: Options = {}): SerialQueue {
-		const h = options.handler
-		const packed = this.pack(task, h ? h : this.defaultHandler)
-		if (this.idle) {
-			this.idle = false
-			packed().finally(this.run.bind(this))
-		} else {
-			const c = options.cancel
-			this.pending.push([packed, c ? c : fakeCancel])
-		}
-		return this
+	public add<Result>(task: Task<Result>): Promise<Result | void> {
+		return new Promise<Result | void>((resolve, reject): void => {
+			const packed = this.pack(task, resolve, reject)
+			if (this.idle) {
+				this.idle = false
+				packed()
+			} else {
+				this.pending.push([packed, resolve])
+			}
+		})
 	}
 
 	/**
-	 * Cancel all pending tasks, calling their cancel callbacks.
-	 * @returns this
+	 * @inheritdoc
 	 * @override
 	 */
-	public clear(): SerialQueue {
+	public clear(): void {
 		const cancelled = this.pending
 		this.pending = []
 		cancelled.forEach(([_, c]): void => {
 			setImmediate(c)
 		})
-		return this
 	}
 
 	/**
 	 * Packages a task to be run.
 	 * @param task The task to package.
+	 * @param resolve Callback to recieve the result of the task.
 	 * @param handler The error handler callback for the task.
 	 */
-	private pack<Result>(task: Task<Result>, handler: ErrorHandler): () => Promise<void> {
+	private pack<Result>(
+		task: Task<Result>,
+		resolve: Resolver<Result>,
+		handler: ErrorHandler
+	): () => Promise<void> {
 		return async (): Promise<void> => {
 			try {
-				await task()
+				resolve(await task())
 			} catch (error) {
 				handler(error)
+			} finally {
+				this.run()
 			}
 		}
 	}
@@ -124,7 +101,7 @@ export class SerialQueue implements Queue<SerialQueue> {
 	private run(): void {
 		const x = this.pending.shift()
 		if (x) {
-			x[0]().finally(this.run.bind(this))
+			x[0]()
 		} else {
 			this.idle = true
 		}
