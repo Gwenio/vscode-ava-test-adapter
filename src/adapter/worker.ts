@@ -159,18 +159,21 @@ export class Worker {
 	 */
 	private connect(port: number, token: string): void {
 		const emit = this.emitter.emit.bind(this.emitter)
-		const c = new Client(token)
+		const cleanup = (): void => {
+			if (this.alive) {
+				this.child.kill()
+			}
+		}
+		const c = new Client(token, {
+			handshakeTimeout: timeout,
+		})
 			.once('connect', (c): void => {
 				this.connection = c
 				emit('connect', this)
 			})
 			.once('disconnect', (): void => {
 				this.connection = undefined
-				const timer = setTimeout((): void => {
-					if (this.alive) {
-						this.child.kill()
-					}
-				}, timeout)
+				const timer = setTimeout(cleanup, timeout)
 				this.onExit.then(clearTimeout.bind(null, timer))
 				emit('disconnect', this)
 			})
@@ -205,7 +208,14 @@ export class Worker {
 					emit('error', new TypeError('Worker sent an invalid message.'))
 				}
 			})
-		c.connectTo({ port, host: '127.0.0.1' })
+		c.connectTo({ port, host: '127.0.0.1' }).catch((error): void => {
+			if (error instanceof Error) {
+				this.emitter.emitSerial('error', error)
+			} else {
+				this.emitter.emitSerial('error', new Error('Worker failed to connect.'))
+			}
+			cleanup()
+		})
 	}
 
 	/* eslint no-dupe-class-members: "off" */
@@ -342,7 +352,7 @@ export class Worker {
 			c.disconnect()
 		} else if (this.alive) {
 			this.emitter.once('connect').then((): void => {
-				this.disconnect()
+				setImmediate(this.disconnect.bind(this))
 			})
 		}
 	}
