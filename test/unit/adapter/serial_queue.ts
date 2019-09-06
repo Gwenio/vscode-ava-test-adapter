@@ -16,6 +16,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
+import Emitter from 'emittery'
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import { SerialQueue } from '../../../src/adapter/queue'
@@ -34,21 +35,11 @@ test.beforeEach(
 )
 
 test('can run a task', async (t): Promise<void> => {
+	const spy = t.context.sandbox.spy((): void => {})
 	const q = new SerialQueue()
-	new Promise<void>((resolve, reject): void => {
-		const t = setTimeout(reject, 1000)
-		q.add((): void => {
-			clearTimeout(t)
-			resolve()
-		})
-	}).then(
-		(): void => {
-			t.pass()
-		},
-		(): void => {
-			t.fail()
-		}
-	)
+	t.timeout(1000)
+	await q.add(spy)
+	t.is(spy.callCount, 1)
 })
 
 test('runs tasks in order', async (t): Promise<void> => {
@@ -56,35 +47,60 @@ test('runs tasks in order', async (t): Promise<void> => {
 	const spy = t.context.sandbox.spy
 	let count = 0
 	const l = [
-		spy((): boolean => count === 0),
-		spy((): boolean => count === 1),
-		spy((): boolean => count === 2),
+		spy((): boolean => count++ === 0),
+		spy((): boolean => count++ === 1),
+		spy((): boolean => count++ === 2),
 	]
-	await new Promise<void>((resolve): void => {
-		let active = true
-		const done = (): void => {
-			/* istanbul ignore else */
-			if (active) {
-				active = false
-				resolve()
-			}
-		}
-		const t = setTimeout(done, 1000)
-		for (const x of l) {
-			q.add((): void => {
-				x()
-				count += 1
-				if (count < l.length) {
-					t.refresh()
-				} else {
-					clearTimeout(t)
-					done()
-				}
-			})
-		}
+	const p: Promise<boolean | void>[] = []
+	const emitter = new Emitter()
+	const flush = emitter.once('flush')
+	const done = emitter.once('done')
+	q.add((): Promise<void> => flush)
+	for (const x of l) {
+		p.push(q.add(x))
+	}
+	q.add((): void => {
+		emitter.emit('done')
 	})
+	emitter.emitSerial('flush')
+	await done
 	for (const x of l) {
 		t.is(x.callCount, 1)
 		t.true(x.alwaysReturned(true))
 	}
+	for (const x of p) {
+		t.true(await x)
+	}
+})
+
+test('can cancel tasks', async (t): Promise<void> => {
+	const q = new SerialQueue()
+	const spy = t.context.sandbox.spy((): void => {})
+	const emitter = new Emitter()
+	const count = 5
+	q.add((): Promise<void> => emitter.once('flush'))
+	for (let x = 0; x < count; x++) {
+		q.add(spy)
+	}
+	q.clear()
+	const done = emitter.once('done')
+	q.add((): Promise<void> => done)
+	emitter.emit('flush')
+	setImmediate((): void => {
+		emitter.emit('done')
+	})
+	await done
+	t.is(spy.callCount, 0)
+})
+
+test('forwards errors', async (t): Promise<void> => {
+	const spy = t.context.sandbox.spy((): never => {
+		throw new Error('Simulated error.')
+	})
+	const q = new SerialQueue()
+	const emitter = new Emitter()
+	q.add((): Promise<void> => emitter.once('flush'))
+	const p = q.add(spy)
+	emitter.emitSerial('flush')
+	await t.throwsAsync(p)
 })
