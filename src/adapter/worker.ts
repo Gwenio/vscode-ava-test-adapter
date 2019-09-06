@@ -88,14 +88,19 @@ export class Worker {
 	>()
 	/** Indicates if the worker has exited. */
 	private alive = true
-	/** . */
+	/** Stores exit event. */
 	private readonly onExit = this.emitter.once('exit')
-	/** . */
+	/** Stores connect event. */
 	private readonly onConnect = this.emitter.once('connect')
-	/** . */
+	/** Stores disconnect event. */
 	private readonly onDisconnect = this.emitter.once('disconnect')
 
-	public exitCode: number | null = null
+	/** The exit code of the worker process. */
+	private code: number | null = null
+	/** Gets the exit code of the worker process. */
+	public get exitCode(): number | null {
+		return this.code
+	}
 
 	/**
 	 * Constructor.
@@ -121,7 +126,7 @@ export class Worker {
 				stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
 			}
 		).once('exit', (code): void => {
-			this.exitCode = code
+			this.code = code
 			emitter.emit('exit', this)
 		})
 		const child = this.child
@@ -280,24 +285,12 @@ export class Worker {
 	}
 
 	/**
-	 * Removes all listeners on emitter.
-	 * @returns this
-	 */
-	public clearListeners(): Worker {
-		this.emitter.clearListeners()
-		return this
-	}
-
-	/**
 	 * Removes a listener.
 	 * @param event The event to remove a listener for.
 	 * @param listener The listener to remove.
 	 * @returns this
 	 */
 	public off(event: 'error', listener: (error: Error | NetworkError) => void): Worker
-	public off(event: 'exit', listener: (worker: Worker) => void): Worker
-	public off(event: 'connect', listener: (worker: Worker) => void): Worker
-	public off(event: 'disconnect', listener: (worker: Worker) => void): Worker
 	public off(event: 'stdout', listener: (chunk: Buffer | string) => void): Worker
 	public off(event: 'stderr', listener: (chunk: Buffer | string) => void): Worker
 	public off(event: 'prefix', listener: (prefix: Prefix) => void): Worker
@@ -305,7 +298,7 @@ export class Worker {
 	public off(event: 'case', listener: (test: TestCase) => void): Worker
 	public off(event: 'result', listener: (result: Result) => void): Worker
 	public off(event: 'ready', listener: (message: Ready) => void): Worker
-	public off(event: Events | Single, listener: Handler): Worker {
+	public off(event: Events, listener: Handler): Worker {
 		this.emitter.off(event, listener)
 		return this
 	}
