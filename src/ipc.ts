@@ -56,7 +56,7 @@ export interface TestFile extends Base<'file'> {
 	id: string
 	/** The ID of the configuration the test file belongs to. */
 	config: string
-	/** The test file containing the test case. */
+	/** The test file name relative to the common prefix. */
 	file: string
 }
 
@@ -64,7 +64,7 @@ export interface TestFile extends Base<'file'> {
 export interface TestCase extends Base<'case'> {
 	/** The ID assigned to the configuration. */
 	id: string
-	/** The test file name relative to the common prefix. */
+	/** The ID of the test file containing the test case. */
 	file: string
 	/** The test's title. */
 	test: string
