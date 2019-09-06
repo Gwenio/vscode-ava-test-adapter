@@ -193,57 +193,51 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
-		return new Promise<void>((resolve): void => {
-			this.queue.add(
-				async (): Promise<void> => {
-					const m = new Map<string, SubConfig>()
-					const tree = new TestTree(this.log, config.cwd)
-					const w = this.worker
-					if (w) {
-						w.send({ type: 'drop' })
-						const off: (() => void)[] = []
-						w.on('prefix', tree.pushPrefix.bind(tree), off)
-							.on('file', tree.pushFile.bind(tree), off)
-							.on('case', tree.pushTest.bind(tree), off)
-						const subs = config.configs
-						for (const sub of subs) {
-							await w
-								.send({ type: 'load', file: sub.file })
-								.then((): void => {
-									if (this.log.enabled) {
-										this.log.info(`Loaded test information for ${sub.file}`)
-									}
-								})
-								.catch((error: Error): void => {
-									this.log.error(error)
-								})
-						}
-						for (const o of off) {
-							o()
-						}
-						tree.build()
-						this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
-						this.files = tree.getFiles()
-						for (const [file, id] of tree.getConfigs()) {
-							const sub = subs.find((x): boolean => x.file === file)
-							if (sub) {
-								m.set(id, sub)
-							}
-						}
-						this.configMap = m
-					} else {
-						this.log.error('No worker connected.')
-						this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
-						this.files = tree.getFiles()
-						this.configMap = m
+		return this.queue.add(
+			async (): Promise<void> => {
+				const m = new Map<string, SubConfig>()
+				const tree = new TestTree(this.log, config.cwd)
+				const w = this.worker
+				if (w) {
+					w.send({ type: 'drop' })
+					const off: (() => void)[] = []
+					w.on('prefix', tree.pushPrefix.bind(tree), off)
+						.on('file', tree.pushFile.bind(tree), off)
+						.on('case', tree.pushTest.bind(tree), off)
+					const subs = config.configs
+					for (const sub of subs) {
+						await w
+							.send({ type: 'load', file: sub.file })
+							.then((): void => {
+								if (this.log.enabled) {
+									this.log.info(`Loaded test information for ${sub.file}`)
+								}
+							})
+							.catch((error: Error): void => {
+								this.log.error(error)
+							})
 					}
-					resolve()
-				},
-				{
-					cancel: resolve,
+					for (const o of off) {
+						o()
+					}
+					tree.build()
+					this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
+					this.files = tree.getFiles()
+					for (const [file, id] of tree.getConfigs()) {
+						const sub = subs.find((x): boolean => x.file === file)
+						if (sub) {
+							m.set(id, sub)
+						}
+					}
+					this.configMap = m
+				} else {
+					this.log.error('No worker connected.')
+					this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
+					this.files = tree.getFiles()
+					this.configMap = m
 				}
-			)
-		})
+			}
+		)
 	}
 
 	/**
@@ -258,39 +252,30 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Running test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		return new Promise<void>((resolve): void => {
-			this.queue.add(
-				(): void => {
-					const w = this.worker
-					if (w) {
-						this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
-						this.running += 1
-						w.send({
-							type: 'run',
-							run: testsToRun,
-						})
-							.then((): void => {
-								this.log.info('Finished running tests.')
-							})
-							.catch((error: Error): void => {
-								this.log.error(error)
-							})
-							.finally((): void => {
-								this.running -= 1
-								if (this.running === 0) {
-									this.testStatesEmitter.fire({ type: 'finished' })
-								}
-								resolve()
-							})
-					} else {
-						this.log.error('No worker connected.')
-						resolve()
-					}
-				},
-				{
-					cancel: resolve,
-				}
-			)
+		return this.queue.add((): void => {
+			const w = this.worker
+			if (w) {
+				this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
+				this.running += 1
+				w.send({
+					type: 'run',
+					run: testsToRun,
+				})
+					.then((): void => {
+						this.log.info('Finished running tests.')
+					})
+					.catch((error: Error): void => {
+						this.log.error(error)
+					})
+					.finally((): void => {
+						this.running -= 1
+						if (this.running === 0) {
+							this.testStatesEmitter.fire({ type: 'finished' })
+						}
+					})
+			} else {
+				this.log.error('No worker connected.')
+			}
 		})
 	}
 
@@ -308,66 +293,57 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		return new Promise<void>((resolve): void => {
-			this.queue.add(
-				(): void => {
-					const w = this.worker
-					if (w) {
-						const m = this.configMap
-						const serial: string[] = []
-						const con: string[] = []
-						const skip = config.debuggerSkipFiles
-						for (const [id, { serial: s }] of m) {
-							if (s) {
-								serial.push(id)
-							} else {
-								con.push(id)
-							}
-						}
-						const off = ((): (() => void) => {
-							const x: (() => void)[] = []
-							w.on('ready', ({ config, port }): void => {
-								const y = m.get(config)
-								if (y) {
-									this.connectDebugger(skip.concat(y.debuggerSkipFiles), port)
-								} else {
-									this.connectDebugger(skip, port)
-								}
-							})
-							return x[0]
-						})()
-						w.send({
-							type: 'debug',
-							port: config.debuggerPort,
-							serial:
-								serial.length > con.length
-									? {
-											x: true,
-											list: con,
-									  }
-									: {
-											x: false,
-											list: serial,
-									  },
-							run: testsToRun,
-						})
-							.catch((error: Error): void => {
-								this.log.error(error)
-							})
-							.finally((): void => {
-								this.log.info('Done debugging.')
-								off()
-								resolve()
-							})
+		return this.queue.add((): void => {
+			const w = this.worker
+			if (w) {
+				const m = this.configMap
+				const serial: string[] = []
+				const con: string[] = []
+				const skip = config.debuggerSkipFiles
+				for (const [id, { serial: s }] of m) {
+					if (s) {
+						serial.push(id)
 					} else {
-						this.log.error('No worker connected.')
-						resolve()
+						con.push(id)
 					}
-				},
-				{
-					cancel: resolve,
 				}
-			)
+				const off = ((): (() => void) => {
+					const x: (() => void)[] = []
+					w.on('ready', ({ config, port }): void => {
+						const y = m.get(config)
+						if (y) {
+							this.connectDebugger(skip.concat(y.debuggerSkipFiles), port)
+						} else {
+							this.connectDebugger(skip, port)
+						}
+					})
+					return x[0]
+				})()
+				w.send({
+					type: 'debug',
+					port: config.debuggerPort,
+					serial:
+						serial.length > con.length
+							? {
+									x: true,
+									list: con,
+							  }
+							: {
+									x: false,
+									list: serial,
+							  },
+					run: testsToRun,
+				})
+					.catch((error: Error): void => {
+						this.log.error(error)
+					})
+					.finally((): void => {
+						this.log.info('Done debugging.')
+						off()
+					})
+			} else {
+				this.log.error('No worker connected.')
+			}
 		})
 	}
 
@@ -404,9 +380,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	 * @param relaunch Indicates whether worker needs to be relaunched.
 	 */
 	private async loadConfig(relaunch = false): Promise<LoadedConfig | null> {
-		return new Promise<LoadedConfig | null>((resolve): void => {
-			this.queue.add(
-				async (): Promise<void> => {
+		return this.queue
+			.add(
+				async (): Promise<LoadedConfig | null> => {
 					const c = await AVAConfig.load(this.workspace.uri, this.log)
 					this.config = c
 					if (c && (!this.worker || relaunch)) {
@@ -423,13 +399,12 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					} else if (this.worker && !c) {
 						this.worker.disconnect()
 					}
-					resolve(c)
-				},
-				{
-					cancel: resolve.bind(null, null),
+					return c
 				}
 			)
-		})
+			.then((c): LoadedConfig | null => {
+				return c || null
+			})
 	}
 
 	/**
