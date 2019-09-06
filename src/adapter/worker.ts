@@ -35,8 +35,6 @@ import {
 	Ready,
 } from '../ipc'
 
-/** The file name of the worker script. */
-const script = './child.js'
 /** The timeout duration for the worker in milliseconds. */
 const timeout = 30000
 
@@ -105,9 +103,9 @@ export class Worker {
 	/**
 	 * Constructor.
 	 * @param config The worker configuration.
-	 * @param resolve Callback to resolve promise waiting on the worker connection.
+	 * @param script The worker script file.
 	 */
-	public constructor(config: WorkerConfig) {
+	public constructor(config: WorkerConfig, script = './child.js') {
 		const emitter = this.emitter
 		this.onExit.then(() => {
 			this.alive = false
