@@ -36,7 +36,7 @@ test.beforeEach(
 const modify = [
 	undefined,
 	(h: string): string => 'A' + h,
-	(h: string): string => 'A' + h + 'Z',
+	(h: string): string => h + 'Z',
 	(h: string): string => 'A' + h + 'Z',
 ]
 
