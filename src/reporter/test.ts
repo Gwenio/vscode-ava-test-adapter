@@ -16,7 +16,8 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
+// eslint-disable-next-line node/no-missing-import
+import AVA from 'ava/namespace'
 import AbstractReporter from './reporter'
 
 /** Logger callback type. */

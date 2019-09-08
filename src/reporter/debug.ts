@@ -17,8 +17,8 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import getPort from 'get-port'
-import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
-import AbstractReporter from './reporter'
+// eslint-disable-next-line node/no-missing-import
+import AVA from 'ava/namespace'
 
 /** Logger callback type. */
 type Logger = (message: string) => void
@@ -27,7 +27,7 @@ type Logger = (message: string) => void
 type Ready = (port: number) => void
 
 /** Reporter for debugging tests. */
-export default class DebugReporter extends AbstractReporter {
+export default class DebugReporter implements AVA.Reporter {
 	/** Callback to signal the tests are ready to be debugged. */
 	private readonly ready: Ready
 
@@ -50,7 +50,6 @@ export default class DebugReporter extends AbstractReporter {
 	 * @param log The logging callback.
 	 */
 	public constructor(ready: Ready, port: number, log?: Logger) {
-		super()
 		this.ready = ready
 		this.defaultPort = port
 		this.port = port
@@ -67,8 +66,8 @@ export default class DebugReporter extends AbstractReporter {
 	}
 
 	/**
-	 * @inheritdoc
-	 * @override
+	 * Begins a new run.
+	 * @param plan The test plan for the run.
 	 */
 	public startRun(_plan: AVA.Plan): void {
 		if (DebugReporter.running) {
@@ -80,17 +79,7 @@ export default class DebugReporter extends AbstractReporter {
 		}
 	}
 
-	/* eslint @typescript-eslint/no-empty-function: "off" */
-	/**
-	 * @inheritdoc
-	 * @override
-	 */
-	protected consumeStateChange(_event: AVA.Event): void {}
-
-	/**
-	 * @inheritdoc
-	 * @override
-	 */
+	/** Signals the current run has ended. */
 	public endRun(): void {
 		if (DebugReporter.running) {
 			DebugReporter.running = false

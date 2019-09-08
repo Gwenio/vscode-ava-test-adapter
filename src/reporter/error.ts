@@ -17,7 +17,8 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import path from 'path'
-import AVA from 'ava/namespace' // eslint-disable-line node/no-missing-import
+// eslint-disable-next-line node/no-missing-import
+import AVA from 'ava/namespace'
 import AbstractReporter from './reporter'
 
 /** Reporter for errors. */
