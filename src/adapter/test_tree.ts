@@ -31,6 +31,9 @@ interface Info {
 	file: string
 }
 
+/** Callback type used to create a tool tip for Info objects.. */
+type ToolTip = (info: Info & (TestInfo | TestSuiteInfo)) => void
+
 /** Sorts the children of a TestSuiteInfo. */
 function sortTestInfo(suite: TestInfo | TestSuiteInfo): TestSuiteInfo {
 	const s = suite as TestSuiteInfo
@@ -66,16 +69,20 @@ export default class TestTree {
 	private readonly configMap = new Map<string, string>()
 	/** The Log to output to. */
 	private readonly log: Log
+	/** Used to create a tool tip for Info objects. */
+	private readonly tip: ToolTip
 
 	/**
 	 * Constructor.
 	 * @param log The Log to output to.
 	 * @param base The path configuration files are relative to.
+	 * @param tip Used to create a tool tip for Info objects.
 	 */
-	public constructor(log: Log, base: string) {
+	public constructor(log: Log, base: string, tip: ToolTip) {
 		this.log = log
 		this.prefix = base
 		this.base = base
+		this.tip = tip
 	}
 
 	/**
@@ -99,9 +106,9 @@ export default class TestTree {
 			id,
 			label,
 			file,
-			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			children: [],
 		}
+		this.tip(x)
 		this.prefix = prefix
 		this.suiteHash.set(id, x)
 		this.configMap.set(label, id)
@@ -133,9 +140,9 @@ export default class TestTree {
 			id,
 			label,
 			file,
-			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			children: [],
 		}
+		this.tip(x)
 		this.suiteHash.set(id, x)
 		this.prefixHash.set(id, prefix)
 		suite.children.push(x)
@@ -162,9 +169,9 @@ export default class TestTree {
 			type: 'test',
 			id,
 			label,
-			tooltip: process.env.NODE_ENV === 'production' ? label : id,
 			file: suite.file,
 		}
+		this.tip(x)
 		suite.children.push(x)
 	}
 

@@ -196,7 +196,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		return this.queue.add(
 			async (): Promise<void> => {
 				const m = new Map<string, SubConfig>()
-				const tree = new TestTree(this.log, config.cwd)
+				const tree = new TestTree(this.log, config.cwd, (info): void => {
+					info.tooltip = process.env.NODE_ENV === 'production' ? info.label : info.id
+				})
 				const w = this.worker
 				if (w) {
 					w.send({ type: 'drop' })
