@@ -220,10 +220,9 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					for (const o of off) {
 						o()
 					}
-					tree.build()
-					this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
-					this.files = tree.getFiles()
-					for (const [file, id] of tree.getConfigs()) {
+					this.testsEmitter.fire({ type: 'finished', suite: tree.build() })
+					this.files = tree.getFiles
+					for (const [file, id] of tree.getConfigs) {
 						const sub = subs.find((x): boolean => x.file === file)
 						if (sub) {
 							m.set(id, sub)
@@ -232,8 +231,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.configMap = m
 				} else {
 					this.log.error('No worker connected.')
-					this.testsEmitter.fire({ type: 'finished', suite: tree.rootNode })
-					this.files = tree.getFiles()
+					this.testsEmitter.fire({ type: 'finished', suite: tree.rootSuite })
+					this.files = tree.getFiles
 					this.configMap = m
 				}
 			}

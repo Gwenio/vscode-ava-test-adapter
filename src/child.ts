@@ -29,8 +29,7 @@ let connected = false
 const token = hash(
 	process.cwd(),
 	(): boolean => false,
-	process.cwd().length.toString(16),
-	random.int(0, 0xffff).toString(16)
+	(h): string => process.cwd().length.toString(16) + h + random.int(0, 0xffff).toString(16)
 )
 /** Whether logging is enabled. */
 let logEnabled = process.env.NODE_ENV !== 'production'

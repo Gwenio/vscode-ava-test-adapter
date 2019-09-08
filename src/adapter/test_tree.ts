@@ -18,8 +18,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import { TestInfo, TestSuiteInfo } from 'vscode-test-adapter-api'
-import { Log } from 'vscode-test-adapter-util/out/log'
 import { Prefix, TestFile, TestCase } from '../ipc'
+import Log from './log'
 
 /** Interface for TestTree info. */
 interface Info {
@@ -48,7 +48,7 @@ export default class TestTree {
 	/** The common prefix of test files in the latest configuration. */
 	private prefix: string
 	/** The root of the tree. */
-	private rootSuite: TestSuiteInfo = {
+	public readonly rootSuite: TestSuiteInfo = {
 		type: 'suite',
 		id: 'root',
 		label: 'AVA',
@@ -86,7 +86,7 @@ export default class TestTree {
 		const log = this.log
 		const id = meta.id
 		const label = meta.file
-		const file = this.base + meta.file
+		const file = path.resolve(this.base, meta.file)
 		if (log.enabled) {
 			log.info(`${id} is the ID of config ${file}`)
 		}
@@ -106,7 +106,7 @@ export default class TestTree {
 		this.suiteHash.set(id, x)
 		this.configMap.set(label, id)
 		this.prefixHash.set(id, prefix)
-		this.files.add(path.resolve(this.base, file))
+		this.files.add(file)
 		this.rootSuite.children.push(x)
 	}
 
@@ -168,24 +168,23 @@ export default class TestTree {
 		suite.children.push(x)
 	}
 
-	/** Finishes building the tree. */
-	public build(): void {
+	/**
+	 * Finishes building the tree.
+	 * @returns this.rootSuite
+	 */
+	public build(): TestSuiteInfo {
 		this.suiteHash.clear()
 		sortTestInfo(this.rootSuite)
-	}
-
-	/** Gets the root. */
-	public get rootNode(): TestSuiteInfo {
 		return this.rootSuite
 	}
 
 	/** Gets an iterator for the configuration map. */
-	public getConfigs(): IterableIterator<[string, string]> {
+	public get getConfigs(): IterableIterator<[string, string]> {
 		return this.configMap.entries()
 	}
 
 	/** Gets the files. */
-	public getFiles(): Set<string> {
+	public get getFiles(): Set<string> {
 		return this.files
 	}
 }

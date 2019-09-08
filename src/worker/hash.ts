@@ -29,28 +29,30 @@ const generate = random.uniformInt(0, 0xffff)
 type Checker = (h: string) => boolean
 
 /**
+ * Callback type to modify a generatated hash.
+ * @param _ The hash to modify.
+ */
+type Modify = (_: string) => string
+
+/**
  * Generates a hash for a string.
  * @param text The text generate a hash from.
  * @param has Callback to check if a hash is already in use.
- * @param prefix Optional prefix to apply to the hash.
- * @param suffix Optional suffix to apply to the hash.
+ * @param modify Optional callback to modify the hash value.
  */
-export default function hash(text: string, has: Checker, prefix?: string, suffix?: string): string {
+export default function hash(text: string, has: Checker, modify?: Modify): string {
 	let x = hashSum(text)
-	let f = (t: string): string => t
-	if (prefix) {
-		if (suffix) {
-			f = (t: string): string => prefix + t + suffix
-		} else {
-			f = (t: string): string => prefix + t
+	if (modify) {
+		let y = modify(x)
+		while (has(y)) {
+			x = hashSum(x + generate().toString(16))
+			y = modify(x)
 		}
-	} else if (suffix) {
-		f = (t: string): string => t + suffix
+		return y
+	} else {
+		while (has(x)) {
+			x = hashSum(x + generate().toString(16))
+		}
+		return x
 	}
-	let y = f(x)
-	while (has(y)) {
-		x = hashSum(x + generate().toString(16))
-		y = f(x)
-	}
-	return y
 }

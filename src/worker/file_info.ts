@@ -51,7 +51,7 @@ export default class FileInfo {
 	public constructor(name: string, config: ConfigInfo) {
 		this.name = name
 		this.config = config
-		const i = hash(name, FileInfo.idExists, 'f')
+		const i = hash(name, FileInfo.idExists, (h): string => 'f' + h)
 		this.id = i
 		const s = FileInfo.fileSet
 		s.add(i)

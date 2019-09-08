@@ -47,7 +47,7 @@ export default class TestInfo {
 	public constructor(name: string, file: FileInfo) {
 		this.name = name
 		this.file = file
-		const i = hash(name, TestInfo.idExists, 't', name.length.toString(16))
+		const i = hash(name, TestInfo.idExists, (h): string => 't' + h + name.length.toString(16))
 		this.id = i
 		const s = TestInfo.testSet
 		s.add(i)

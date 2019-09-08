@@ -82,7 +82,7 @@ export default class ConfigInfo {
 	public constructor(name: string, logger?: Logger) {
 		this.config = setup(name, logger)
 		this.name = name
-		const i = hash(name, ConfigInfo.idExists, 'c')
+		const i = hash(name, ConfigInfo.idExists, (h): string => 'c' + h)
 		this.id = i
 		ConfigInfo.configSet.add(i)
 	}
