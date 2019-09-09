@@ -276,6 +276,22 @@ export default class ConfigInfo {
 	}
 
 	/**
+	 * Addes a test file to the config.
+	 * @param f The FileInfo to add.
+	 */
+	public addFile(f: FileInfo): void {
+		this.files.set(f.id, f)
+	}
+
+	/**
+	 * Addes a test case to the config.
+	 * @param t The TestInfo to add.
+	 */
+	public addTest(t: TestInfo): void {
+		this.tests.set(t.id, t)
+	}
+
+	/**
 	 * Processes loaded configuration information.
 	 * @param data The loaded data.
 	 * @param _logger Unused. Optional logger callback.
@@ -292,7 +308,6 @@ export default class ConfigInfo {
 			for (const title of tests) {
 				const z = new TestInfo(title, y)
 				t.set(z.id, z)
-				y.addTest(z)
 				i(z.id)
 			}
 			i(y.id)

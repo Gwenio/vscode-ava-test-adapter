@@ -32,13 +32,13 @@ export default class FileInfo {
 	private readonly config: ConfigInfo
 
 	/** The test cases from the test file. */
-	private readonly tests: TestInfo[] = []
+	private tests: TestInfo[] = []
 
 	/** Set of active file IDs. */
 	private static readonly fileSet = new Set<string>()
 
 	/** Used to check if an ID is in use. */
-	private static readonly idExists = FileInfo.fileSet.has.bind(FileInfo.fileSet)
+	public static readonly idExists = FileInfo.fileSet.has.bind(FileInfo.fileSet)
 
 	/** Removes the FileInfo from fileSet. */
 	public readonly dispose: () => void
@@ -56,6 +56,7 @@ export default class FileInfo {
 		const s = FileInfo.fileSet
 		s.add(i)
 		this.dispose = s.delete.bind(s, i)
+		config.addFile(this)
 	}
 
 	/**
@@ -63,7 +64,7 @@ export default class FileInfo {
 	 * @param title The title of the test to fetch the ID of.
 	 */
 	public getTestID(title: string): string | null {
-		const x = this.tests.find(t => t.name === title)
+		const x = this.tests.find((t): boolean => t.name === title)
 		return x ? x.id : null
 	}
 
@@ -73,6 +74,7 @@ export default class FileInfo {
 	 */
 	public addTest(t: TestInfo): void {
 		this.tests.push(t)
+		this.config.addTest(t)
 	}
 
 	/** Gets an iterator for the file's tests. */
