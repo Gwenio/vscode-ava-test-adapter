@@ -53,7 +53,7 @@ test('creates a hash', async (t): Promise<void> => {
 		t.is(typeof y, 'string')
 		t.not(x, y)
 		t.is(y.length, l)
-		t.true(r.test(y))
+		t.regex(y, r)
 	}
 	t.is(f.callCount, 4)
 	t.true(f.lastCall.calledWithExactly(h))
