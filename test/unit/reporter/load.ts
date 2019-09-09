@@ -147,3 +147,18 @@ test('with filter', async (t): Promise<void> => {
 		}),
 	})
 })
+
+test('with no filter matches', async (t): Promise<void> => {
+	const status = t.context.status
+	const r = new LoadReporter(['c1'])
+	r.startRun({
+		...basePlan,
+		status,
+	})
+	await mockConfig(status)
+	r.endRun()
+	t.deepEqual(r.report, {
+		prefix: basePlan.filePathPrefix,
+		info: [],
+	})
+})
