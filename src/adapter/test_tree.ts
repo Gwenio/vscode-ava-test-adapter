@@ -48,8 +48,6 @@ function sortTestInfo(suite: TestInfo | TestSuiteInfo): TestSuiteInfo {
 
 /** Tree of test information. */
 export default class TestTree {
-	/** The common prefix of test files in the latest configuration. */
-	private prefix: string
 	/** The root of the tree. */
 	public readonly rootSuite: TestSuiteInfo = {
 		type: 'suite',
@@ -62,9 +60,15 @@ export default class TestTree {
 	/** The set of files. */
 	private readonly files = new Set<string>()
 	/** Maps file IDs to TestSuiteInfo. */
-	private readonly suiteHash = new Map<string, TestSuiteInfo & Info>()
-	/** Map of IDs to prefixes. */
-	private readonly prefixHash = new Map<string, string>()
+	private readonly suiteHash = new Map<
+		string,
+		{
+			/** The config suite info. */
+			readonly suite: TestSuiteInfo & Info
+			/** The common path prefix of test files. */
+			readonly prefix: string
+		}
+	>()
 	/** Map of configuration file names to IDs. */
 	private readonly configMap = new Map<string, string>()
 	/** The Log to output to. */
@@ -80,9 +84,31 @@ export default class TestTree {
 	 */
 	public constructor(log: Log, base: string, tip: ToolTip) {
 		this.log = log
-		this.prefix = base
 		this.base = base
 		this.tip = tip
+	}
+
+	private pushSuite(
+		id: string,
+		label: string,
+		file: string,
+		prefix: string,
+		suite: TestSuiteInfo
+	): void {
+		const x: TestSuiteInfo & Info = {
+			type: 'suite',
+			id,
+			label,
+			file,
+			children: [],
+		}
+		this.tip(x)
+		this.suiteHash.set(id, {
+			suite: x,
+			prefix,
+		})
+		this.files.add(file)
+		suite.children.push(x)
 	}
 
 	/**
@@ -93,7 +119,7 @@ export default class TestTree {
 		const log = this.log
 		const id = meta.id
 		const label = meta.file
-		const file = path.resolve(this.base, meta.file)
+		const file = path.resolve(this.base, label)
 		if (log.enabled) {
 			log.info(`${id} is the ID of config ${file}`)
 		}
@@ -101,20 +127,8 @@ export default class TestTree {
 		if (log.enabled) {
 			log.info(`Received test file prefix ${prefix} from worker`)
 		}
-		const x: TestSuiteInfo & Info = {
-			type: 'suite',
-			id,
-			label,
-			file,
-			children: [],
-		}
-		this.tip(x)
-		this.prefix = prefix
-		this.suiteHash.set(id, x)
 		this.configMap.set(label, id)
-		this.prefixHash.set(id, prefix)
-		this.files.add(file)
-		this.rootSuite.children.push(x)
+		this.pushSuite(id, label, file, prefix, this.rootSuite)
 	}
 
 	/**
@@ -128,25 +142,14 @@ export default class TestTree {
 		}
 		const id = meta.id
 		const label = meta.file
-		const suite = this.suiteHash.get(meta.config)
-		if (!suite) {
+		const parent = this.suiteHash.get(meta.config)
+		if (!parent) {
 			log.error(`Test File for unknown Test Config: ${meta.config}`)
 			return
 		}
-		const prefix = this.prefixHash.get(meta.config) || this.prefix
+		const { suite, prefix } = parent
 		const file = prefix + label
-		const x: TestSuiteInfo & Info = {
-			type: 'suite',
-			id,
-			label,
-			file,
-			children: [],
-		}
-		this.tip(x)
-		this.suiteHash.set(id, x)
-		this.prefixHash.set(id, prefix)
-		suite.children.push(x)
-		this.files.add(file)
+		this.pushSuite(id, label, file, prefix, suite)
 	}
 
 	/**
@@ -160,11 +163,12 @@ export default class TestTree {
 			log.info(`Received test case ${id} of file ${meta.file} from worker`)
 		}
 		const label = meta.test
-		const suite = this.suiteHash.get(meta.file)
-		if (!suite) {
+		const parent = this.suiteHash.get(meta.file)
+		if (!parent) {
 			log.error(`Test Case for unknown Test File: ${meta.file}`)
 			return
 		}
+		const { suite } = parent
 		const x: TestInfo & Info = {
 			type: 'test',
 			id,
