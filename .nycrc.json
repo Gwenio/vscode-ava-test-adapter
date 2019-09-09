@@ -3,7 +3,7 @@
 	"cache": true,
 	"exclude": ["tmp/nyc/*.js", "rollup.config.js", "ava.*.js"],
 	"exclude-after-remap": false,
-	"reporter": "html",
+	"reporter": "lcov",
 	"report-dir": "tmp/nyc",
 	"skip-full": false,
 	"temp-dir": "tmp/nyc/raw"
