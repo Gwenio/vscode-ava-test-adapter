@@ -1,7 +1,7 @@
 {
 	"cache": true,
-	"exclude": ["tmp/nyc/**.js", "rollup.config.js", "ava.*.js", "**/*.d.ts"],
-	"include": ["tmp/src/**", "src/**", "dist/**"],
+	"exclude": ["tmp/nyc/**", "rollup.config.js", "ava.*.js", "**/*.d.ts"],
+	"include": ["tmp/src/**", "src/**"],
 	"extension": [".ts"],
 	"produce-source-map": true,
 	"reporter": "lcov",
