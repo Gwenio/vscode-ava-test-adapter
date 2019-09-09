@@ -153,12 +153,10 @@ export default class LoadReporter extends AbstractReporter {
 				const x = tests
 					.filter(({ file: y }): boolean => y === file)
 					.map(({ title: z }): string => z)
-				if (x.length > 0) {
-					i.push({
-						file,
-						tests: x,
-					})
-				}
+				i.push({
+					file,
+					tests: x,
+				})
 			}
 			const filter = this.filter
 			if (i.length > 0 && filter.length > 0) {
