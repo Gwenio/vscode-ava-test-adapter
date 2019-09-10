@@ -26,7 +26,6 @@ import {
 	Debug,
 	Drop,
 	Stop,
-	Child,
 	Prefix,
 	TestCase,
 	TestFile,
@@ -34,6 +33,15 @@ import {
 	Logging,
 	Ready,
 } from '../ipc'
+import {
+	isMessage,
+	isPrefix,
+	isDone,
+	isTestFile,
+	isTestCase,
+	isResult,
+	isReady,
+} from '../utility/validate'
 
 /** The timeout duration for the worker in milliseconds. */
 const timeout = 30000
@@ -179,26 +187,31 @@ export class Worker {
 			})
 			.on('error', emit.bind('error'))
 			.on('message', ({ data }): void => {
-				if (typeof data === 'object' && data.type && typeof data.type === 'string') {
-					const m = data as Child
-					switch (m.type) {
+				if (isMessage(data)) {
+					switch (data.type) {
 						case 'prefix':
-							emit('prefix', m)
+							if (isPrefix(data)) emit('prefix', data)
+							else emit('error', TypeError('Invalid "prefix" message.'))
 							return
 						case 'file':
-							emit('file', m)
+							if (isTestFile(data)) emit('file', data)
+							else emit('error', new TypeError('Invalid "file" message.'))
 							return
 						case 'case':
-							emit('case', m)
+							if (isTestCase(data)) emit('case', data)
+							else emit('error', new TypeError('Invalid "case" message.'))
 							return
 						case 'result':
-							emit('result', m)
+							if (isResult(data)) emit('result', data)
+							else emit('error', new TypeError('Invalid "result" message.'))
 							return
 						case 'done':
-							emit('done', m.file)
+							if (isDone(data)) emit('done', data.file)
+							else emit('error', TypeError('Invalid "done" message.'))
 							return
 						case 'ready':
-							emit('ready', m)
+							if (isReady(data)) emit('ready', data)
+							else emit('error', new TypeError('Invalid "ready" message.'))
 							return
 						default:
 							emit('error', new TypeError(`Invalid message type: ${data.type}`))
