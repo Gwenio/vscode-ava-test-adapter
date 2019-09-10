@@ -22,7 +22,8 @@
 				"vscode-test-adapter-util",
 				"emittery",
 				"hash-sum",
-				"random"
+				"random",
+				"@sindresorhus/is"
 			],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}
