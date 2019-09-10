@@ -72,7 +72,7 @@ export default class ConfigInfo {
 	private static readonly configSet = new Set<string>()
 
 	/** Used to check if an ID is in use. */
-	private static readonly idExists = ConfigInfo.configSet.has.bind(ConfigInfo.configSet)
+	public static readonly idExists = ConfigInfo.configSet.has.bind(ConfigInfo.configSet)
 
 	/**
 	 * Constructor.
