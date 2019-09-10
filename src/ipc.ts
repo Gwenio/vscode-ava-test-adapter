@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 /** The base type for IPC messages. */
 interface Base<T extends string> {
 	/** The message type. */
-	type: T
+	readonly type: T
 }
 
 /** Message to control the worker's logging. */
