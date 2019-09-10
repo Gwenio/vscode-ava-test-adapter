@@ -27,6 +27,7 @@ import {
 	TestEvent,
 } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
+import is from '@sindresorhus/is'
 import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
 import { Worker } from './worker'
@@ -415,10 +416,10 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private spawn(config: LoadedConfig): void {
 		const log = this.log
 		const append = (chunk: string | Buffer): void => {
-			if (typeof chunk === 'string') {
-				this.channel.append(chunk)
-			} else if (chunk instanceof Buffer) {
+			if (is.buffer(chunk)) {
 				this.channel.append(chunk.toString())
+			} else if (is.string(chunk)) {
+				this.channel.append(chunk)
 			}
 		}
 		this.queue.add(
