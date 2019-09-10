@@ -22,6 +22,7 @@ import random from 'random'
 import * as IPC from './ipc'
 import hash from './worker/hash'
 import Suite from './worker/suite'
+import { isMessage, isLogging, isLoad, isDrop, isRun, isDebug } from './utility/validate'
 
 /** Whether a connection has been established. */
 let connected = false
@@ -130,33 +131,53 @@ connection
 	})
 	.on('message', (message, client): void => {
 		const data = message.data
-		if (typeof data === 'object' && data.type && typeof data.type === 'string') {
-			const m = data as IPC.Parent
-			switch (m.type) {
+		if (isMessage(data)) {
+			switch (data.type) {
 				case 'log':
-					console.log(`[Worker] Setting logging: ${m.enable}`)
-					logEnabled = m.enable
+					if (isLogging(data)) {
+						console.log(`[Worker] Setting logging: ${data.enable}`)
+						logEnabled = data.enable
+					} else console.error('[Worker] [ERROR] Invalid "log" message.')
 					return
 				case 'load':
-					loadTests(m, client).finally((): void => {
+					if (isLoad(data)) {
+						loadTests(data, client).finally((): void => {
+							message.reply(null)
+						})
+					} else {
+						console.log('[Worker] [ERROR] Invalid "load" message.')
 						message.reply(null)
-					})
+					}
 					return
 				case 'drop':
-					suite.drop(m.id)
+					if (isDrop(data)) {
+						suite.drop(data.id)
+					} else {
+						console.log('[Worker] [ERROR] Invalid "drop" message.')
+					}
 					return
 				case 'run':
-					runTests(m, client).finally((): void => {
+					if (isRun(data)) {
+						runTests(data, client).finally((): void => {
+							message.reply(null)
+						})
+					} else {
+						console.log('[Worker] [ERROR] Invalid "run" message.')
 						message.reply(null)
-					})
+					}
 					return
 				case 'stop':
 					suite.cancel()
 					return
 				case 'debug':
-					debugTests(m, client).finally((): void => {
+					if (isDebug(data)) {
+						debugTests(data, client).finally((): void => {
+							message.reply(null)
+						})
+					} else {
+						console.log('[Worker] [ERROR] Invalid "debug" message.')
 						message.reply(null)
-					})
+					}
 					return
 				default:
 					throw new TypeError(`Invalid message type: ${data.type}`)
