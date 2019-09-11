@@ -17,6 +17,7 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import is from '@sindresorhus/is'
+import ow from 'ow'
 import {
 	Prefix,
 	Done,
@@ -60,136 +61,203 @@ export function isMessage(x: unknown): x is Message {
 	return is.plainObject(x) && is.string(x.type)
 }
 
-/**
- * Checks for a Config ID.
- * @param x Value to check.
- */
-function isConfigID(x: unknown): x is string {
-	return is.nonEmptyString(x) && x.startsWith('c')
-}
+/** Filter for test config IDs. */
+const configID = ow.string.startsWith('c')
 
-/**
- * Checks for a Test File ID.
- * @param x Value to check.
- */
-function isFileID(x: unknown): x is string {
-	return is.nonEmptyString(x) && x.startsWith('f')
-}
+/** Filter for test file IDs. */
+const fileID = ow.string.startsWith('f')
 
-/**
- * Checks for a Test Case ID.
- * @param x Value to check.
- */
-function isTestID(x: unknown): x is string {
-	return is.nonEmptyString(x) && x.startsWith('t')
-}
+/** Filter for test case IDs. */
+const testID = ow.string.startsWith('t')
+
+/** Throws an error if not called with a valid logging message. */
+const logFilter = ow.create(
+	ow.object.partialShape({
+		enable: ow.boolean,
+	})
+)
 
 /**
  * Checks for an IPC Logging Message.
  * @param x Object to type check.
  */
 export function isLogging(x: Message | Logging): x is Logging {
-	const { enable } = x
-	return is.boolean(enable)
+	logFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid load message. */
+const loadFilter = ow.create(
+	ow.object.partialShape({
+		file: ow.string.nonEmpty,
+	})
+)
 
 /**
  * Checks for an IPC Load Message.
  * @param x Object to type check.
  */
 export function isLoad(x: Message | Load): x is Load {
-	const { file } = x
-	return is.string(file)
+	loadFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid drop message. */
+const dropFilter = ow.create(
+	ow.object.partialShape({
+		id: ow.optional.string.startsWith('c'),
+	})
+)
 
 /**
  * Checks for an IPC Drop Message.
  * @param x Object to type check.
  */
 export function isDrop(x: Message | Drop): x is Drop {
-	const { id } = x
-	return is.falsy(id) || isConfigID(id)
+	dropFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid prefix message. */
+const prefixFilter = ow.create(
+	ow.object.partialShape({
+		id: configID,
+		file: ow.string.nonEmpty,
+		prefix: ow.string,
+	})
+)
 
 /**
  * Checks for an IPC Prefix Message.
  * @param x Object to type check.
  */
 export function isPrefix(x: Message | Prefix): x is Prefix {
-	const { id, file, prefix } = x
-	return isConfigID(id) && is.nonEmptyString(file) && is.string(prefix)
+	prefixFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid test file message. */
+const fileFilter = ow.create(
+	ow.object.partialShape({
+		id: fileID,
+		config: configID,
+		file: ow.string.nonEmpty,
+	})
+)
 
 /**
  * Checks for an IPC TestFile Message.
  * @param x Object to type check.
  */
 export function isTestFile(x: Message | TestFile): x is TestFile {
-	const { id, config, file } = x
-	return isFileID(id) && is.nonEmptyString(file) && isConfigID(config)
+	fileFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid test case message. */
+const caseFilter = ow.create(
+	ow.object.partialShape({
+		id: testID,
+		file: fileID,
+		test: ow.string,
+	})
+)
 
 /**
  * Checks for an IPC TestCase Message.
  * @param x Object to type check.
  */
 export function isTestCase(x: Message | TestCase): x is TestCase {
-	const { id, file, test } = x
-	return isTestID(id) && is.nonEmptyString(test) && isFileID(file)
+	caseFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid run message. */
+const runFilter = ow.create(
+	ow.object.partialShape({
+		run: ow.array.nonEmpty.ofType(ow.string.nonEmpty),
+	})
+)
 
 /**
  * Checks for an IPC Run Message.
  * @param x Object to type check.
  */
 export function isRun(x: Message | Run): x is Run {
-	const { run } = x
-	return is.nonEmptyArray(run) && run.every(is.nonEmptyString)
+	runFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid done message. */
+const doneFilter = ow.create(
+	ow.object.partialShape({
+		file: ow.any(configID, fileID),
+	})
+)
 
 /**
  * Checks for an IPC Done Message.
  * @param x Object to type check.
  */
 export function isDone(x: Message | Done): x is Done {
-	const { file } = x
-	return is.nonEmptyString(file)
+	doneFilter(x)
+	return true
 }
 
-/** Set of valid Result states. */
-const states = new Set<string>(['running', 'passed', 'failed', 'skipped', 'errored'])
+/** Throws an error if not called with a valid result message. */
+const resultFilter = ow.create(
+	ow.object.partialShape({
+		test: testID,
+		state: ow.string.oneOf(['running', 'passed', 'failed', 'skipped', 'errored']),
+	})
+)
 
 /**
  * Checks for an IPC Result Message.
  * @param x Object to type check.
  */
 export function isResult(x: Message | Result): x is Result {
-	const { test, state } = x
-	return isTestID(test) && is.string(state) && states.has(state)
+	resultFilter(x)
+	return true
 }
+
+/** OW shape for a network port number. */
+const portNumber = ow.number.lessThanOrEqual(65535)
+
+/** Throws an error if not called with a valid debug message. */
+const debugFilter = ow.create(
+	ow.object.partialShape({
+		port: portNumber,
+		run: ow.array.nonEmpty.ofType(ow.string.nonEmpty),
+		serial: ow.object.partialShape({
+			x: ow.boolean,
+			list: ow.array.ofType(ow.string.startsWith('c')),
+		}),
+	})
+)
 
 /**
  * Checks for an IPC Debug Message.
  * @param x Object to type check.
  */
 export function isDebug(x: Message | Debug): x is Debug {
-	const { port, run, serial } = x
-	return (
-		is.number(port) &&
-		is.nonEmptyArray(run) &&
-		run.every(is.nonEmptyString) &&
-		is.plainObject(serial) &&
-		is.boolean(serial.x) &&
-		is.array(serial.list) &&
-		serial.list.every(isConfigID)
-	)
+	debugFilter(x)
+	return true
 }
+
+/** Throws an error if not called with a valid ready message. */
+const readyFilter = ow.create(
+	ow.object.partialShape({
+		port: portNumber,
+		config: configID,
+	})
+)
 
 /**
  * Checks for an IPC Ready Message.
  * @param x Object to type check.
  */
 export function isReady(x: Message | Ready): x is Ready {
-	const { config, port } = x
-	return is.number(port) && isConfigID(config)
+	readyFilter(x)
+	return true
 }
