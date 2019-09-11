@@ -31,6 +31,7 @@ import {
 	isDebug,
 	isReady,
 } from '../../../src/utility/validate'
+import { TestFile, Prefix, Ready, Debug } from '../../../src/ipc'
 
 test('isMessage', async (t): Promise<void> => {
 	t.true(isMessage({ type: 'log' }))
@@ -66,6 +67,12 @@ test('isLoad', async (t): Promise<void> => {
 			file: 'ava.config.js',
 		})
 	)
+	t.throws((): void => {
+		isLoad({
+			type: 'load',
+			file: '',
+		})
+	})
 })
 
 test('isDrop', async (t): Promise<void> => {
@@ -81,28 +88,75 @@ test('isDrop', async (t): Promise<void> => {
 			id: 'c0',
 		})
 	)
+	t.throws((): void => {
+		debugger
+		isDrop({
+			type: 'drop',
+			id: 'c',
+		})
+	})
 })
 
 test('isPrefix', async (t): Promise<void> => {
-	t.true(
+	const base: Prefix = {
+		type: 'prefix',
+		id: 'c0',
+		file: 'ava.config.js',
+		prefix: '',
+	}
+	t.true(isPrefix(base))
+	t.throws((): void => {
 		isPrefix({
-			type: 'prefix',
-			id: 'c0',
-			file: 'ava.config.js',
-			prefix: '',
+			...base,
+			id: 'c',
 		})
-	)
+	})
+	t.throws((): void => {
+		isPrefix({
+			...base,
+			file: '',
+		})
+	})
 })
 
 test('isTestFile', async (t): Promise<void> => {
-	t.true(
+	const base: TestFile = {
+		type: 'file',
+		id: 'f0',
+		config: 'c0',
+		file: 't.js',
+	}
+	t.true(isTestFile(base))
+	t.throws((): void => {
 		isTestFile({
-			type: 'file',
-			id: 'f0',
-			config: 'c0',
-			file: 't.js',
+			...base,
+			id: 'f',
 		})
-	)
+	})
+	t.throws((): void => {
+		isTestFile({
+			...base,
+			config: 'f0',
+		})
+	})
+	t.throws((): void => {
+		isTestFile({
+			...base,
+			config: 't0',
+		})
+	})
+	t.throws((): void => {
+		isTestFile({
+			...base,
+			config: 'c',
+		})
+	})
+	t.throws((): void => {
+		isTestFile({
+			...base,
+			file: '',
+		})
+	})
 })
 
 test('isTestCase', async (t): Promise<void> => {
@@ -148,28 +202,97 @@ test('isResult', async (t): Promise<void> => {
 			state: 'passed',
 		})
 	)
+	t.true(
+		isResult({
+			type: 'result',
+			test: 't0',
+			state: 'failed',
+		})
+	)
+	t.true(
+		isResult({
+			type: 'result',
+			test: 't0',
+			state: 'skipped',
+		})
+	)
 })
 
 test('isDebug', async (t): Promise<void> => {
+	const base: Debug = {
+		type: 'debug',
+		port: 9229,
+		run: ['root'],
+		serial: {
+			x: true,
+			list: [],
+		},
+	}
+	t.true(isDebug(base))
 	t.true(
 		isDebug({
-			type: 'debug',
-			port: 9229,
-			run: ['root'],
+			...base,
+			serial: {
+				x: false,
+				list: [],
+			},
+		})
+	)
+	t.true(
+		isDebug({
+			...base,
 			serial: {
 				x: true,
-				list: [],
+				list: ['c0'],
+			},
+		})
+	)
+	t.true(
+		isDebug({
+			...base,
+			serial: {
+				x: false,
+				list: ['c0'],
 			},
 		})
 	)
 })
 
 test('isReady', async (t): Promise<void> => {
-	t.true(
+	const base: Ready = {
+		type: 'ready',
+		config: 'c0',
+		port: 9229,
+	}
+	t.true(isReady(base))
+	t.throws((): void => {
 		isReady({
-			type: 'ready',
-			config: 'c0',
-			port: 9229,
+			...base,
+			port: 70000,
 		})
-	)
+	})
+	t.throws((): void => {
+		isReady({
+			...base,
+			config: 'c',
+		})
+	})
+	t.throws((): void => {
+		isReady({
+			...base,
+			config: 'f0',
+		})
+	})
+	t.throws((): void => {
+		isReady({
+			...base,
+			config: 't0',
+		})
+	})
+	t.throws((): void => {
+		isReady({
+			...base,
+			config: 'root',
+		})
+	})
 })
