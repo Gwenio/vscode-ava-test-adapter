@@ -62,13 +62,13 @@ export function isMessage(x: unknown): x is Message {
 }
 
 /** Filter for test config IDs. */
-const configID = ow.string.startsWith('c')
+const configID = ow.string.matches(/c([0-9a-f]+)/)
 
 /** Filter for test file IDs. */
-const fileID = ow.string.startsWith('f')
+const fileID = ow.string.matches(/f([0-9a-f]+)/)
 
 /** Filter for test case IDs. */
-const testID = ow.string.startsWith('t')
+const testID = ow.string.matches(/t([0-9a-f]+)/)
 
 /** Throws an error if not called with a valid logging message. */
 const logFilter = ow.create(
@@ -105,7 +105,7 @@ export function isLoad(x: Message | Load): x is Load {
 /** Throws an error if not called with a valid drop message. */
 const dropFilter = ow.create(
 	ow.object.partialShape({
-		id: ow.optional.string.startsWith('c'),
+		id: ow.any(ow.undefined, configID),
 	})
 )
 
@@ -172,10 +172,12 @@ export function isTestCase(x: Message | TestCase): x is TestCase {
 	return true
 }
 
+const runList = ow.array.nonEmpty.ofType(ow.string.matches(/(root)|([cft]([0-9a-f]+))/))
+
 /** Throws an error if not called with a valid run message. */
 const runFilter = ow.create(
 	ow.object.partialShape({
-		run: ow.array.nonEmpty.ofType(ow.string.nonEmpty),
+		run: runList,
 	})
 )
 
@@ -191,7 +193,7 @@ export function isRun(x: Message | Run): x is Run {
 /** Throws an error if not called with a valid done message. */
 const doneFilter = ow.create(
 	ow.object.partialShape({
-		file: ow.any(configID, fileID),
+		file: ow.string.matches(/[cf]([0-9a-f]+)/),
 	})
 )
 
@@ -228,10 +230,10 @@ const portNumber = ow.number.lessThanOrEqual(65535)
 const debugFilter = ow.create(
 	ow.object.partialShape({
 		port: portNumber,
-		run: ow.array.nonEmpty.ofType(ow.string.nonEmpty),
+		run: runList,
 		serial: ow.object.partialShape({
 			x: ow.boolean,
-			list: ow.array.ofType(ow.string.startsWith('c')),
+			list: ow.array.ofType(configID),
 		}),
 	})
 )
