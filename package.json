@@ -21,10 +21,11 @@
 	"scripts": {
 		"clean": "rimraf tmp dist *.vsix",
 		"compile": "tsc -p src/tsconfig.json",
-		"coverage": "nyc -r text ava",
+		"coverage": "nyc ava --config ava.coverage.js",
 		"rollup": "rollup -c",
 		"build": "yarn run compile && yarn run rollup",
 		"rebuild": "yarn run clean && yarn run build",
+		"report": "nyc report -r text",
 		"package": "vsce package",
 		"publish": "vsce publish",
 		"test": "ava"
