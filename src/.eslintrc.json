@@ -23,7 +23,8 @@
 				"emittery",
 				"hash-sum",
 				"random",
-				"@sindresorhus/is"
+				"@sindresorhus/is",
+				"ow"
 			],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}
