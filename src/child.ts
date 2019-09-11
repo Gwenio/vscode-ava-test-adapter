@@ -19,6 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import { Server, ServerSocket } from 'veza'
 import getPort from 'get-port'
 import random from 'random'
+import is from '@sindresorhus/is'
 import * as IPC from './ipc'
 import hash from './worker/hash'
 import Suite from './worker/suite'
@@ -132,55 +133,56 @@ connection
 	.on('message', (message, client): void => {
 		const data = message.data
 		if (isMessage(data)) {
-			switch (data.type) {
-				case 'log':
-					if (isLogging(data)) {
-						console.log(`[Worker] Setting logging: ${data.enable}`)
-						logEnabled = data.enable
-					} else console.error('[Worker] [ERROR] Invalid "log" message.')
-					return
-				case 'load':
-					if (isLoad(data)) {
-						loadTests(data, client).finally((): void => {
-							message.reply(null)
-						})
-					} else {
-						console.log('[Worker] [ERROR] Invalid "load" message.')
-						message.reply(null)
-					}
-					return
-				case 'drop':
-					if (isDrop(data)) {
-						suite.drop(data.id)
-					} else {
-						console.log('[Worker] [ERROR] Invalid "drop" message.')
-					}
-					return
-				case 'run':
-					if (isRun(data)) {
-						runTests(data, client).finally((): void => {
-							message.reply(null)
-						})
-					} else {
-						console.log('[Worker] [ERROR] Invalid "run" message.')
-						message.reply(null)
-					}
-					return
-				case 'stop':
-					suite.cancel()
-					return
-				case 'debug':
-					if (isDebug(data)) {
-						debugTests(data, client).finally((): void => {
-							message.reply(null)
-						})
-					} else {
-						console.log('[Worker] [ERROR] Invalid "debug" message.')
-						message.reply(null)
-					}
-					return
-				default:
-					throw new TypeError(`Invalid message type: ${data.type}`)
+			try {
+				switch (data.type) {
+					case 'log':
+						if (isLogging(data)) {
+							console.log(`[Worker] Setting logging: ${data.enable}`)
+							logEnabled = data.enable
+						}
+						return
+					case 'load':
+						if (isLoad(data)) {
+							loadTests(data, client).finally((): void => {
+								message.reply(null)
+							})
+						}
+						return
+					case 'drop':
+						if (isDrop(data)) {
+							suite.drop(data.id)
+						}
+						return
+					case 'run':
+						if (isRun(data)) {
+							runTests(data, client).finally((): void => {
+								message.reply(null)
+							})
+						}
+						return
+					case 'stop':
+						suite.cancel()
+						return
+					case 'debug':
+						if (isDebug(data)) {
+							debugTests(data, client).finally((): void => {
+								message.reply(null)
+							})
+						}
+						return
+					default:
+						throw new TypeError(`Invalid message type: ${data.type}`)
+				}
+			} catch (error) {
+				if (is.error(error)) {
+					console.error(`[Worker] [ERROR] ${error.message}`)
+				} else if (is.string(error)) {
+					console.error(`[Worker] [ERROR] ${error}`)
+				}
+			} finally {
+				if (message.receptive) {
+					message.reply(null)
+				}
 			}
 		} else {
 			throw new TypeError('Invalid message.')
