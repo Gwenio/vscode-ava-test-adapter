@@ -3,19 +3,9 @@
 /* eslint node/no-unsupported-features/es-syntax: ["error", { "ignores": ["modules"] }] */
 
 export default {
-	require: [
-		//"ts-node/register/transpile-only",
-		//"tsconfig-paths/register",
-		//"@babel/register",
-		'esm',
-	],
-	files: [
-		'tmp/test/unit/reporter/*.js',
-		'tmp/test/unit/adapter/*.js',
-		'tmp/test/worker/*.js',
-		'tmp/test/unit/worker/*.js',
-	],
-	sources: ['tmp/src/*.js', 'tmp/src/reporter/*.js', 'tmp/src/worker/*.js'],
+	require: ['esm'],
+	files: ['tmp/test/unit/**', 'tmp/test/worker/**'],
+	sources: ['tmp/src/**'],
 	babel: {
 		testOptions: {
 			babelrc: false,

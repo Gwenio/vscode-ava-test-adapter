@@ -4,12 +4,8 @@
 
 export default {
 	require: ['esm'],
-	files: [
-		'tmp/test/unit/reporter/*.js',
-		'tmp/test/unit/adapter/*.js',
-		'tmp/test/unit/worker/*.js',
-	],
-	sources: ['tmp/src/*.js', 'tmp/src/reporter/*.js', 'tmp/src/worker/*.js'],
+	files: ['tmp/test/unit/**'],
+	sources: ['tmp/src/**'],
 	babel: {
 		testOptions: {
 			babelrc: false,
