@@ -188,34 +188,31 @@ export class Worker {
 			.on('error', emit.bind('error'))
 			.on('message', ({ data }): void => {
 				if (isMessage(data)) {
-					switch (data.type) {
-						case 'prefix':
-							if (isPrefix(data)) emit('prefix', data)
-							else emit('error', TypeError('Invalid "prefix" message.'))
-							return
-						case 'file':
-							if (isTestFile(data)) emit('file', data)
-							else emit('error', new TypeError('Invalid "file" message.'))
-							return
-						case 'case':
-							if (isTestCase(data)) emit('case', data)
-							else emit('error', new TypeError('Invalid "case" message.'))
-							return
-						case 'result':
-							if (isResult(data)) emit('result', data)
-							else emit('error', new TypeError('Invalid "result" message.'))
-							return
-						case 'done':
-							if (isDone(data)) emit('done', data.file)
-							else emit('error', TypeError('Invalid "done" message.'))
-							return
-						case 'ready':
-							if (isReady(data)) emit('ready', data)
-							else emit('error', new TypeError('Invalid "ready" message.'))
-							return
-						default:
-							emit('error', new TypeError(`Invalid message type: ${data.type}`))
-							return
+					try {
+						switch (data.type) {
+							case 'prefix':
+								if (isPrefix(data)) emit('prefix', data)
+								return
+							case 'file':
+								if (isTestFile(data)) emit('file', data)
+								return
+							case 'case':
+								if (isTestCase(data)) emit('case', data)
+								return
+							case 'result':
+								if (isResult(data)) emit('result', data)
+								return
+							case 'done':
+								if (isDone(data)) emit('done', data.file)
+								return
+							case 'ready':
+								if (isReady(data)) emit('ready', data)
+								return
+							default:
+								throw new TypeError(`Invalid message type: ${data.type}`)
+						}
+					} catch (error) {
+						emit('error', error)
 					}
 				} else {
 					emit('error', new TypeError('Worker sent an invalid message.'))
