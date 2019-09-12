@@ -186,7 +186,8 @@ export class Worker {
 				emit('disconnect', this)
 			})
 			.on('error', emit.bind('error'))
-			.on('message', ({ data }): void => {
+			.on('message', (message): void => {
+				const { data } = message
 				if (isMessage(data)) {
 					try {
 						switch (data.type) {
@@ -212,10 +213,20 @@ export class Worker {
 								throw new TypeError(`Invalid message type: ${data.type}`)
 						}
 					} catch (error) {
+						debugger
 						emit('error', error)
+						if (message.receptive) {
+							message.reply(null)
+						}
 					}
 				} else {
-					emit('error', new TypeError('Worker sent an invalid message.'))
+					if (data !== 'ava-adapter-worker') {
+						debugger
+						emit('error', new TypeError('Worker sent an invalid message.'))
+					}
+					if (message.receptive) {
+						message.reply(null)
+					}
 				}
 			})
 		c.connectTo({ port, host: '127.0.0.1' }).catch((error): void => {

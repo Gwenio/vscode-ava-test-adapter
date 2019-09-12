@@ -179,7 +179,6 @@ connection
 				} else if (is.string(error)) {
 					console.error(`[Worker] [ERROR] ${error}`)
 				}
-			} finally {
 				if (message.receptive) {
 					message.reply(null)
 				}
