@@ -32,6 +32,7 @@ import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
 import { Worker } from './worker'
 import { SerialQueue } from './queue'
+import connectDebugger from './debugger'
 
 /** Disposable interface. */
 interface IDisposable {
@@ -314,9 +315,14 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					w.on('ready', ({ config, port }): void => {
 						const y = m.get(config)
 						if (y) {
-							this.connectDebugger(skip.concat(y.debuggerSkipFiles), port)
+							connectDebugger(
+								this.log,
+								this.workspace,
+								skip.concat(y.debuggerSkipFiles),
+								port
+							)
 						} else {
-							this.connectDebugger(skip, port)
+							connectDebugger(this.log, this.workspace, skip, port)
 						}
 					})
 					return x[0]
@@ -365,6 +371,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	 * @inheritdoc
 	 */
 	public dispose(): void {
+		this.queue.clear()
 		if (this.worker) {
 			this.worker.disconnect()
 		}
@@ -374,7 +381,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.disposables = []
 		this.files.clear()
 		this.configMap = new Map<string, SubConfig>()
-		this.queue.clear()
 	}
 
 	/**
@@ -472,44 +478,5 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				})
 			}
 		)
-	}
-
-	/**
-	 * Connects a debug session.
-	 * @param skipFiles Files to skip.
-	 * @param id The SubConfig ID.
-	 * @param port The port to connect on.
-	 */
-	private async connectDebugger(skipFiles: string[], port: number): Promise<void> {
-		this.log.info('Starting the debug session')
-		await vscode.debug.startDebugging(this.workspace, {
-			name: 'Debug AVA Tests',
-			type: 'node',
-			request: 'attach',
-			port,
-			protocol: 'inspector',
-			timeout: 30000,
-			stopOnEntry: false,
-			skipFiles: skipFiles,
-		})
-		// workaround for Microsoft/vscode#70125
-		await new Promise((resolve): void => {
-			setImmediate(resolve)
-		})
-		const currentSession = vscode.debug.activeDebugSession
-		if (!currentSession) {
-			this.log.error('No active AVA debug session - aborting')
-			return
-		}
-		return new Promise<void>((resolve): void => {
-			const subscription = vscode.debug.onDidTerminateDebugSession((session): void => {
-				if (currentSession !== session) {
-					return
-				}
-				this.log.info('AVA Debug session ended')
-				subscription.dispose()
-				resolve()
-			})
-		})
 	}
 }
