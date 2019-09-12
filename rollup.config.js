@@ -76,19 +76,19 @@ function outputBundle(filename, options = {}) {
 
 function aliases() {
 	return alias({
-		entries: [{ find: 'ow-lite', replacement: 'ow' }],
+		entries: [{ find: 'ow-lite', replacement: require.resolve('ow') }],
 	})
 }
 
 function configurePlugins() {
 	if (process.env.NODE_ENV === 'production') {
 		return [
+			aliases(),
 			resolve({}),
 			commonjs({
 				sourceMap: false,
 			}),
 			jsonfile({}),
-			aliases(),
 			babel({
 				sourcemap: false,
 				plugins: [
@@ -145,6 +145,7 @@ function configurePlugins() {
 	} else {
 		return [
 			sourcemaps(),
+			aliases(),
 			resolve({}),
 			commonjs({
 				sourceMap: true,
@@ -152,7 +153,6 @@ function configurePlugins() {
 			jsonfile({
 				sourcemap: true,
 			}),
-			aliases(),
 			babel({
 				sourcemap: true,
 				plugins: [
