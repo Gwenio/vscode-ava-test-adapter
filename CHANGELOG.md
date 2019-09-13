@@ -4,7 +4,8 @@
 
 1. [Version 0](#version-0)
     1. [V0 Release 3, 24-08-2019](#v0-release-3-24-08-2019)
-        1. [V0R3 Patch 1, 03-09-2019](#v0r3-patch-1-03-09-2019)
+        1. [V0R3 Patch 2, 13-09-2019](#v0r3-patch-2-13-09-2019)
+        2. [V0R3 Patch 1, 03-09-2019](#v0r3-patch-1-03-09-2019)
     2. [V0 Release 2, 20-08-2019](#v0-release-2-20-08-2019)
         1. [V0R2 Patch 1, 20-08-2019](#v0r2-patch-1-20-08-2019)
     3. [V0 Release 1, 14-08-2019](#v0-release-1-14-08-2019)
@@ -21,6 +22,10 @@
 - Implemented support for multiple AVA configuration files.
 - Now properly adjusts to setting changes without needing a reload.
 - Supports debugging suites in addition to individual tests.
+
+#### V0R3 Patch 2, 13-09-2019
+
+- Stability improvements.
 
 #### V0R3 Patch 1, 03-09-2019
 
