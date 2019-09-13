@@ -310,23 +310,20 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 						con.push(id)
 					}
 				}
-				const off = ((): (() => void) => {
-					const x: (() => void)[] = []
-					w.on('ready', ({ config, port }): void => {
-						const y = m.get(config)
-						if (y) {
-							connectDebugger(
-								this.log,
-								this.workspace,
-								skip.concat(y.debuggerSkipFiles),
-								port
-							)
-						} else {
-							connectDebugger(this.log, this.workspace, skip, port)
-						}
-					})
-					return x[0]
-				})()
+				const ready = ({ config, port }): void => {
+					const y = m.get(config)
+					if (y) {
+						connectDebugger(
+							this.log,
+							this.workspace,
+							skip.concat(y.debuggerSkipFiles),
+							port
+						)
+					} else {
+						connectDebugger(this.log, this.workspace, skip, port)
+					}
+				}
+				w.on('ready', ready)
 				w.send({
 					type: 'debug',
 					port: config.debuggerPort,
@@ -347,7 +344,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					})
 					.finally((): void => {
 						this.log.info('Done debugging.')
-						off()
+						w.off('ready', ready)
 					})
 			} else {
 				this.log.error('No worker connected.')
