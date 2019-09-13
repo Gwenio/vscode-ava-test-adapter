@@ -156,14 +156,14 @@ export default class ConfigInfo {
 				send({ type: 'done', file: this.id })
 			})
 		const reporter = new TestReporter(emitter, this.prefix.length, logger)
-		let i: () => void
-		const callback = (interrupt: () => void): void => {
-			i = interrupt
+		let x: () => void
+		const callback = (i: () => void): void => {
+			i = session.remove.bind(session, i)
 			session.add(i)
 		}
 		const done = (): void => {
-			if (i) {
-				session.remove(i)
+			if (x) {
+				x()
 			}
 		}
 		if (plan && !plan.includes(this.id)) {
