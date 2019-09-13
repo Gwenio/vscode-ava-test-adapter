@@ -258,8 +258,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		return this.queue.add((): void => {
 			const w = this.worker
 			if (w) {
-				this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
 				this.running += 1
+				this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
 				w.send({
 					type: 'run',
 					run: testsToRun,
