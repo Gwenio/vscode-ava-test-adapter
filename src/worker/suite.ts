@@ -29,7 +29,7 @@ export default class Suite {
 	private readonly configs = new Map<string, ConfigInfo>()
 
 	/** The active test sessions. */
-	private readonly sessions = new Set<Session>()
+	private readonly sessions = new Map<number, Session>()
 
 	/** Cancels active test runs. */
 	public cancel(): void {
@@ -76,13 +76,19 @@ export default class Suite {
 	/**
 	 * Runs tests.
 	 * @param send Callback to send test results.
+	 * @param id The test run session id.
 	 * @param plan IDs to include in the test run.
 	 * @param logger Optional logger callback.
 	 */
-	public async run(send: (data: Event) => void, plan: string[], logger?: Logger): Promise<void> {
+	public async run(
+		send: (data: Event) => void,
+		id: number,
+		plan: string[],
+		logger?: Logger
+	): Promise<void> {
 		const wait: Promise<unknown>[] = []
 		const session = new Session(send)
-		this.sessions.add(session)
+		this.sessions.set(id, session)
 		const v = this.configs.values()
 		if (plan.includes('root')) {
 			for (const c of v) {
@@ -94,7 +100,7 @@ export default class Suite {
 			}
 		}
 		await Promise.all(wait)
-		this.sessions.delete(session)
+		this.sessions.delete(id)
 	}
 
 	/**

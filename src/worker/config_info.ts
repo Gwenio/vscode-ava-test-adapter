@@ -156,16 +156,10 @@ export default class ConfigInfo {
 				send({ type: 'done', file: this.id })
 			})
 		const reporter = new TestReporter(emitter, this.prefix.length, logger)
-		let x: () => void
 		const callback = (i: () => void): void => {
-			i = session.remove.bind(session, i)
-			session.add(i)
+			session.set(this.id, i)
 		}
-		const done = (): void => {
-			if (x) {
-				x()
-			}
-		}
+		const done = session.remove.bind(session, this.id)
 		if (plan && !plan.includes(this.id)) {
 			const { files, match } = this.processPlan(plan)
 			if (files.length > 0) {

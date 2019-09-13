@@ -23,8 +23,8 @@ export default class Session {
 	/** The callback to send test results for the session. */
 	public readonly send: (event: Event) => void
 
-	/** Set of interrupt callbacks. */
-	private readonly interrupts = new Set<() => void>()
+	/** Map of interrupt callbacks. */
+	private readonly interrupts = new Map<string, () => void>()
 
 	/** Indicates if the session has yet to be stopped. */
 	private active = true
@@ -48,11 +48,12 @@ export default class Session {
 
 	/**
 	 * Adds an interrupt callback to the session.
+	 * @param key The key for the interrupt.
 	 * @param i The interrupt callback to add.
 	 */
-	public add(i: () => void): void {
+	public set(key: string, i: () => void): void {
 		if (this.active) {
-			this.interrupts.add(i)
+			this.interrupts.set(key, i)
 		} else {
 			i()
 		}
@@ -60,11 +61,11 @@ export default class Session {
 
 	/**
 	 * Removes an interrupt callback to the session.
-	 * @param i The interrupt callback to remove.
+	 * @param key The key for the interrupt.
 	 */
-	public remove(i: () => void): void {
+	public remove(key: string): void {
 		if (this.active) {
-			this.interrupts.delete(i)
+			this.interrupts.delete(key)
 		}
 	}
 }

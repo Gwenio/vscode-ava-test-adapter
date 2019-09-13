@@ -61,9 +61,10 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
 /**
  * Runs tests.
  * @param info The Run message being handled.
+ * @param id The session ID.
  * @param client The socket to send messages too.
  */
-async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
+async function runTests(info: IPC.Run, id: number, client: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
 	const send = (data: IPC.Event): void => {
@@ -73,7 +74,7 @@ async function runTests(info: IPC.Run, client: ServerSocket): Promise<void> {
 			})
 		)
 	}
-	await suite.run(send, info.run, logger)
+	await suite.run(send, id, info.run, logger)
 	await Promise.all(wait)
 }
 
@@ -155,7 +156,7 @@ connection
 						return
 					case 'run':
 						if (isRun(data)) {
-							runTests(data, client).finally((): void => {
+							runTests(data, message.id, client).finally((): void => {
 								message.reply(null)
 							})
 						}
