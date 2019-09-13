@@ -131,48 +131,50 @@ connection
 			client.server.close()
 		}
 	})
-	.on('message', (message, client): void => {
-		const data = message.data
-		if (isMessage(data)) {
+	.on(
+		'message',
+		async (message, client): Promise<void> => {
+			const data = message.data
 			try {
-				switch (data.type) {
-					case 'log':
-						if (isLogging(data)) {
-							console.log(`[Worker] Setting logging: ${data.enable}`)
-							logEnabled = data.enable
-						}
-						return
-					case 'load':
-						if (isLoad(data)) {
-							loadTests(data, client).finally((): void => {
-								message.reply(null)
-							})
-						}
-						return
-					case 'drop':
-						if (isDrop(data)) {
-							suite.drop(data.id)
-						}
-						return
-					case 'run':
-						if (isRun(data)) {
-							runTests(data, message.id, client).finally((): void => {
-								message.reply(null)
-							})
-						}
-						return
-					case 'stop':
-						suite.cancel()
-						return
-					case 'debug':
-						if (isDebug(data)) {
-							debugTests(data, client).finally((): void => {
-								message.reply(null)
-							})
-						}
-						return
-					default:
-						throw new TypeError(`Invalid message type: ${data.type}`)
+				if (isMessage(data)) {
+					switch (data.type) {
+						case 'log':
+							if (isLogging(data)) {
+								console.log(`[Worker] Setting logging: ${data.enable}`)
+								logEnabled = data.enable
+							}
+							return
+						case 'load':
+							if (isLoad(data)) {
+								await loadTests(data, client)
+							}
+							return
+						case 'drop':
+							if (isDrop(data)) {
+								suite.drop(data.id)
+							}
+							return
+						case 'run':
+							if (isRun(data)) {
+								await runTests(data, message.id, client)
+							}
+							return
+						case 'stop':
+							suite.cancel()
+							return
+						case 'debug':
+							if (isDebug(data)) {
+								await debugTests(data, client)
+							}
+							return
+						default:
+							throw new TypeError(`Invalid message type: ${data.type}`)
+					}
+				} else {
+					if (process.env.NODE_ENV !== 'production') {
+						console.debug(JSON.stringify(data))
+					}
+					throw new TypeError('Invalid message.')
 				}
 			} catch (error) {
 				if (is.error(error)) {
@@ -180,14 +182,13 @@ connection
 				} else if (is.string(error)) {
 					console.error(`[Worker] [ERROR] ${error}`)
 				}
+			} finally {
 				if (message.receptive) {
 					message.reply(null)
 				}
 			}
-		} else {
-			throw new TypeError('Invalid message.')
 		}
-	})
+	)
 
 /** Called to begin serving the connection. */
 async function serve(): Promise<void> {
