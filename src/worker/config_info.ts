@@ -20,10 +20,11 @@ import Emitter from 'events'
 import hash from './hash'
 import { setup, Setup } from './ava_setup'
 import { worker } from './ava_worker'
-import { Tree, Event } from '../ipc'
+import { Tree } from '../ipc'
 import { LoadReporter, TestReporter, TestEmitter, DebugReporter, TestResult } from '../reporter'
 import FileInfo from './file_info'
 import TestInfo from './test_info'
+import Session from './session'
 
 /** Logger callback type. */
 type Logger = (message: string) => void
@@ -64,9 +65,6 @@ export default class ConfigInfo {
 
 	/** The test cases from the configuration. */
 	private readonly tests = new Map<string, TestInfo>()
-
-	/** Used to cancel a test run, if one is active. */
-	private stop?: () => void
 
 	/** Set of active configuration IDs. */
 	private static readonly configSet = new Set<string>()
@@ -134,12 +132,13 @@ export default class ConfigInfo {
 
 	/**
 	 * Runs tests.
-	 * @param send Callback to send results.
+	 * @param session The test run session.
 	 * @param plan The IDs to include in the run.
 	 * @param logger Optional logger callback.
 	 */
-	public async run(send: (data: Event) => void, plan?: string[], logger?: Logger): Promise<void> {
+	public async run(session: Session, plan?: string[], logger?: Logger): Promise<void> {
 		const config = this.config
+		const send = session.send
 		const emitter: Emitter & TestEmitter = new Emitter()
 			.on('done', (f: string): void => {
 				const file = this.getFileID(f)
@@ -157,11 +156,15 @@ export default class ConfigInfo {
 				send({ type: 'done', file: this.id })
 			})
 		const reporter = new TestReporter(emitter, this.prefix.length, logger)
+		let i: () => void
 		const callback = (interrupt: () => void): void => {
-			this.stop = interrupt
+			i = interrupt
+			session.add(i)
 		}
 		const done = (): void => {
-			this.stop = undefined
+			if (i) {
+				session.remove(i)
+			}
 		}
 		if (plan && !plan.includes(this.id)) {
 			const { files, match } = this.processPlan(plan)
@@ -226,17 +229,8 @@ export default class ConfigInfo {
 		}
 	}
 
-	/** Cancels the active test run. */
-	public cancel(): void {
-		const s = this.stop
-		if (s) {
-			s()
-		}
-	}
-
 	/** Disposes of the configuration. */
 	public dispose(): void {
-		this.cancel()
 		ConfigInfo.configSet.delete(this.id)
 		for (const f of this.files.values()) {
 			f.dispose()

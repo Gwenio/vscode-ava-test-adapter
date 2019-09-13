@@ -18,6 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import { Tree, Event } from '../ipc'
 import ConfigInfo from './config_info'
+import Session from './session'
 
 /** Logger callback type. */
 type Logger = (message: string) => void
@@ -27,11 +28,15 @@ export default class Suite {
 	/** Map of IDs to the associated ConfigInfo. */
 	private readonly configs = new Map<string, ConfigInfo>()
 
+	/** The active test sessions. */
+	private readonly sessions = new Set<Session>()
+
 	/** Cancels active test runs. */
 	public cancel(): void {
-		for (const c of this.configs.values()) {
-			c.cancel()
+		for (const s of this.sessions.values()) {
+			s.stop()
 		}
+		this.sessions.clear()
 	}
 
 	/**
@@ -39,6 +44,7 @@ export default class Suite {
 	 * @param id The ID of the configuration to drop or undefined to drop all.
 	 */
 	public drop(id?: string): void {
+		this.cancel()
 		const configs = this.configs
 		if (id) {
 			const c = configs.get(id)
@@ -75,17 +81,20 @@ export default class Suite {
 	 */
 	public async run(send: (data: Event) => void, plan: string[], logger?: Logger): Promise<void> {
 		const wait: Promise<unknown>[] = []
+		const session = new Session(send)
+		this.sessions.add(session)
 		const v = this.configs.values()
 		if (plan.includes('root')) {
 			for (const c of v) {
-				wait.push(c.run(send, undefined, logger))
+				wait.push(c.run(session, undefined, logger))
 			}
 		} else {
 			for (const c of v) {
-				wait.push(c.run(send, plan, logger))
+				wait.push(c.run(session, plan, logger))
 			}
 		}
 		await Promise.all(wait)
+		this.sessions.delete(session)
 	}
 
 	/**
