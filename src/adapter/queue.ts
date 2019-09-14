@@ -98,7 +98,7 @@ export class SerialQueue implements Queue {
 	}
 
 	/** Runs the next pending task, if there is one. */
-	private run(): void {
+	private async run(): Promise<void> {
 		const x = this.pending.shift()
 		if (x) {
 			x[0]()
