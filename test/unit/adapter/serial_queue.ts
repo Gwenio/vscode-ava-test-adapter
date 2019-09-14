@@ -19,6 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import Emitter from 'emittery'
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
+import delay from 'delay'
 import { SerialQueue } from '../../../src/adapter/queue'
 
 interface Context {
@@ -43,30 +44,41 @@ test('can run a task', async (t): Promise<void> => {
 })
 
 test('runs tasks in order', async (t): Promise<void> => {
+	debugger
 	const q = new SerialQueue()
 	const spy = t.context.sandbox.spy
 	let count = 0
 	const l = [
-		spy((): boolean => count++ === 0),
-		spy((): boolean => count++ === 1),
+		spy(async (): Promise<boolean> => count++ === 4),
+		spy(async (): Promise<boolean> => count++ === 3),
 		spy((): boolean => count++ === 2),
+		spy(async (): Promise<boolean> => count++ === 1),
+		spy(async (): Promise<boolean> => count++ === 0),
 	]
 	const p: Promise<boolean | void>[] = []
 	const emitter = new Emitter()
 	const flush = emitter.once('flush')
 	const done = emitter.once('done')
-	q.add((): Promise<void> => flush)
-	for (const x of l) {
+	q.add(
+		(): Promise<void> =>
+			flush.then(() => {
+				t.is(count, 0)
+			})
+	)
+	for (const x of l.reverse()) {
 		p.push(q.add(x))
 	}
 	q.add((): void => {
 		emitter.emit('done')
 	})
-	emitter.emitSerial('flush')
+	await delay(100).then((): void => {
+		emitter.emit('flush')
+	})
 	await done
+	t.is(count, l.length)
 	for (const x of l) {
 		t.is(x.callCount, 1)
-		t.true(x.alwaysReturned(true))
+		t.true(await x.firstCall.returnValue)
 	}
 	for (const x of p) {
 		t.true(await x)
