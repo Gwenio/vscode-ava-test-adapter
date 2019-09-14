@@ -33,6 +33,7 @@ import TestTree from './test_tree'
 import { Worker } from './worker'
 import { SerialQueue } from './queue'
 import connectDebugger from './debugger'
+import Watcher from './watcher'
 
 /** Disposable interface. */
 interface IDisposable {
@@ -55,8 +56,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	private readonly testStatesEmitter = new vscode.EventEmitter<TestStates>()
 	/** Triggers auto test runs. */
 	private readonly autorunEmitter = new vscode.EventEmitter<void>()
-	/** The set of files to watch for changes. */
-	private files = new Set<string>()
+	/** Manages the handling of file change events. */
+	private readonly watcher: Watcher
 	/** Map of configuration IDs to SubConfigs. */
 	private configMap = new Map<string, SubConfig>()
 	/** The loaded settings. */
@@ -94,7 +95,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	 * @override
 	 * @inheritdoc
 	 */
-	public get autorun(): vscode.Event<void> | undefined {
+	public get autorun(): vscode.Event<void> {
 		return this.autorunEmitter.event
 	}
 
@@ -110,6 +111,16 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		this.log = log
 		this.log.info('Initializing AVA Adapter...')
 
+		this.watcher = new Watcher(log, workspace.uri.fsPath)
+			.on('run', this.autorunEmitter.fire.bind(this.autorunEmitter))
+			.on('load', this.load.bind(this))
+
+		this.disposables.push(
+			vscode.workspace.onDidSaveTextDocument((document): void => {
+				this.watcher.changed(document.uri.fsPath)
+			})
+		)
+		this.disposables.push(this.watcher)
 		this.disposables.push(this.testsEmitter)
 		this.disposables.push(this.testStatesEmitter)
 		this.disposables.push(this.autorunEmitter)
@@ -147,35 +158,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				}
 			)
 		)
-
-		this.disposables.push(
-			vscode.workspace.onDidSaveTextDocument(
-				async (document): Promise<void> => {
-					if (!this.config) return
-					const filename = document.uri.fsPath
-					const workPath = this.workspace.uri.fsPath
-					if (this.log.enabled) {
-						this.log.info(
-							`${filename} was saved - checking if this affects ${workPath}`
-						)
-					}
-					const f = this.files
-					if (f.has(filename)) {
-						if (this.log.enabled) {
-							this.log.info(`Sending reload event because ${filename} was saved.`)
-						}
-						this.load()
-						return
-					}
-					if (filename.startsWith(workPath)) {
-						if (this.log.enabled) {
-							this.log.info('Sending autorun event')
-						}
-						this.autorunEmitter.fire()
-					}
-				}
-			)
-		)
 	}
 
 	/**
@@ -188,7 +170,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 		if (!config) {
 			this.log.error(`config unavailable to load tests.`)
 			this.testsEmitter.fire({ type: 'finished', suite: undefined })
-			this.files.clear()
+			this.watcher.clear()
 			this.configMap = new Map<string, SubConfig>()
 			return
 		}
@@ -235,7 +217,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					this.log.error('No worker connected.')
 					this.testsEmitter.fire({ type: 'finished', suite: tree.rootSuite })
 				}
-				this.files = tree.getFiles
+				this.watcher.watch = tree.getFiles
 				this.configMap = m
 			}
 		)
@@ -374,7 +356,6 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 			disposable.dispose()
 		}
 		this.disposables = []
-		this.files.clear()
 		this.configMap = new Map<string, SubConfig>()
 	}
 
@@ -388,19 +369,23 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 				async (): Promise<LoadedConfig | null> => {
 					const c = await AVAConfig.load(this.workspace.uri, this.log)
 					this.config = c
-					if (c && (!this.worker || relaunch)) {
-						this.spawn(c)
-						this.queue.add((): void => {
-							const w = this.worker
-							if (w) {
-								w.send({
-									type: 'log',
-									enable: this.log.enabled,
-								})
-							}
-						})
-					} else if (this.worker && !c) {
-						this.worker.disconnect()
+					if (c) {
+						this.watcher.active = true
+						if (!this.worker || relaunch) {
+							this.spawn(c)
+							this.queue.add((): void => {
+								const w = this.worker
+								if (w) {
+									w.send({
+										type: 'log',
+										enable: this.log.enabled,
+									})
+								}
+							})
+						}
+					} else {
+						this.watcher.active = false
+						if (this.worker) this.worker.disconnect
 					}
 					return c
 				}
