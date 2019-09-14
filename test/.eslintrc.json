@@ -15,7 +15,7 @@
 	"extends": ["plugin:@typescript-eslint/recommended", "prettier"],
 	"settings": {
 		"node": {
-			"allowModules": ["sinon", "emittery"],
+			"allowModules": ["sinon", "emittery", "delay"],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}
 	},
