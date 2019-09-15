@@ -45,7 +45,7 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
 - script: |
-    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/lcov.info
+    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/lcov.info -F adder -F subtractor
   displayName: CodeCov.io
   env:
     CODECOV_TOKEN: $(CODECOV_TOKEN)
