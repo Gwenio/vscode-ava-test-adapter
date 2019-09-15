@@ -43,8 +43,10 @@ steps:
   inputs:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
-- script: |
-    bash <(curl https://codecov.io/bash) -t $(CODECOV_TOKEN) -f ./tmp/nyc/lcov.info
+- bash: |
+    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/lcov.info
   displayName: CodeCov.io
+  env:
+    CODECOV_TOKEN: $(CODECOV_TOKEN)
 
 # TODO: make test report that can be sent to PublishTestResults@2 task.
