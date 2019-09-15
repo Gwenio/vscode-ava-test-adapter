@@ -10,7 +10,7 @@ variables:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '11.14'
+    versionSpec: '12.7'
   displayName: 'Install Node.js'
 - task: YarnInstaller@3
   displayName: 'Install Yarn'
