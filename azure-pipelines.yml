@@ -1,0 +1,38 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '11.14'
+  displayName: 'Install Node.js'
+- task: YarnInstaller@3
+  displayName: 'Install Yarn'
+  inputs:
+    versionSpec: 1.17.x
+    checkLatest: true
+    includePrerelease: false
+- task: CacheBeta@0
+  inputs:
+    key: yarn | $(Agent.OS) | yarn.lock
+    path: $(YARN_CACHE_FOLDER)
+  displayName: Cache Yarn packages
+- script: yarn --frozen-lockfile
+- script: yarn install
+  displayName: 'yarn install'
+- script: tsc --project src/tsconfig.json
+  displayName: Compile Source
+- script: tsc --project test/tsconfig.json
+  displayName: Compile Tests
+- script: npx rollup -c
+  displayName: Rollup Bundles
+- script: yarn run coverage
+  displayName: Test Coverage
+# TODO: upload coverage report to codecov.io
+# TODO: make test report that can be sent to PublishTestResults@2 task.
