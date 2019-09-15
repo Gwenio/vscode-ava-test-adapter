@@ -23,7 +23,6 @@ steps:
     key: yarn | $(Agent.OS) | yarn.lock
     path: $(YARN_CACHE_FOLDER)
   displayName: Cache Yarn packages
-- script: yarn --frozen-lockfile
 - script: yarn install
   displayName: 'yarn install'
 - script: tsc --project src/tsconfig.json
