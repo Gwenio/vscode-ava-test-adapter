@@ -6,6 +6,7 @@ pool:
 
 variables:
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  group: vscode-ava-test-adapter-secrets
 
 steps:
 - task: NodeTool@0
@@ -18,6 +19,7 @@ steps:
     versionSpec: 1.17.x
     checkLatest: true
     includePrerelease: false
+- script:
 - task: CacheBeta@0
   inputs:
     key: yarn | $(Agent.OS) | yarn.lock
