@@ -2,7 +2,7 @@
 
 Implements an AVA Test Adapter for VSCode [Test Explorer](https://marketplace.visualstudio.com/items?itemName=hbenl.vscode-test-explorer).
 
-[![Build Status](https://elafris.visualstudio.com/vscode-ava-test-adapter/_apis/build/status/Gwenio.vscode-ava-test-adapter?branchName=master)](https://elafris.visualstudio.com/vscode-ava-test-adapter/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://elafris.visualstudio.com/vscode-ava-test-adapter/_apis/build/status/Gwenio.vscode-ava-test-adapter?branchName=master)](https://elafris.visualstudio.com/vscode-ava-test-adapter/_build/latest?definitionId=1&branchName=master) [![Greenkeeper badge](https://badges.greenkeeper.io/Gwenio/vscode-ava-test-adapter.svg)](https://greenkeeper.io/)
 
 ---
 
