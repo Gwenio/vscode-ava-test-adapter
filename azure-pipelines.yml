@@ -5,8 +5,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  group: vscode-ava-test-adapter-secrets
+- group: vscode-ava-test-adapter
+- name: YARN_CACHE_FOLDER
+  value: $(Pipeline.Workspace)/.yarn
 
 steps:
 - task: NodeTool@0
@@ -43,7 +44,7 @@ steps:
   inputs:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
-- bash: |
+- script: |
     bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/lcov.info
   displayName: CodeCov.io
   env:
