@@ -41,7 +41,7 @@
 		"@babel/core": "^7.5.5",
 		"@sindresorhus/is": "^1.0.0",
 		"@types/hash-sum": "^1.0.0",
-		"@types/node": "12.7.4",
+		"@types/node": "12.7.5",
 		"@types/random": "^2.1.0",
 		"@types/sinon": "^7.0.13",
 		"@types/through2": "^2.0.34",
