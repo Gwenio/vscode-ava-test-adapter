@@ -31,7 +31,18 @@ steps:
   displayName: Compile Tests
 - script: npx rollup -c
   displayName: Rollup Bundles
-- script: yarn run coverage
+- script: |
+    npx nyc -r text-summary ava --config ava.coverage.js
+    npx nyc report -r lcovonly
+    npx nyc report -r cobertura
   displayName: Test Coverage
-# TODO: upload coverage report to codecov.io
+- task: PublishCodeCoverageResults@1
+  displayName: Publish Azure Test Results
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
+- script: |
+    bash <(curl https://codecov.io/bash) -t $(CODECOV_TOKEN) -f ./tmp/nyc/lcov.info
+  displayName: CodeCov.io
+
 # TODO: make test report that can be sent to PublishTestResults@2 task.
