@@ -370,7 +370,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 					const c = await AVAConfig.load(this.workspace.uri, this.log)
 					this.config = c
 					if (c) {
-						this.watcher.active = true
+						this.watcher.activate = true
 						if (!this.worker || relaunch) {
 							this.spawn(c)
 							this.queue.add((): void => {
@@ -384,7 +384,7 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 							})
 						}
 					} else {
-						this.watcher.active = false
+						this.watcher.activate = false
 						if (this.worker) this.worker.disconnect
 					}
 					return c

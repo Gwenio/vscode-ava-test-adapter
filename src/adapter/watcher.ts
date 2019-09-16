@@ -31,8 +31,8 @@ export default class Watcher implements IDisposable {
 	private readonly emitter = new Emitter.Typed<{ changed: string }, 'run' | 'load'>()
 	/** The set of files to watch for changes. */
 	private files = new Set<string>()
-	/** Indicates if the watcher is inactive. */
-	private idle = true
+	/** Indicates if the watcher is active. */
+	private active = false
 
 	/**
 	 * Constructor.
@@ -43,11 +43,12 @@ export default class Watcher implements IDisposable {
 		this.emitter.on(
 			'changed',
 			async (filename): Promise<void> => {
-				if (this.idle) return
+				/* istanbul ignore if */
 				if (log.enabled) {
 					log.info(`${filename} was saved - checking if this affects ${workPath}`)
 				}
 				if (this.files.has(filename)) {
+					/* istanbul ignore if */
 					if (log.enabled) {
 						log.info(`Sending reload event because ${filename} was saved.`)
 					}
@@ -84,15 +85,17 @@ export default class Watcher implements IDisposable {
 	 * @param file The name of the file that was changed.
 	 */
 	public changed(file: string): void {
-		this.emitter.emitSerial('changed', file)
+		if (this.active) {
+			this.emitter.emitSerial('changed', file)
+		}
 	}
 
 	/**
-	 * Sets whether the Watcher is not idle.
+	 * Sets whether the Watcher is active.
 	 * @param value The value to set.
 	 */
-	public set active(value: boolean) {
-		this.idle = !value
+	public set activate(value: boolean) {
+		this.active = value
 	}
 
 	/**
