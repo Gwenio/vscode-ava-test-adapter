@@ -220,7 +220,6 @@ test('sample results', async (t): Promise<void> => {
 	r.endRun()
 	t.true(end)
 	t.is(done.callCount, 3)
-	t.log(result.getCalls())
 	for (const f of basePlan.files) {
 		t.true(done.calledWith(f), `done not called with ${f}`)
 	}
