@@ -45,7 +45,7 @@
 		"@types/random": "^2.1.0",
 		"@types/sinon": "^7.0.13",
 		"@types/through2": "^2.0.34",
-		"@types/vscode": "1.38.0",
+		"@types/vscode": "1.23.0",
 		"@typescript-eslint/eslint-plugin": "^2.0.0",
 		"@typescript-eslint/parser": "^2.0.0",
 		"@typescript-eslint/typescript-estree": "^2.0.0",
@@ -96,6 +96,9 @@
 	"engines": {
 		"node": ">=11.14.0",
 		"vscode": ">=1.23.0"
+	},
+	"greenkeeper": {
+		"ignore": ["@types/vscode"]
 	},
 	"esm": {
 		"cjs": true
