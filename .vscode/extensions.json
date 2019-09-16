@@ -8,6 +8,7 @@
 		"dbaeumer.vscode-eslint",
 		"hbenl.vscode-test-explorer",
 		"esbenp.prettier-vscode",
-		"ryanluker.vscode-coverage-gutters"
+		"ryanluker.vscode-coverage-gutters",
+		"ms-azure-devops.azure-pipelines"
 	]
 }
