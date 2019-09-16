@@ -35,16 +35,17 @@ steps:
   displayName: Compile Tests
 - script: npx rollup -c
   displayName: Rollup Bundles
+- script: |
+    rm -rfv ./node_modules/.cache/nyc
+    npx nyc --clean -r text ava --config ava.coverage.js
+    npx nyc report -r lcovonly
+    npx nyc report -r cobertura
+  displayName: Test Coverage
 - bash: |
     mkdir -pv ./tmp/xunit
     (npx ava --tap | npx tap-xunit) > ./tmp/xunit/all.xml
     [ -f ./tmp/xunit/all.xml ] && cat ./tmp/xunit/all.xml || echo "No test results found."
   displayName: Run Tests
-- script: |
-    npx nyc -r text-summary ava --config ava.coverage.js
-    npx nyc report -r lcovonly
-    npx nyc report -r cobertura
-  displayName: Test Coverage
 - task: PublishTestResults@2
   displayName: Publish Azure Test Results
   inputs:
