@@ -35,7 +35,10 @@ steps:
   displayName: Compile Tests
 - script: npx rollup -c
   displayName: Rollup Bundles
-- script: (npx ava --tap | npx tap-xunit) > $(System.DefaultWorkingDirectory)/tmp/xunit.xml
+- bash: |
+    mkdir -pv ./tmp/xunit
+    (npx ava --tap | npx tap-xunit) > ./tmp/xunit/all.xml
+    [ -f ./tmp/xunit/all.xml ] && cat ./tmp/xunit/all.xml || echo "No test results found."
   displayName: Run Tests
 - script: |
     npx nyc -r text-summary ava --config ava.coverage.js
@@ -46,7 +49,7 @@ steps:
   displayName: Publish Azure Test Results
   inputs:
     testResultsFormat: 'xUnit'
-    testResultsFiles: $(System.DefaultWorkingDirectory)/tmp/xunit.xml
+    testResultsFiles: ./tmp/xunit/all.xml
 - task: PublishCodeCoverageResults@1
   displayName: Publish Azure Test Results
   inputs:
