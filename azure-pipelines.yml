@@ -37,16 +37,16 @@ steps:
   displayName: Rollup Bundles
 - script: (npx ava --tap | npx tap-xunit) > $(System.DefaultWorkingDirectory)/tmp/xunit.xml
   displayName: Run Tests
-- task: PublishTestResults@2
-  displayName: Publish Azure Test Results
-  inputs:
-    testResultsFormat: 'xUnit'
-    testResultsFiles: $(System.DefaultWorkingDirectory)/tmp/xunit.xml
 - script: |
     npx nyc -r text-summary ava --config ava.coverage.js
     npx nyc report -r lcovonly
     npx nyc report -r cobertura
   displayName: Test Coverage
+- task: PublishTestResults@2
+  displayName: Publish Azure Test Results
+  inputs:
+    testResultsFormat: 'xUnit'
+    testResultsFiles: $(System.DefaultWorkingDirectory)/tmp/xunit.xml
 - task: PublishCodeCoverageResults@1
   displayName: Publish Azure Test Results
   inputs:
