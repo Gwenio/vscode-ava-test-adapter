@@ -31,3 +31,4 @@ node_modules/
 rollup.config.js
 ava.*.js
 azure-pipelines.yml
+codecov.yml
