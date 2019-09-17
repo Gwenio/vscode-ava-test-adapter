@@ -7,8 +7,6 @@ pool:
 
 variables:
 - group: vscode-ava-test-adapter
-- name: YARN_CACHE_FOLDER
-  value: $(Pipeline.Workspace)/.yarn
 
 steps:
 - task: NodeTool@0
@@ -21,12 +19,6 @@ steps:
     versionSpec: 1.17.x
     checkLatest: true
     includePrerelease: false
-- script:
-#- task: CacheBeta@0
-#  inputs:
-#    key: yarn | $(Agent.OS) | yarn.lock
-#    path: $(YARN_CACHE_FOLDER)
-#  displayName: Cache Yarn packages
 - script: npm i tap-xunit
   displayName: Install tap-xunit
 - script: yarn install
@@ -38,15 +30,14 @@ steps:
 - script: npx rollup -c
   displayName: Rollup Bundles
 - script: |
-    rm -rfv ./node_modules/.cache/nyc
+    npx rimraf ./node_modules/.cache/nyc
     npx nyc --clean -r text ava --config ava.coverage.js
-    npx nyc report -r lcovonly
+    npx nyc report -r json
     npx nyc report -r cobertura
   displayName: Test Coverage
 - bash: |
     mkdir -pv ./tmp/xunit
     (npx ava --tap | npx tap-xunit) > ./tmp/xunit/all.xml
-    [ -f ./tmp/xunit/all.xml ] && cat ./tmp/xunit/all.xml || echo "No test results found."
   displayName: Run Tests
 - task: PublishTestResults@2
   displayName: Publish Azure Test Results
@@ -59,7 +50,7 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
 - script: |
-    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/lcov.info -F adder -F subtractor
+    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/coverage-final.json
   displayName: CodeCov.io
   env:
     CODECOV_TOKEN: $(CODECOV_TOKEN)
