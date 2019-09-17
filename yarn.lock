@@ -1600,6 +1600,11 @@ emittery@^0.4.1:
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.4.1.tgz#abe9d3297389ba424ac87e53d1c701962ce7433d"
   integrity sha512-r4eRSeStEGf6M5SKdrQhhLK5bOwOBxQhIE3YSTnZE3GpKiLfnnhE+tPtrJE79+eDJgm39BM6LSoI8SCx4HbwlQ==
 
+emittery@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.5.0.tgz#d38c565bcb2eb5b0bc00c3a595227607b6d3857d"
+  integrity sha512-NTvZ9CPTp4ehb0MSWHGuvMUDEDSRXBuuA9vt8pUfJ4afU5EqakJsuGPwnhbw/smOqmFdtgFcziIeYZ9uQleSOA==
+
 emoji-regex@^7.0.1:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-7.0.3.tgz#933a04052860c85e83c122479c4748a8e4c72156"
