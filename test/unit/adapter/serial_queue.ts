@@ -90,13 +90,13 @@ test('can cancel tasks', async (t): Promise<void> => {
 	const spy = t.context.sandbox.spy((): void => {})
 	const emitter = new Emitter()
 	const count = 5
-	q.add((): Promise<void> => emitter.once('flush'))
+	q.add((): Promise<unknown> => emitter.once('flush'))
 	for (let x = 0; x < count; x++) {
 		q.add(spy)
 	}
 	q.clear()
 	const done = emitter.once('done')
-	q.add((): Promise<void> => done)
+	q.add((): Promise<unknown> => done)
 	emitter.emit('flush')
 	setImmediate((): void => {
 		emitter.emit('done')
@@ -111,7 +111,7 @@ test('forwards errors', async (t): Promise<void> => {
 	})
 	const q = new SerialQueue()
 	const emitter = new Emitter()
-	q.add((): Promise<void> => emitter.once('flush'))
+	q.add((): Promise<unknown> => emitter.once('flush'))
 	const p = q.add(spy)
 	emitter.emitSerial('flush')
 	await t.throwsAsync(p)
