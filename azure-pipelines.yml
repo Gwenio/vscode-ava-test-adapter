@@ -22,11 +22,11 @@ steps:
     checkLatest: true
     includePrerelease: false
 - script:
-- task: CacheBeta@0
-  inputs:
-    key: yarn | $(Agent.OS) | yarn.lock
-    path: $(YARN_CACHE_FOLDER)
-  displayName: Cache Yarn packages
+#- task: CacheBeta@0
+#  inputs:
+#    key: yarn | $(Agent.OS) | yarn.lock
+#    path: $(YARN_CACHE_FOLDER)
+#  displayName: Cache Yarn packages
 - script: yarn install
   displayName: 'yarn install'
 - script: tsc --project src/tsconfig.json
