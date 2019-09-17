@@ -98,7 +98,14 @@
 		"vscode": ">=1.23.0"
 	},
 	"greenkeeper": {
-		"ignore": ["@types/vscode"]
+		"ignore": [
+			"@types/vscode",
+			"rimraf",
+			"prettier",
+			"husky",
+			"lint-staged",
+			"markdownlint-cli"
+		]
 	},
 	"esm": {
 		"cjs": true
