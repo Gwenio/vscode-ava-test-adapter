@@ -396,18 +396,23 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 	}
 
 	/**
+	 * Appends data to the Adapter's channel.
+	 * @param chunk The data to append.
+	 */
+	private append(chunk: string | Buffer): void {
+		if (is.buffer(chunk)) {
+			this.channel.append(chunk.toString())
+		} else if (is.string(chunk)) {
+			this.channel.append(chunk)
+		}
+	}
+
+	/**
 	 * Spawns a new Worker.
 	 * @param config The configuration to use.
 	 */
 	private spawn(config: LoadedConfig): void {
 		const log = this.log
-		const append = (chunk: string | Buffer): void => {
-			if (is.buffer(chunk)) {
-				this.channel.append(chunk.toString())
-			} else if (is.string(chunk)) {
-				this.channel.append(chunk)
-			}
-		}
 		this.queue.add(
 			(): Promise<void> => {
 				return new Promise<void>((resolve): void => {
@@ -417,8 +422,8 @@ export class AVAAdapter implements TestAdapter, IDisposable {
 						this.worker.disconnect()
 					}
 					this.worker = new Worker(config)
-						.on('stdout', append)
-						.on('stderr', append)
+						.on('stdout', this.append.bind(this))
+						.on('stderr', this.append.bind(this))
 						.on('error', (error): void => {
 							log.error(error)
 						})

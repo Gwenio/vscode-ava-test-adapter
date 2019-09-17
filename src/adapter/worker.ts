@@ -142,11 +142,7 @@ export class Worker {
 		if (child.stderr) {
 			child.stderr.on('data', emitter.emit.bind(emitter, 'stdout'))
 		}
-		const cleanup = (): void => {
-			if (this.alive) {
-				child.kill()
-			}
-		}
+		const cleanup = this.cleanup.bind(this)
 		const timer = setTimeout(cleanup, timeout)
 		child.once('message', (message: string): void => {
 			clearTimeout(timer)
@@ -167,11 +163,7 @@ export class Worker {
 	 */
 	private connect(port: number, token: string): void {
 		const emit = this.emitter.emit.bind(this.emitter)
-		const cleanup = (): void => {
-			if (this.alive) {
-				this.child.kill()
-			}
-		}
+		const cleanup = this.cleanup.bind(this)
 		const c = new Client(token, {
 			handshakeTimeout: timeout,
 		})
@@ -375,6 +367,13 @@ export class Worker {
 			this.emitter.once('connect').then((): void => {
 				setImmediate(this.disconnect.bind(this))
 			})
+		}
+	}
+
+	/** Kills the child process, if it is alive. */
+	private cleanup(): void {
+		if (this.alive) {
+			this.child.kill()
 		}
 	}
 }
