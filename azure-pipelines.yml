@@ -45,7 +45,7 @@ steps:
   displayName: Test Coverage
 - bash: |
     mkdir -pv ./tmp/xunit
-    (npx ava --tap | tap-xunit) > ./tmp/xunit/all.xml
+    (npx ava --tap | npx tap-xunit) > ./tmp/xunit/all.xml
     [ -f ./tmp/xunit/all.xml ] && cat ./tmp/xunit/all.xml || echo "No test results found."
   displayName: Run Tests
 - task: PublishTestResults@2
