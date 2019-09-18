@@ -92,15 +92,18 @@ export function setup(configFile: string, logger?: Logger): Setup {
 		extensions.all
 	)
 	const match = arrify(avaConfig.match)
+	/* istanbul ignore next */
 	const snapshotDir = avaConfig.snapshotDir
 		? path.resolve(projectDir, avaConfig.snapshotDir)
 		: null
+	/* istanbul ignore next */
+	const concurrency = avaConfig.concurrency ? parseInt(avaConfig.concurrency, 10) : 0
 	if (logger) logger('Config loaded.')
 	return {
 		babelConfig,
 		cacheEnabled: avaConfig.cache !== false,
 		compileEnhancements: avaConfig.compileEnhancements !== false,
-		concurrency: avaConfig.concurrency ? parseInt(avaConfig.concurrency, 10) : 0,
+		concurrency,
 		extensions,
 		failFast: avaConfig.failFast === true,
 		failWithoutAssertions: avaConfig.failWithoutAssertions !== false,
