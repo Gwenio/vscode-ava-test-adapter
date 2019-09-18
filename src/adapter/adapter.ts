@@ -28,6 +28,7 @@ import {
 } from 'vscode-test-adapter-api'
 import { Log } from 'vscode-test-adapter-util/out/log'
 import is from '@sindresorhus/is'
+import Disposable from './disposable'
 import { AVAConfig, LoadedConfig, SubConfig } from './config'
 import TestTree from './test_tree'
 import { Worker } from './worker'
@@ -35,21 +36,15 @@ import { SerialQueue } from './queue'
 import connectDebugger from './debugger'
 import Watcher from './watcher'
 
-/** Disposable interface. */
-interface IDisposable {
-	/** Dispose of the object. */
-	dispose(): void
-}
-
 /** Events for test states. */
 type TestStates = TestRunStartedEvent | TestRunFinishedEvent | TestSuiteEvent | TestEvent
 /** Test Start and Finish events. */
 type TestEvents = TestLoadStartedEvent | TestLoadFinishedEvent
 
 /** The test adapter. */
-export class AVAAdapter implements TestAdapter, IDisposable {
+export class AVAAdapter implements TestAdapter, Disposable {
 	/** Array of objects to dispose of when dispose() is called. */
-	private disposables: IDisposable[] = []
+	private disposables: Disposable[] = []
 	/** Emits test events. */
 	private readonly testsEmitter = new vscode.EventEmitter<TestEvents>()
 	/** Emits test state events. */

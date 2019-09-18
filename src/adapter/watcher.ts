@@ -18,15 +18,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import Emitter from 'emittery'
 import Log from './log'
-
-/** Disposable interface. */
-interface IDisposable {
-	/** Dispose of the object. */
-	dispose(): void
-}
+import Disposable from './disposable'
 
 /** Manages file change events. */
-export default class Watcher implements IDisposable {
+export default class Watcher implements Disposable {
 	/** Internal event emitter. */
 	private readonly emitter = new Emitter.Typed<{ changed: string }, 'run' | 'load'>()
 	/** The set of files to watch for changes. */
