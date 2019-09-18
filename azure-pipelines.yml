@@ -13,19 +13,21 @@ steps:
   inputs:
     versionSpec: '12.7'
   displayName: 'Install Node.js'
-- task: YarnInstaller@3
-  displayName: 'Install Yarn'
-  inputs:
-    versionSpec: 1.17.x
-    checkLatest: true
-    includePrerelease: false
-- script: npm i tap-xunit
-  displayName: Install tap-xunit
-- script: yarn install
+#- bash: yarn --version || npm i -g yarn@1
+#  displayName: Install Yarn
+#- task: YarnInstaller@3
+#  displayName: 'Install Yarn'
+#  inputs:
+#    versionSpec: 1.17.x
+#    checkLatest: true
+#    includePrerelease: false
+#- script: npm i tap-xunit
+#  displayName: Install tap-xunit
+- script: npx yarn@1 install
   displayName: 'yarn install'
-- script: tsc --project src/tsconfig.json
+- script: npx tsc --project src/tsconfig.json
   displayName: Compile Source
-- script: tsc --project test/tsconfig.json
+- script: npx tsc --project test/tsconfig.json
   displayName: Compile Tests
 - script: npx rollup -c
   displayName: Rollup Bundles
@@ -37,7 +39,7 @@ steps:
   displayName: Test Coverage
 - bash: |
     mkdir -pv ./tmp/xunit
-    (npx ava --tap | npx tap-xunit) > ./tmp/xunit/all.xml
+    (npx ava --tap | npx tap-xunit@latest) > ./tmp/xunit/all.xml
   displayName: Run Tests
 - task: PublishTestResults@2
   displayName: Publish Azure Test Results
@@ -45,7 +47,7 @@ steps:
     testResultsFormat: 'xUnit'
     testResultsFiles: ./tmp/xunit/all.xml
 - task: PublishCodeCoverageResults@1
-  displayName: Publish Azure Test Results
+  displayName: Publish Azure Test Coverage
   inputs:
     codeCoverageTool: Cobertura
     summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
