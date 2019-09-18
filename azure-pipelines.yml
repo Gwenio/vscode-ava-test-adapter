@@ -13,18 +13,8 @@ steps:
   inputs:
     versionSpec: '12.7'
   displayName: 'Install Node.js'
-#- bash: yarn --version || npm i -g yarn@1
-#  displayName: Install Yarn
-#- task: YarnInstaller@3
-#  displayName: 'Install Yarn'
-#  inputs:
-#    versionSpec: 1.17.x
-#    checkLatest: true
-#    includePrerelease: false
-#- script: npm i tap-xunit
-#  displayName: Install tap-xunit
 - script: npx yarn@1 install
-  displayName: 'yarn install'
+  displayName: Yarn Install
 - script: npx tsc --project src/tsconfig.json
   displayName: Compile Source
 - script: npx tsc --project test/tsconfig.json
