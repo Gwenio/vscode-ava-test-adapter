@@ -32,3 +32,4 @@ rollup.config.js
 ava.*.js
 azure-pipelines.yml
 codecov.yml
+commitlint.config.js
