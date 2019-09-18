@@ -39,6 +39,8 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.5.5",
+		"@commitlint/cli": "^8.2.0",
+		"@commitlint/config-conventional": "^8.2.0",
 		"@sindresorhus/is": "^1.0.0",
 		"@types/hash-sum": "^1.0.0",
 		"@types/node": "12.7.5",
@@ -61,6 +63,7 @@
 		"emittery": "^0.5.0",
 		"eslint": "6.4.0",
 		"eslint-config-prettier": "^6.1.0",
+		"eslint-plugin-ava": "^8.0.0",
 		"eslint-plugin-node": "^10.0.0",
 		"eslint-plugin-promise": "^4.2.1",
 		"eslint-plugin-unicorn": "^11.0.0",
@@ -112,7 +115,8 @@
 	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "npx lint-staged"
+			"pre-commit": "npx lint-staged",
+			"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
 		}
 	},
 	"lint-staged": {
