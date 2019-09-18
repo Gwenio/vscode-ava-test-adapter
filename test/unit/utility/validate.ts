@@ -33,7 +33,7 @@ import {
 } from '../../../src/utility/validate'
 import { TestFile, Prefix, Ready, Debug } from '../../../src/ipc'
 
-test('isMessage', async (t): Promise<void> => {
+test('isMessage', (t): void => {
 	t.true(isMessage({ type: 'log' }))
 	t.true(isMessage({ type: '' }))
 	t.false(isMessage(undefined))
@@ -45,7 +45,7 @@ test('isMessage', async (t): Promise<void> => {
 	t.false(isMessage({ type: [] }))
 })
 
-test('isLogging', async (t): Promise<void> => {
+test('isLogging', (t): void => {
 	t.true(
 		isLogging({
 			type: 'log',
@@ -60,7 +60,7 @@ test('isLogging', async (t): Promise<void> => {
 	)
 })
 
-test('isLoad', async (t): Promise<void> => {
+test('isLoad', (t): void => {
 	t.true(
 		isLoad({
 			type: 'load',
@@ -75,7 +75,7 @@ test('isLoad', async (t): Promise<void> => {
 	})
 })
 
-test('isDrop', async (t): Promise<void> => {
+test('isDrop', (t): void => {
 	t.true(
 		isDrop({
 			type: 'drop',
@@ -97,7 +97,7 @@ test('isDrop', async (t): Promise<void> => {
 	})
 })
 
-test('isPrefix', async (t): Promise<void> => {
+test('isPrefix', (t): void => {
 	const base: Prefix = {
 		type: 'prefix',
 		id: 'c0',
@@ -119,7 +119,7 @@ test('isPrefix', async (t): Promise<void> => {
 	})
 })
 
-test('isTestFile', async (t): Promise<void> => {
+test('isTestFile', (t): void => {
 	const base: TestFile = {
 		type: 'file',
 		id: 'f0',
@@ -159,7 +159,7 @@ test('isTestFile', async (t): Promise<void> => {
 	})
 })
 
-test('isTestCase', async (t): Promise<void> => {
+test('isTestCase', (t): void => {
 	t.true(
 		isTestCase({
 			type: 'case',
@@ -170,7 +170,7 @@ test('isTestCase', async (t): Promise<void> => {
 	)
 })
 
-test('isRun', async (t): Promise<void> => {
+test('isRun', (t): void => {
 	t.true(
 		isRun({
 			type: 'run',
@@ -179,7 +179,7 @@ test('isRun', async (t): Promise<void> => {
 	)
 })
 
-test('isDone', async (t): Promise<void> => {
+test('isDone', (t): void => {
 	t.true(
 		isDone({
 			type: 'done',
@@ -194,7 +194,7 @@ test('isDone', async (t): Promise<void> => {
 	)
 })
 
-test('isResult', async (t): Promise<void> => {
+test('isResult', (t): void => {
 	t.true(
 		isResult({
 			type: 'result',
@@ -218,7 +218,7 @@ test('isResult', async (t): Promise<void> => {
 	)
 })
 
-test('isDebug', async (t): Promise<void> => {
+test('isDebug', (t): void => {
 	const base: Debug = {
 		type: 'debug',
 		port: 9229,
@@ -258,7 +258,7 @@ test('isDebug', async (t): Promise<void> => {
 	)
 })
 
-test('isReady', async (t): Promise<void> => {
+test('isReady', (t): void => {
 	const base: Ready = {
 		type: 'ready',
 		config: 'c0',

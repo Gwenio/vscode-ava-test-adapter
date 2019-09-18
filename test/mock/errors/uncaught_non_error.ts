@@ -18,7 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import test from 'ava'
 
-test('uncaught non-error', async (t): Promise<void> => {
+test('uncaught non-error', (t): void => {
 	t.pass()
 })
 

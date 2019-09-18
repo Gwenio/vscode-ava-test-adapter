@@ -18,10 +18,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import test from 'ava'
 
-test('uncaught exception', async (): Promise<void> => {
+test('uncaught exception', (): void => {
 	throw new Error('An uncaught exception.')
 })
 
-test('uncaught non-error', async (): Promise<void> => {
+test('uncaught non-error', (): void => {
 	throw 'An uncaught exception.'
 })

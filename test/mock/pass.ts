@@ -18,10 +18,10 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import test from 'ava'
 
-test('pass', async (t): Promise<void> => {
+test('pass', (t): void => {
 	t.pass()
 })
 
-test('pass with message', async (t): Promise<void> => {
+test('pass with message', (t): void => {
 	t.pass('message')
 })

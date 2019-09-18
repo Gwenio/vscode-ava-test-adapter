@@ -40,8 +40,10 @@ const modify = [
 	(h: string): string => 'A' + h + 'Z',
 ]
 
+const fakeCheck = (_: string): boolean => false
+
 test('creates a hash', async (t): Promise<void> => {
-	const f = t.context.sandbox.spy((_: string): boolean => false)
+	const f = t.context.sandbox.spy(fakeCheck)
 	const m = new Map<string, string>()
 	for (const x of ['a', 'ab', 'abc']) {
 		m.set(x, hash(x, f))
@@ -60,7 +62,7 @@ test('creates a hash', async (t): Promise<void> => {
 })
 
 test('initial hash is deterministic', async (t): Promise<void> => {
-	const f = (_: string): boolean => false
+	const f = fakeCheck
 	const m = new Map<string, string>()
 	for (const add of modify) {
 		for (const x of ['a', 'ab', 'abc']) {
@@ -89,7 +91,7 @@ test('prevents repeats', async (t): Promise<void> => {
 })
 
 test('prefix & suffix', async (t): Promise<void> => {
-	const f = t.context.sandbox.spy((_: string): boolean => false)
+	const f = t.context.sandbox.spy(fakeCheck)
 	const h0 = hash('abc', f)
 	const h1 = hash('abc', f, modify[1])
 	const h2 = hash('abc', f, modify[2])

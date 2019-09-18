@@ -11,8 +11,8 @@
 			"arrowFunctions": true
 		}
 	},
-	"plugins": ["@typescript-eslint"],
-	"extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+	"plugins": ["@typescript-eslint", "ava"],
+	"extends": ["plugin:@typescript-eslint/recommended", "plugin:ava/recommended", "prettier"],
 	"settings": {
 		"node": {
 			"allowModules": ["sinon", "emittery", "delay"],
@@ -37,6 +37,16 @@
 				"caughtErrorsIgnorePattern": "^_"
 			}
 		],
-		"@typescript-eslint/interface-name-prefix": "off"
+		"@typescript-eslint/interface-name-prefix": "off",
+		"ava/use-test": "off",
+		"ava/no-ignored-test-files": [
+			"error",
+			{
+				"files": ["unit/**", "worker/**", "mock/**"],
+				"extensions": [".js", ".ts"],
+				"helpers": ["../helpers/**"],
+				"sources": ["../src/**"]
+			}
+		]
 	}
 }

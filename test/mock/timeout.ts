@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import test from 'ava'
 
 test('timeout', async (t): Promise<void> => {
-	t.timeout(25)
+	t.timeout(25) // eslint-disable-line ava/use-t-well
 	await new Promise<void>((resolve): void => {
 		setTimeout(resolve, 100)
 	})
