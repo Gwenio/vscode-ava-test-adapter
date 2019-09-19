@@ -18,11 +18,11 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import vscode from 'vscode'
-import { Log } from 'vscode-test-adapter-util/out/log'
 import { detectNodePath } from 'vscode-test-adapter-util/out/misc'
+import Log from './log'
 
 /** The root for the extension's VSCode configurations. */
-const configRoot = 'avaExplorer'
+export const configRoot = 'avaExplorer'
 
 /** Contains utilities for managing configuration. */
 export class AVAConfig {
@@ -113,10 +113,6 @@ export class AVAConfig {
 			debuggerPort,
 			debuggerSkipFiles,
 		}
-	}
-
-	public static createLog(workspace: vscode.WorkspaceFolder, logName: string): Log {
-		return new Log(configRoot, workspace, logName)
 	}
 }
 
