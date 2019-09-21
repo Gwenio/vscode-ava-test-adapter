@@ -71,7 +71,7 @@ jobs:
     displayName: Publish Azure Results
     condition: succeededOrFailed()
     inputs:
-      testResultsFormat: 'xUnit'
+      testResultsFormat: 'JUnit'
       testResultsFiles: tmp/results.xml
       testRunTitle: All Tests
       buildConfiguration: Node.js-$(NODE_VERSION)
