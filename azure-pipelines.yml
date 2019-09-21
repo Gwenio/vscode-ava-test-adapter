@@ -1,6 +1,7 @@
 trigger:
 - master
 - greenkeeper/*
+- fix/*
 
 pool:
   vmImage: 'ubuntu-latest'
