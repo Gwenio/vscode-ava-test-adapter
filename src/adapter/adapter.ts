@@ -26,10 +26,10 @@ import {
 	TestSuiteEvent,
 	TestEvent,
 } from 'vscode-test-adapter-api'
-import { Log } from 'vscode-test-adapter-util/out/log'
 import is from '@sindresorhus/is'
 import Disposable from './disposable'
-import { AVAConfig, LoadedConfig, SubConfig } from './config'
+import Log from './log'
+import { Config, LoadedConfig, SubConfig, configRoot, ConfigKey } from './config'
 import TestTree from './test_tree'
 import { Worker } from './worker'
 import { SerialQueue } from './queue'
@@ -56,7 +56,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	/** Map of configuration IDs to SubConfigs. */
 	private configMap = new Map<string, SubConfig>()
 	/** The loaded settings. */
-	private config: LoadedConfig | null = null
+	private config: Config<'logpanel' | 'logfile'>
 	/** The Worker, if there is one. */
 	private worker?: Worker
 	/** Queue actions. */
@@ -99,60 +99,55 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	 * @param workspace The VSCode Workspace.
 	 * @param channel The VSCode output channel.
 	 * @param log The output Log.
+	 * @param nodePath The default NodeJS installation to use.
 	 */
-	public constructor(workspace: vscode.WorkspaceFolder, channel: vscode.OutputChannel, log: Log) {
+	public constructor(
+		workspace: vscode.WorkspaceFolder,
+		channel: vscode.OutputChannel,
+		log: Log,
+		nodePath?: string
+	) {
 		this.workspace = workspace
 		this.channel = channel
 		this.log = log
-		this.log.info('Initializing AVA Adapter...')
+		log.info('Initializing AVA Adapter...')
+		if (nodePath) {
+			log.info(`Using default NodeJS: ${nodePath}`)
+		} else {
+			log.warn(`No default NodeJS found.`)
+		}
 
-		this.watcher = new Watcher(log, workspace.uri.fsPath)
+		const fsPath = workspace.uri.fsPath
+
+		this.watcher = new Watcher(log, fsPath)
 			.on('run', this.autorunEmitter.fire.bind(this.autorunEmitter))
 			.on('load', this.load.bind(this))
+
+		const store = vscode.workspace.getConfiguration(configRoot, this.workspace.uri)
+		this.config = new Config(
+			fsPath,
+			<T>(key: string): T | undefined => store.get<T>(key),
+			log,
+			['logpanel', 'logfile'],
+			nodePath
+		)
+
+		this.spawn(this.config.current)
 
 		this.disposables.push(
 			vscode.workspace.onDidSaveTextDocument((document): void => {
 				this.watcher.changed(document.uri.fsPath)
 			})
 		)
+		this.disposables.push(
+			vscode.workspace.onDidChangeConfiguration((configChange): void => {
+				this.queue.add(this.updateConfig.bind(this, configChange))
+			})
+		)
 		this.disposables.push(this.watcher)
 		this.disposables.push(this.testsEmitter)
 		this.disposables.push(this.testStatesEmitter)
 		this.disposables.push(this.autorunEmitter)
-
-		this.disposables.push(
-			vscode.workspace.onDidChangeConfiguration(
-				async (configChange): Promise<void> => {
-					this.log.info('Configuration changed')
-					const uri = this.workspace.uri
-					if (
-						AVAConfig.affected(uri, configChange, 'cwd', 'env', 'nodePath', 'nodeArgv')
-					) {
-						this.log.info('Sending reload event')
-						await this.loadConfig(true)
-						this.load()
-						return
-					} else if (AVAConfig.affected(uri, configChange, 'configs')) {
-						this.log.info('Sending reload event')
-						await this.loadConfig()
-						this.load()
-					} else if (
-						AVAConfig.affected(uri, configChange, 'debuggerPort', 'debuggerSkipFiles')
-					) {
-						await this.loadConfig()
-					}
-					if (AVAConfig.affected(uri, configChange, 'logpanel', 'logfile')) {
-						this.channel.appendLine('[Main] Logging settings changed.')
-						this.queue.add((): void => {
-							const w = this.worker
-							if (w) {
-								w.send({ type: 'log', enable: this.log.enabled })
-							}
-						})
-					}
-				}
-			)
-		)
 	}
 
 	/**
@@ -161,14 +156,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	 */
 	public async load(): Promise<void> {
 		this.testsEmitter.fire({ type: 'started' })
-		const config = this.config || (await this.loadConfig())
-		if (!config) {
-			this.log.error(`config unavailable to load tests.`)
-			this.testsEmitter.fire({ type: 'finished', suite: undefined })
-			this.watcher.clear()
-			this.configMap = new Map<string, SubConfig>()
-			return
-		}
+		const config = this.config.current
 		if (this.log.enabled) {
 			this.log.info(`Loading test files of ${this.workspace.uri.fsPath}`)
 		}
@@ -224,8 +212,6 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	 * @inheritdoc
 	 */
 	public async run(testsToRun: string[]): Promise<void> {
-		const config = this.config
-		if (!config) return
 		if (this.log.enabled) {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Running test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
@@ -263,8 +249,8 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	 * @inheritdoc
 	 */
 	public async debug(testsToRun: string[]): Promise<void> {
-		const config = this.config
-		if (!config || testsToRun.length === 0) {
+		const config = this.config.current
+		if (testsToRun.length === 0) {
 			return
 		}
 		if (this.log.enabled) {
@@ -355,42 +341,6 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	}
 
 	/**
-	 * Reloads the configuration.
-	 * @param relaunch Indicates whether worker needs to be relaunched.
-	 */
-	private async loadConfig(relaunch = false): Promise<LoadedConfig | null> {
-		return this.queue
-			.add(
-				async (): Promise<LoadedConfig | null> => {
-					const c = await AVAConfig.load(this.workspace.uri, this.log)
-					this.config = c
-					if (c) {
-						this.watcher.activate = true
-						if (!this.worker || relaunch) {
-							this.spawn(c)
-							this.queue.add((): void => {
-								const w = this.worker
-								if (w) {
-									w.send({
-										type: 'log',
-										enable: this.log.enabled,
-									})
-								}
-							})
-						}
-					} else {
-						this.watcher.activate = false
-						if (this.worker) this.worker.disconnect
-					}
-					return c
-				}
-			)
-			.then((c): LoadedConfig | null => {
-				return c || null
-			})
-	}
-
-	/**
 	 * Appends data to the Adapter's channel.
 	 * @param chunk The data to append.
 	 */
@@ -402,13 +352,52 @@ export class AVAAdapter implements TestAdapter, Disposable {
 		}
 	}
 
+	private setWorkerLog(): void {
+		this.queue.add((): void => {
+			const w = this.worker
+			if (w) {
+				w.send({ type: 'log', enable: this.log.enabled })
+			}
+		})
+	}
+
+	private async updateConfig(event: vscode.ConfigurationChangeEvent): Promise<void> {
+		this.log.info('Processing configuration changes...')
+		const affects = event.affectsConfiguration.bind(event)
+		const uri = this.workspace.uri
+		const check = (key: string): boolean => affects(key, uri)
+		const store = vscode.workspace.getConfiguration(configRoot, this.workspace.uri)
+		const list = this.config.update(check, <T>(key: string): T | undefined => store.get<T>(key))
+		const has = list.has.bind(list)
+		const affected = (...x: (ConfigKey | 'logpanel' | 'logfile')[]): boolean => x.some(has)
+		if (affected('cwd', 'environment', 'nodePath', 'nodeArgv')) {
+			this.log.info('Sending reload event')
+			await this.spawn(this.config.current)
+			this.load()
+			return
+		} else if (has('configs')) {
+			this.log.info('Sending reload event')
+			if (!this.worker) {
+				await this.spawn(this.config.current)
+			} else if (affected('logpanel', 'logfile')) {
+				this.setWorkerLog()
+			}
+			this.load()
+		} else if (!this.worker) {
+			await this.spawn(this.config.current)
+		} else if (affected('logpanel', 'logfile')) {
+			this.channel.appendLine('[Main] Logging settings changed.')
+			this.setWorkerLog()
+		}
+	}
+
 	/**
 	 * Spawns a new Worker.
 	 * @param config The configuration to use.
 	 */
-	private spawn(config: LoadedConfig): void {
+	private spawn(config: LoadedConfig): Promise<void> {
 		const log = this.log
-		this.queue.add(
+		return this.queue.add(
 			(): Promise<void> => {
 				return new Promise<void>((resolve): void => {
 					let failed = true
@@ -445,6 +434,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 								log.debug('Worker disconnected.')
 							})
 							failed = false
+							this.setWorkerLog()
 							resolve()
 						})
 						.once('exit', (w: Worker): void => {
