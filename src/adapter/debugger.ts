@@ -33,7 +33,7 @@ export default async function connectDebugger(
 	skipFiles: string[],
 	port: number
 ): Promise<void> {
-	log.info('Starting the debug session')
+	log.info(`Starting the debug session on port ${port}`)
 	await vscode.debug.startDebugging(workspace, {
 		name: 'Debug AVA Tests',
 		type: 'node',
