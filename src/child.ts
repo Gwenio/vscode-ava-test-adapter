@@ -170,7 +170,7 @@ connection
 						default:
 							throw new TypeError(`Invalid message type: ${data.type}`)
 					}
-				} else {
+				} else if (data !== client.name) {
 					if (process.env.NODE_ENV !== 'production') {
 						console.debug(JSON.stringify(data))
 					}
