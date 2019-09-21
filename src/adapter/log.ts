@@ -26,12 +26,17 @@ export default interface Log {
 	 */
 	info(...items: any[]): void
 	/**
+	 * Outputs a warning log message.
+	 * @param items Items to output to the Log.
+	 */
+	warn(...items: any[]): void
+	/**
 	 * Outputs an error log message.
 	 * @param items Items to output to the Log.
 	 */
 	error(...items: any[]): void
 	/**
-	 * Outputs an debug log message.
+	 * Outputs a debug log message.
 	 * @param items Items to output to the Log.
 	 */
 	debug(...items: any[]): void

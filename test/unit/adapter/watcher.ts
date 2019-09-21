@@ -43,6 +43,7 @@ const logger = (..._: []): void => {}
 const fakeLog: Log = {
 	enabled: false,
 	info: logger,
+	warn: logger,
 	error: logger,
 	debug: logger,
 }

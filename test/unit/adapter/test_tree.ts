@@ -40,6 +40,7 @@ const logger = (..._: []): void => {}
 const fakeLog: Log = {
 	enabled: false,
 	info: logger,
+	warn: logger,
 	error: logger,
 	debug: logger,
 }
@@ -171,6 +172,7 @@ test('broken tree', async (t): Promise<void> => {
 	const spyLog: Log = {
 		enabled: true,
 		info: spy(logger),
+		warn: spy(logger),
 		error: spy(logger),
 		debug: spy(logger),
 	}
