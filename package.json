@@ -97,7 +97,7 @@
 		"vscode-test-adapter-util": "^0.7.0"
 	},
 	"engines": {
-		"node": ">=11.14.0",
+		"node": ">=12.7.0",
 		"vscode": ">=1.23.0"
 	},
 	"greenkeeper": {
