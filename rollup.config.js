@@ -218,7 +218,10 @@ const avaIntro = {
 		'const connection=(function() {\n' +
 		"const {Server}=new require('veza/dist/lib/Server')\n" +
 		"return new Server('ava-adapter-worker')})()\n" +
-		"require=require('module').createRequire(process.cwd()+'/')\n" +
+		'require=((m) => {\n' +
+		"if (m.createRequire) return m.createRequire(process.cwd()+'/')\n" +
+		"else return m.createRequireFromPath(process.cwd()+'/')\n" +
+		"})(require('module'))\n" +
 		"require('ava/lib/chalk').set({enabled: false})\n",
 }
 
