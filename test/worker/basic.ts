@@ -55,6 +55,9 @@ test('start up and shut down', async (t): Promise<void> => {
 		emitter.emitSerial('exit')
 	})
 	const w = new Worker(workerConfig, workerPath)
+		.on('error', (x): void => {
+			t.log(x)
+		})
 		.once('connect', onConnect)
 		.once('disconnect', onDisconnect)
 		.once('exit', onExit)
