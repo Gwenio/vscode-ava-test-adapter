@@ -96,6 +96,16 @@
 		"node": ">=11.14.0",
 		"vscode": ">=1.23.0"
 	},
+	"greenkeeper": {
+		"ignore": [
+			"@types/vscode",
+			"rimraf",
+			"prettier",
+			"husky",
+			"lint-staged",
+			"markdownlint-cli"
+		]
+	},
 	"esm": {
 		"cjs": true
 	},

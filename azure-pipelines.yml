@@ -1,0 +1,49 @@
+trigger:
+- master
+- greenkeeper/*
+- fix/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: vscode-ava-test-adapter
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '12.7'
+  displayName: 'Install Node.js'
+- script: npx yarn@1 install
+  displayName: Yarn Install
+- script: npx tsc --project src/tsconfig.json
+  displayName: Compile Source
+- script: npx tsc --project test/tsconfig.json
+  displayName: Compile Tests
+- script: npx rollup -c
+  displayName: Rollup Bundles
+- script: |
+    npx rimraf ./node_modules/.cache/nyc
+    npx nyc --clean -r text ava --config ava.coverage.js
+    npx nyc report -r json
+    npx nyc report -r cobertura
+  displayName: Test Coverage
+- bash: |
+    mkdir -pv ./tmp/xunit
+    (npx ava --tap | npx tap-xunit@latest) > ./tmp/xunit/all.xml
+  displayName: Run Tests
+- task: PublishTestResults@2
+  displayName: Publish Azure Test Results
+  inputs:
+    testResultsFormat: 'xUnit'
+    testResultsFiles: ./tmp/xunit/all.xml
+- task: PublishCodeCoverageResults@1
+  displayName: Publish Azure Test Coverage
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
+- script: |
+    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/coverage-final.json
+  displayName: CodeCov.io
+  env:
+    CODECOV_TOKEN: $(CODECOV_TOKEN)
