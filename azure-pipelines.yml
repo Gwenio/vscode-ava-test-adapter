@@ -76,3 +76,6 @@ jobs:
       testRunTitle: All Tests
       buildConfiguration: Node.js-$(NODE_VERSION)
       publishRunAttachments: true
+  - script: npx ava
+    condition: failed()
+    displayName: AVA Native Results
