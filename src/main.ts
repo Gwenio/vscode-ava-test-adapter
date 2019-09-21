@@ -20,6 +20,7 @@ import vscode from 'vscode'
 import { TestHub, testExplorerExtensionId } from 'vscode-test-adapter-api'
 import { TestAdapterRegistrar } from 'vscode-test-adapter-util/out/registrar'
 import { Log } from 'vscode-test-adapter-util/out/log'
+import { detectNodePath } from 'vscode-test-adapter-util/out/misc'
 import { AVAAdapter } from './adapter/adapter'
 import { configRoot } from './adapter/config'
 
@@ -37,11 +38,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 	if (log.enabled) log.info(`Test Explorer ${testExplorerExtension ? '' : 'not '}found`)
 	if (testExplorerExtension) {
 		const testHub = testExplorerExtension.exports
-
+		const nodePath = await detectNodePath()
 		context.subscriptions.push(
 			new TestAdapterRegistrar(
 				testHub,
-				(workspaceFolder): AVAAdapter => new AVAAdapter(workspaceFolder, channel, log),
+				(workspaceFolder): AVAAdapter =>
+					new AVAAdapter(workspaceFolder, channel, log, nodePath),
 				log
 			)
 		)
