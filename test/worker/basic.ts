@@ -19,6 +19,8 @@ PERFORMANCE OF THIS SOFTWARE.
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import Emitter from 'emittery'
+// eslint-disable-next-line node/no-unpublished-import
+import is from '@sindresorhus/is'
 import { Worker } from '../../src/adapter/worker'
 import { SerialQueue } from '../../src/adapter/queue'
 
@@ -47,6 +49,7 @@ const workerPath = '../../../dist/child.js'
 test('start up and shut down', async (t): Promise<void> => {
 	const spy = t.context.sandbox.spy
 	const q = new SerialQueue()
+	const l: (string | Buffer)[] = []
 	const emitter = new Emitter()
 	const exited = q.add(() => emitter.once('exit'))
 	const onConnect = spy((w: Worker): void => {
@@ -62,12 +65,29 @@ test('start up and shut down', async (t): Promise<void> => {
 				t.log(x)
 			})
 		})
+		.on('stdout', (x): void => {
+			q.add((): void => {
+				l.push(x)
+			})
+		})
+		.on('stderr', (x): void => {
+			q.add((): void => {
+				l.push(x)
+			})
+		})
 		.once('connect', onConnect)
 		.once('disconnect', onDisconnect)
 		.once('exit', onExit)
 	t.timeout(30000)
 	await exited
 	await q.add((): void => {
+		for (const x of l) {
+			if (is.buffer(x)) {
+				t.log(x.toString())
+			} else if (is.string(x)) {
+				t.log(x)
+			}
+		}
 		t.is(onConnect.callCount, 1)
 		t.true(onConnect.firstCall.calledWithExactly(w))
 		t.is(onDisconnect.callCount, 1)
