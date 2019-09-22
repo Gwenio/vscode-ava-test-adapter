@@ -20,6 +20,7 @@ import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import Emitter from 'emittery'
 import { Worker } from '../../src/adapter/worker'
+import { SerialQueue } from '../../src/adapter/queue'
 
 interface Context {
 	/** Isolated sinon sandbox. */
@@ -45,8 +46,9 @@ const workerPath = '../../../dist/child.js'
 
 test('start up and shut down', async (t): Promise<void> => {
 	const spy = t.context.sandbox.spy
+	const q = new SerialQueue()
 	const emitter = new Emitter()
-	const exited = emitter.once('exit')
+	const exited = q.add(() => emitter.once('exit'))
 	const onConnect = spy((w: Worker): void => {
 		w.disconnect()
 	})
@@ -56,18 +58,22 @@ test('start up and shut down', async (t): Promise<void> => {
 	})
 	const w = new Worker(workerConfig, workerPath)
 		.on('error', (x): void => {
-			t.log(x)
+			q.add((): void => {
+				t.log(x)
+			})
 		})
 		.once('connect', onConnect)
 		.once('disconnect', onDisconnect)
 		.once('exit', onExit)
 	t.timeout(30000)
 	await exited
-	t.is(onConnect.callCount, 1)
-	t.true(onConnect.firstCall.calledWithExactly(w))
-	t.is(onDisconnect.callCount, 1)
-	t.true(onDisconnect.firstCall.calledWithExactly(w))
-	t.is(onExit.callCount, 1)
-	t.true(onExit.firstCall.calledWithExactly(w))
-	t.true(w.exitCode === 0 || w.exitCode === null)
+	await q.add((): void => {
+		t.is(onConnect.callCount, 1)
+		t.true(onConnect.firstCall.calledWithExactly(w))
+		t.is(onDisconnect.callCount, 1)
+		t.true(onDisconnect.firstCall.calledWithExactly(w))
+		t.is(onExit.callCount, 1)
+		t.true(onExit.firstCall.calledWithExactly(w))
+		t.true(w.exitCode === 0 || w.exitCode === null)
+	})
 })
