@@ -19,6 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 /* eslint-disable */ // VSCode ESLint plugin does not respect .eslintignore
 
 import AVA from '../namespace'
+import { FileStats, TestStats } from '../events'
 import { Typed } from 'emittery'
 
 interface Options {
@@ -49,10 +50,12 @@ interface Options {
 	testOnlyExecArgv?: string[]
 }
 
+type Results = AVA.Status & { readonly stats: FileStats & TestStats }
+
 declare module 'ava/lib/api' {
 	export default class Api extends Typed<{ run: AVA.Plan }> {
 		constructor(Options)
-		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<AVA.Status>
+		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<Results>
 		_interruptHandler(): void
 		async _computeForkExecArgv(): Promise<string[]>
 	}
