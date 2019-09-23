@@ -48,6 +48,8 @@ jobs:
     matrix:
       Node12_10:
         NODE_VERSION: '12.10'
+      Node10:
+        NODE_VERSION: '10.16'
   steps:
   - task: NodeTool@0
     inputs:
