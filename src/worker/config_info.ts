@@ -93,7 +93,7 @@ export default class ConfigInfo {
 	public async load(logger?: Logger): Promise<ConfigInfo> {
 		const c = this.config
 		const reporter = new LoadReporter(c.match, logger)
-		await worker({ ...c, match: [''] }, { reporter, logger })
+		await worker({ ...c, match: ['!*'] }, { reporter, logger })
 		this.build(reporter.report)
 		return this
 	}
