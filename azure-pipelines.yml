@@ -4,47 +4,74 @@ trigger:
 - greenkeeper/*
 - fix/*
 
-pool:
-  vmImage: 'ubuntu-latest'
-
 variables:
 - group: vscode-ava-test-adapter
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '12.7'
-  displayName: 'Install Node.js'
-- script: npx yarn@1 install
-  displayName: Yarn Install
-- script: npx tsc --project src/tsconfig.json
-  displayName: Compile Source
-- script: npx tsc --project test/tsconfig.json
-  displayName: Compile Tests
-- script: npx rollup -c
-  displayName: Rollup Bundles
-- script: |
-    npx rimraf ./node_modules/.cache/nyc
-    npx nyc --clean -r text ava --config ava.coverage.js
-    npx nyc report -r json
-    npx nyc report -r cobertura
+jobs:
+- job: coverage
   displayName: Test Coverage
-- bash: |
-    mkdir -pv ./tmp/xunit
-    (npx ava --tap | npx tap-xunit@latest) > ./tmp/xunit/all.xml
-  displayName: Run Tests
-- task: PublishTestResults@2
-  displayName: Publish Azure Test Results
-  inputs:
-    testResultsFormat: 'xUnit'
-    testResultsFiles: ./tmp/xunit/all.xml
-- task: PublishCodeCoverageResults@1
-  displayName: Publish Azure Test Coverage
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
-- script: |
-    bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/coverage-final.json
-  displayName: CodeCov.io
-  env:
-    CODECOV_TOKEN: $(CODECOV_TOKEN)
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '12.10'
+    displayName: 'Install Node.js'
+  - script: npx yarn@1 install
+    displayName: Yarn Install
+  - script: npx tsc --project src/tsconfig.json
+    displayName: Compile Source
+  - script: npx tsc --project test/tsconfig.json
+    displayName: Compile Tests
+  - script: npx rollup -c
+    displayName: Rollup Bundles
+  - script: |
+      npx nyc -r text ava --config ava.coverage.js
+      npx nyc report -r json
+      npx nyc report -r cobertura
+    displayName: Generate Reports
+  - task: PublishCodeCoverageResults@1
+    displayName: Publish Azure Report
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
+  - script: |
+      bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/coverage-final.json
+    displayName: Publish Codecov Report
+    env:
+      CODECOV_TOKEN: $(CODECOV_TOKEN)
+- job: test
+  displayName: Test
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Node12_10:
+        NODE_VERSION: '12.10'
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(NODE_VERSION)
+    displayName: 'Install Node.js'
+  - script: npx yarn@1 install
+    displayName: Yarn Install
+  - script: npx tsc --project src/tsconfig.json
+    displayName: Compile Source
+  - script: npx tsc --project test/tsconfig.json
+    displayName: Compile Tests
+  - script: npx rollup -c
+    displayName: Rollup Bundles
+  - bash: (npx ava --tap | npx tap-xunit@latest) > tmp/results.xml
+    displayName: Run Tests
+  - task: PublishTestResults@2
+    displayName: Publish Azure Results
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: tmp/results.xml
+      testRunTitle: All Tests
+      buildConfiguration: Node.js-$(NODE_VERSION)
+      publishRunAttachments: true
+  - script: npx ava
+    condition: failed()
+    displayName: AVA Native Results
