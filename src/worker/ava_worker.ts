@@ -52,7 +52,7 @@ export async function worker(setup: Setup, options: WorkerOptions): Promise<void
 		...setup,
 		color: false,
 		parallelRuns: null,
-		ranFromCli: true,
+		ranFromCli: false,
 	})
 
 	if (options.port) {
