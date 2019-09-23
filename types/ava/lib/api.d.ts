@@ -29,6 +29,7 @@ interface Options {
 	compileEnhancements: boolean
 	concurrency: number
 	environmentVariables: { [key: string]: string }
+	experiments: { [key: string]: string }
 	extensions: AVA.Extensions
 	failFast: conf.failFast
 	failWithoutAssertions: boolean

@@ -27,5 +27,6 @@ declare module 'ava/lib/load-config' {
 		defaults = {},
 	}: AVA.Parameters = {}): AVA.Configuration & {
 		projectDir: string
+		nonSemVerExperiments: { [key: string]: true }
 	}
 }

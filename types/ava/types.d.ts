@@ -39,6 +39,7 @@ export interface Configuration {
 	failFast?: boolean
 	failWithoutAssertions?: boolean
 	environmentVariables?: { [key: string]: string }
+	nonSemVerExperiments?: { [key: string]: true }
 	tap?: boolean
 	verbose?: boolean
 	serial?: boolean
