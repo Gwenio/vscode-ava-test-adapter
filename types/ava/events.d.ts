@@ -155,7 +155,7 @@ export namespace Events {
 
 	interface Stats {
 		type: 'stats'
-		stats: TestStats
+		stats: TestStats & FileStats
 	}
 
 	interface Interrrupt {
