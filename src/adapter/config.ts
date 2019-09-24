@@ -54,12 +54,14 @@ interface ConfigCache {
 /** A set of configuration values. */
 export type LoadedConfig = Readonly<ConfigCache>
 
+/** The default values for a SubConfig. */
 const subDefault: Readonly<SubConfig> = {
 	file: 'ava.config.js',
 	serial: false,
 	debuggerSkipFiles: [],
 }
 
+/** The default values for a LoadedConfig. */
 const configDefaults: LoadedConfig = {
 	cwd: '',
 	configs: [subDefault],
@@ -70,6 +72,7 @@ const configDefaults: LoadedConfig = {
 	debuggerSkipFiles: [],
 }
 
+/** Functions to validate LoadedConfig values. */
 const configValidate: { [K in keyof LoadedConfig]: (_: LoadedConfig[K]) => void } = {
 	cwd: ow.create('cwd', ow.string),
 	configs: ow.create(
@@ -89,18 +92,30 @@ const configValidate: { [K in keyof LoadedConfig]: (_: LoadedConfig[K]) => void 
 	debuggerSkipFiles: ow.create('debuggerSkipFiles', ow.optional.array.ofType(ow.string.nonEmpty)),
 }
 
+/** The type for the keys of LoadedConfig. */
 export type ConfigKey = keyof LoadedConfig
 
-const configAliases = {
+/** A mapping of aliases between ConfigKey and the actual config keys. */
+const configAliases: { readonly [K in ConfigKey]?: string } = {
 	environment: 'env',
 }
 
+/** Immutable map of ConfigKey to string. */
 interface ConfigMap {
+	/**
+	 * Gets the mapped string for a key.
+	 * @param key The key to get the mapping for.
+	 */
 	get(key: ConfigKey): string
+
+	/** Gets an iterator for the map's keys. */
 	keys(): IterableIterator<ConfigKey>
+
+	/** Gets an iterator for the map's entries. */
 	entries(): IterableIterator<[ConfigKey, string]>
 }
 
+/** Map of ConfigKey to actual config keys. */
 const configAliasMap = new Map<ConfigKey, string>(
 	Object.keys(configValidate).map((key): [ConfigKey, string] => [
 		key as ConfigKey,
@@ -108,6 +123,7 @@ const configAliasMap = new Map<ConfigKey, string>(
 	])
 ) as ConfigMap
 
+/** Map of ConfigKey to actual config keys scoped to configRoot. */
 const configMap = new Map<ConfigKey, string>(
 	Object.keys(configValidate).map((key): [ConfigKey, string] => [
 		key as ConfigKey,
@@ -115,24 +131,49 @@ const configMap = new Map<ConfigKey, string>(
 	])
 ) as ConfigMap
 
+/** Callback type for querying the current value of a configuration. */
 export interface ConfigQuery {
+	/**
+	 * Gets a the setting associated with key.
+	 * @param key A value from configAliasMap to query for.
+	 * @returns The current setting or undefined if not set.
+	 */
 	<T>(key: string): T | undefined
 }
 
+/**
+ * Callback type for checking if a configuration was changed.
+ * @param key A value from configMap to check.
+ * @returns Whether the setting was changed.
+ */
 export type ConfigUpdate = (key: string) => boolean
 
 /** Contains utilities for managing configuration. */
 export class Config<X extends string> {
+	/** The default Node executable path, if one is set. */
 	private readonly defaultNode?: string
+	/** The working directory root path. */
 	private readonly fsPath: string
+	/** Extra configuration keys to monitor for changes. */
 	private readonly extra = new Map<X, string>()
+	/** The Log to use. */
 	private readonly log: Log
+	/** The current configuration values. */
 	private cache: LoadedConfig
 
+	/** Gets the current configuration values. */
 	public get current(): LoadedConfig {
 		return this.cache
 	}
 
+	/**
+	 * Constructs a new Config.
+	 * @param fsPath The working directory root path.
+	 * @param query Callback to load initial settings.
+	 * @param log The Log to use.
+	 * @param additional Additional configuration keys to monitor for changes.
+	 * @param node The default Node executable path, if one is found.
+	 */
 	public constructor(
 		fsPath: string,
 		query: ConfigQuery,
@@ -153,6 +194,12 @@ export class Config<X extends string> {
 		}
 	}
 
+	/**
+	 * Called to update the Config when one or more settings change.
+	 * @param event The callback representing a change event.
+	 * @param query The callback to query new settings with.
+	 * @returns Returns a Set of configuration keys that were changed.
+	 */
 	public update(event: ConfigUpdate, query: ConfigQuery): Set<ConfigKey | X> {
 		const affected = new Set<ConfigKey | X>()
 		const c: ConfigCache = { ...this.cache }
@@ -174,6 +221,10 @@ export class Config<X extends string> {
 		return affected
 	}
 
+	/**
+	 * Gets the configured Node executable path.
+	 * @param query The callback to get the currently set Node path.
+	 */
 	private getNode(query: ConfigQuery): LoadedConfig['nodePath'] {
 		const value = query<LoadedConfig['nodePath']>('nodePath')
 		try {
@@ -185,10 +236,16 @@ export class Config<X extends string> {
 		return value
 	}
 
+	/**
+	 * Gets the current value for a ConfigKey.
+	 * @param key The ConfigKey to get a value for.
+	 * @param query The callback to get the value from.
+	 * @returns The current value for the key or the default if a valid value was not found.
+	 */
 	private getValue<K extends ConfigKey>(key: K, query: ConfigQuery): LoadedConfig[K] {
 		const value = query<LoadedConfig[K]>(configAliasMap.get(key))
 		if (value === undefined) {
-			this.log.info(`No value for ${key} set, using default.`)
+			this.log.info(`No value for ${configMap.get(key)} set, using default.`)
 			return configDefaults[key]
 		} else {
 			try {
@@ -202,12 +259,20 @@ export class Config<X extends string> {
 		}
 	}
 
+	/**
+	 * Sets the value for a ConfigKey on a configuration cache.
+	 * @param c A cache of configuration values to update.
+	 * @param key The key of the value to set.
+	 * @param query The callback to get the value from.
+	 */
 	private setValue(c: ConfigCache, key: ConfigKey, query: ConfigQuery): void {
 		switch (key) {
 			case 'cwd':
+				// resolve from fsPath
 				c[key] = path.resolve(this.fsPath, this.getValue(key, query))
 				return
 			case 'configs':
+				// set unspecified values to defaults
 				c[key] = this.getValue(key, query).map(
 					({ file, serial, debuggerSkipFiles }): SubConfig => {
 						return {
@@ -219,6 +284,7 @@ export class Config<X extends string> {
 				)
 				return
 			case 'nodePath':
+				// use defaultNode if a path is not set
 				c[key] = this.getNode(query) || this.defaultNode
 				return
 			case 'environment':
