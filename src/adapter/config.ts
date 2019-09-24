@@ -174,6 +174,17 @@ export class Config<X extends string> {
 		return affected
 	}
 
+	private getNode(query: ConfigQuery): LoadedConfig['nodePath'] {
+		const value = query<LoadedConfig['nodePath']>('nodePath')
+		try {
+			configValidate['nodePath'](value)
+		} catch (error) {
+			this.log.error('Found invalid value for avaExplorer.nodePath', error)
+			return undefined
+		}
+		return value
+	}
+
 	private getValue<K extends ConfigKey>(key: K, query: ConfigQuery): LoadedConfig[K] {
 		const value = query<LoadedConfig[K]>(configAliasMap.get(key))
 		if (value === undefined) {
@@ -208,7 +219,7 @@ export class Config<X extends string> {
 				)
 				return
 			case 'nodePath':
-				c[key] = this.getValue(key, query) || this.defaultNode
+				c[key] = this.getNode(query) || this.defaultNode
 				return
 			case 'environment':
 				c[key] = this.getValue(key, query)
