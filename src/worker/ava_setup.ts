@@ -41,6 +41,8 @@ export interface Setup {
 	concurrency: number
 	/** The environment variables for the worker. */
 	environmentVariables: { [key: string]: string }
+	/** The experimental features to enable. */
+	experiments: { [key: string]: true }
 	/** The allowed test file extensions. */
 	extensions: AVA.Extensions
 	/** Sets whether test runs quit on first failure. */
@@ -109,6 +111,7 @@ export function setup(configFile: string, logger?: Logger): Setup {
 		failWithoutAssertions: avaConfig.failWithoutAssertions !== false,
 		globs,
 		environmentVariables,
+		experiments: avaConfig.nonSemVerExperiments,
 		match,
 		projectDir,
 		require: arrify(avaConfig.require),
