@@ -177,8 +177,7 @@
 					"description": "Environment variables for the background worker.",
 					"type": "object",
 					"additionalProperties": {
-						"type": ["string", "number", "boolean"],
-						"description": "Numeric and boolean values will be converted to strings."
+						"type": "string"
 					},
 					"default": {},
 					"scope": "resource"
