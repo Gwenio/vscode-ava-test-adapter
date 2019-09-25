@@ -75,22 +75,21 @@ const configDefaults: LoadedConfig = {
 /** Functions to validate LoadedConfig values. */
 const configValidate: { [K in keyof LoadedConfig]: (_: LoadedConfig[K]) => void } = {
 	cwd: ow.create('cwd', ow.string),
-	configs: ow.create(
-		'configs',
-		ow.array.nonEmpty.ofType(
-			ow.object.partialShape({
-				file: ow.any(ow.nullOrUndefined, ow.string.nonEmpty),
-				serial: ow.optional.boolean,
-				debuggerSkipFiles: ow.optional.array.ofType(ow.string.nonEmpty),
-			})
-		)
-	),
-	environment: ow.create('env', ow.object.plain.valuesOfType(ow.string)),
+	configs: ow.create('configs', ow.array.nonEmpty),
+	environment: ow.create('env', ow.object.plain),
 	nodePath: ow.create('nodePath', ow.any(ow.undefined, ow.string.nonEmpty)),
 	nodeArgv: ow.create('nodeArgv', ow.array.ofType(ow.string.nonEmpty)),
 	debuggerPort: ow.create('debuggerPort', ow.number.lessThanOrEqual(65535)),
 	debuggerSkipFiles: ow.create('debuggerSkipFiles', ow.optional.array.ofType(ow.string.nonEmpty)),
 }
+
+const subValidate = ow.create(
+	ow.object.partialShape({
+		file: ow.optional.string.nonEmpty,
+		serial: ow.optional.boolean,
+		debuggerSkipFiles: ow.optional.array.ofType(ow.string),
+	})
+)
 
 /** The type for the keys of LoadedConfig. */
 export type ConfigKey = keyof LoadedConfig
@@ -260,6 +259,60 @@ export class Config<X extends string> {
 	}
 
 	/**
+	 * Sanitizes a newly loaded environment.
+	 * @param value The environment to sanitize.
+	 */
+	private environment(value: Readonly<NodeJS.ProcessEnv>): NodeJS.ProcessEnv {
+		const x: NodeJS.ProcessEnv = { ...value }
+		for (const [key, value] of Object.entries(x)) {
+			switch (typeof value) {
+				case 'string':
+					break
+				case 'number':
+					x[key] = (value as number).toString()
+					break
+				case 'boolean':
+					x[key] = (value as boolean) ? 'true' : 'false'
+					break
+				default:
+					this.log.warn(
+						'The values in avaExplorer.env should be string, number, or boolean.',
+						`avaExplorer.env.['${key}'] will be set to an empty string.`
+					)
+					x[key] = ''
+					break
+			}
+		}
+		return x
+	}
+
+	/**
+	 * Sanitizes an array of newly loaded SubConfig objects.
+	 * @param value The array of SubConfig objects to sanitize.
+	 */
+	private configs(value: SubConfig[]): SubConfig[] {
+		return value.map(
+			(x: SubConfig): SubConfig => {
+				try {
+					subValidate(x)
+				} catch (error) {
+					this.log.error(
+						'Found invalid value in avaExplorer.configs, replacing it with default.',
+						error
+					)
+					return subDefault
+				}
+				const { file, serial, debuggerSkipFiles } = x
+				return {
+					file: file || subDefault.file,
+					serial: serial === true,
+					debuggerSkipFiles: debuggerSkipFiles || [],
+				}
+			}
+		)
+	}
+
+	/**
 	 * Sets the value for a ConfigKey on a configuration cache.
 	 * @param c A cache of configuration values to update.
 	 * @param key The key of the value to set.
@@ -272,23 +325,14 @@ export class Config<X extends string> {
 				c[key] = path.resolve(this.fsPath, this.getValue(key, query))
 				return
 			case 'configs':
-				// set unspecified values to defaults
-				c[key] = this.getValue(key, query).map(
-					({ file, serial, debuggerSkipFiles }): SubConfig => {
-						return {
-							file: file || subDefault.file,
-							serial: serial === true,
-							debuggerSkipFiles: debuggerSkipFiles || [],
-						}
-					}
-				)
+				c[key] = this.configs(this.getValue(key, query))
+				return
+			case 'environment':
+				c[key] = this.environment(this.getValue(key, query))
 				return
 			case 'nodePath':
 				// use defaultNode if a path is not set
 				c[key] = this.getNode(query) || this.defaultNode
-				return
-			case 'environment':
-				c[key] = this.getValue(key, query)
 				return
 			case 'nodeArgv':
 				c[key] = this.getValue(key, query)
