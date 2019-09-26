@@ -6,21 +6,21 @@
 		{
 			"label": "lint",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["eslint", "${file}"],
 			"problemMatcher": ["$eslint-stylish"]
 		},
 		{
 			"label": "fix",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["eslint", "--fix", "${file}"],
 			"problemMatcher": ["$eslint-stylish"]
 		},
 		{
 			"label": "rollup-watch",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["rollup", "-cw"],
 			"isBackground": false,
 			"presentation": {
@@ -35,7 +35,7 @@
 		{
 			"label": "rollup-production",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["rollup", "-c"],
 			"dependsOn": ["compile"],
 			"options": {
@@ -55,7 +55,7 @@
 		{
 			"label": "clean",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["rimraf", "tmp", "dist", "*.vsix"],
 			"isBackground": false,
 			"presentation": {
@@ -70,7 +70,7 @@
 		{
 			"label": "clean-tests",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["rimraf", "tmp/test"],
 			"isBackground": false,
 			"presentation": {
@@ -85,7 +85,7 @@
 		{
 			"label": "clear-cache",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["rimraf", "node_modules/.cache"],
 			"isBackground": false,
 			"presentation": {
@@ -100,7 +100,7 @@
 		{
 			"label": "reset-nyc",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["rimraf", "node_modules/.cache/nyc", "tmp/nyc"],
 			"isBackground": false,
 			"presentation": {
@@ -115,7 +115,7 @@
 		{
 			"label": "compile",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["tsc", "-p", "src/tsconfig.json"],
 			"isBackground": false,
 			"presentation": {
@@ -131,7 +131,7 @@
 		{
 			"label": "package",
 			"type": "shell",
-			"command": "npx",
+			"command": "pnpx",
 			"args": ["vsce", "package", "--yarn"],
 			"dependsOn": ["compile", "rollup-production"],
 			"isBackground": false,
