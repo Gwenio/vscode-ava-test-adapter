@@ -18,6 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import ow from 'ow'
+import is from '@sindresorhus/is'
 import Log from './log'
 
 /** The root for the extension's VSCode configurations. */
@@ -72,31 +73,46 @@ const configDefaults: LoadedConfig = {
 	debuggerSkipFiles: [],
 }
 
-/** Functions to validate LoadedConfig values. */
-const configValidate: { [K in keyof LoadedConfig]: (_: LoadedConfig[K]) => void } = {
-	cwd: ow.create('cwd', ow.string),
-	configs: ow.create('configs', ow.array.nonEmpty),
-	environment: ow.create('env', ow.object.plain),
-	nodePath: ow.create('nodePath', ow.any(ow.undefined, ow.string.nonEmpty)),
-	nodeArgv: ow.create('nodeArgv', ow.array.ofType(ow.string.nonEmpty)),
-	debuggerPort: ow.create('debuggerPort', ow.number.lessThanOrEqual(65535)),
-	debuggerSkipFiles: ow.create('debuggerSkipFiles', ow.optional.array.ofType(ow.string.nonEmpty)),
-}
-
-const subValidate = ow.create(
-	ow.object.partialShape({
-		file: ow.optional.string.nonEmpty,
-		serial: ow.optional.boolean,
-		debuggerSkipFiles: ow.optional.array.ofType(ow.string),
-	})
-)
-
 /** The type for the keys of LoadedConfig. */
 export type ConfigKey = keyof LoadedConfig
 
+/** ConfigKeys with an alias. */
+type Aliased = Extract<ConfigKey, 'environment'>
+
+/** The aliases of aliased ConfigKeys. */
+type Aliases = Exclude<'env', ConfigKey>
+
 /** A mapping of aliases between ConfigKey and the actual config keys. */
-const configAliases: { readonly [K in ConfigKey]?: string } = {
+const configAliases: { [K in Aliased]: Aliases } = {
 	environment: 'env',
+}
+
+/** Map of ConfigKey to actual config keys. */
+const configAliasMap: { [K in ConfigKey]: K extends Aliased ? Aliases : K } = {
+	...configAliases,
+	cwd: 'cwd',
+	configs: 'configs',
+	nodePath: 'nodePath',
+	nodeArgv: 'nodeArgv',
+	debuggerPort: 'debuggerPort',
+	debuggerSkipFiles: 'debuggerSkipFiles',
+}
+
+/** Keys for settings to validate the standard way. */
+type ValidateKey = Exclude<ConfigKey, 'configs' | 'environment'>
+
+/** Functions to validate LoadedConfig values. */
+const configValidate: {
+	[K in ValidateKey]: (_: LoadedConfig[K]) => void
+} = {
+	cwd: ow.create(configAliasMap['cwd'], ow.string),
+	nodePath: ow.create(configAliasMap['nodePath'], ow.any(ow.undefined, ow.string.nonEmpty)),
+	nodeArgv: ow.create(configAliasMap['nodeArgv'], ow.array.ofType(ow.string.nonEmpty)),
+	debuggerPort: ow.create(configAliasMap['debuggerPort'], ow.number.lessThanOrEqual(65535)),
+	debuggerSkipFiles: ow.create(
+		configAliasMap['debuggerSkipFiles'],
+		ow.optional.array.ofType(ow.string.nonEmpty)
+	),
 }
 
 /** Immutable map of ConfigKey to string. */
@@ -114,20 +130,11 @@ interface ConfigMap {
 	entries(): IterableIterator<[ConfigKey, string]>
 }
 
-/** Map of ConfigKey to actual config keys. */
-const configAliasMap = new Map<ConfigKey, string>(
-	Object.keys(configValidate).map((key): [ConfigKey, string] => [
-		key as ConfigKey,
-		configAliases[key] || key,
-	])
-) as ConfigMap
-
 /** Map of ConfigKey to actual config keys scoped to configRoot. */
 const configMap = new Map<ConfigKey, string>(
-	Object.keys(configValidate).map((key): [ConfigKey, string] => [
-		key as ConfigKey,
-		`${configRoot}.${configAliases[key] || key}`,
-	])
+	Object.entries(configAliasMap).map(([key, value]): [ConfigKey, string] => {
+		return [key as ConfigKey, `${configRoot}.${value}`]
+	})
 ) as ConfigMap
 
 /** Callback type for querying the current value of a configuration. */
@@ -241,9 +248,9 @@ export class Config<X extends string> {
 	 * @param query The callback to get the value from.
 	 * @returns The current value for the key or the default if a valid value was not found.
 	 */
-	private getValue<K extends ConfigKey>(key: K, query: ConfigQuery): LoadedConfig[K] {
-		const value = query<LoadedConfig[K]>(configAliasMap.get(key))
-		if (value === undefined) {
+	private getValue<K extends ValidateKey>(key: K, query: ConfigQuery): LoadedConfig[K] {
+		const value = query<LoadedConfig[K]>(configAliasMap[key])
+		if (is.undefined(value)) {
 			this.log.info(`No value for ${configMap.get(key)} set, using default.`)
 			return configDefaults[key]
 		} else {
@@ -259,57 +266,63 @@ export class Config<X extends string> {
 	}
 
 	/**
-	 * Sanitizes a newly loaded environment.
-	 * @param value The environment to sanitize.
+	 * Gets and sanitizes an environment.
+	 * @param query The callback to get the value from.
 	 */
-	private environment(value: Readonly<NodeJS.ProcessEnv>): NodeJS.ProcessEnv {
-		const x: NodeJS.ProcessEnv = { ...value }
-		for (const [key, value] of Object.entries(x)) {
-			switch (typeof value) {
-				case 'string':
-					break
-				case 'number':
-					x[key] = (value as number).toString()
-					break
-				case 'boolean':
-					x[key] = (value as boolean) ? 'true' : 'false'
-					break
-				default:
+	private getEnvironment(query: ConfigQuery): NodeJS.ProcessEnv {
+		const value = query<unknown>(configAliasMap['environment'])
+		if (is.plainObject(value)) {
+			const x: NodeJS.ProcessEnv = {}
+			for (const [key, y] of Object.entries(value)) {
+				if (is.string(y)) {
+					x[key] = y
+				} else {
 					this.log.warn(
-						'The values in avaExplorer.env should be string, number, or boolean.',
-						`avaExplorer.env.['${key}'] will be set to an empty string.`
+						'The values in avaExplorer.env must be string.',
+						`avaExplorer.env.['${key}'] will be omitted.`
 					)
-					x[key] = ''
-					break
+				}
 			}
+			return x
+		} else if (!is.undefined(value)) {
+			this.log.error(
+				`Found invalid value for ${configMap.get('environment')}, using default.`
+			)
 		}
-		return x
+		return configDefaults['environment']
 	}
 
 	/**
-	 * Sanitizes an array of newly loaded SubConfig objects.
-	 * @param value The array of SubConfig objects to sanitize.
+	 * Gets and sanitizes the SubConfigs.
+	 * @param query The callback to get the value from.
 	 */
-	private configs(value: SubConfig[]): SubConfig[] {
-		return value.map(
-			(x: SubConfig): SubConfig => {
-				try {
-					subValidate(x)
-				} catch (error) {
-					this.log.error(
-						'Found invalid value in avaExplorer.configs, replacing it with default.',
-						error
-					)
-					return subDefault
+	private getConfigs(query: ConfigQuery): SubConfig[] {
+		const value = query<unknown>(configAliasMap['configs'])
+		if (is.nonEmptyArray(value)) {
+			return value.map(
+				(x: unknown): SubConfig => {
+					if (is.plainObject(x)) {
+						const { file, serial, debuggerSkipFiles } = x
+						return {
+							file: is.nonEmptyString(file) ? file : subDefault.file,
+							serial: serial === true,
+							debuggerSkipFiles: is.array(debuggerSkipFiles)
+								? debuggerSkipFiles.filter(is.nonEmptyString)
+								: [],
+						}
+					} else {
+						this.log.error(
+							'avaExplorer.configs may only contain objects.',
+							'Replacing invalid item with default.'
+						)
+						return subDefault
+					}
 				}
-				const { file, serial, debuggerSkipFiles } = x
-				return {
-					file: file || subDefault.file,
-					serial: serial === true,
-					debuggerSkipFiles: debuggerSkipFiles || [],
-				}
-			}
-		)
+			)
+		} else if (!is.undefined(value)) {
+			this.log.error(`Found invalid value for ${configMap.get('configs')}, using default.`)
+		}
+		return configDefaults['configs']
 	}
 
 	/**
@@ -325,10 +338,10 @@ export class Config<X extends string> {
 				c[key] = path.resolve(this.fsPath, this.getValue(key, query))
 				return
 			case 'configs':
-				c[key] = this.configs(this.getValue(key, query))
+				c[key] = this.getConfigs(query)
 				return
 			case 'environment':
-				c[key] = this.environment(this.getValue(key, query))
+				c[key] = this.getEnvironment(query)
 				return
 			case 'nodePath':
 				// use defaultNode if a path is not set
