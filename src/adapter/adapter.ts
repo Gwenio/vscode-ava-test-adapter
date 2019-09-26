@@ -119,7 +119,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 
 		const fsPath = workspace.uri.fsPath
 
-		this.watcher = new Watcher(log, fsPath)
+		this.watcher = new Watcher(log)
 			.on('run', this.autorunEmitter.fire.bind(this.autorunEmitter))
 			.on('load', this.load.bind(this))
 
@@ -136,7 +136,8 @@ export class AVAAdapter implements TestAdapter, Disposable {
 
 		this.disposables.push(
 			vscode.workspace.onDidSaveTextDocument((document): void => {
-				this.watcher.changed(document.uri.fsPath)
+				const file = document.uri.fsPath
+				this.watcher.changed(file, file.startsWith(this.workspace.uri.fsPath))
 			})
 		)
 		this.disposables.push(
@@ -427,8 +428,10 @@ export class AVAAdapter implements TestAdapter, Disposable {
 						})
 						.once('connect', (w: Worker): void => {
 							log.debug('Worker connected.')
+							this.watcher.activate = true
 							w.once('disconnect', (w: Worker): void => {
 								if (this.worker === w) {
+									this.watcher.activate = false
 									this.worker = undefined
 								}
 								log.debug('Worker disconnected.')
