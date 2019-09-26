@@ -67,6 +67,10 @@ that caching be enabled in your AVA configuration.
 - `avaExplorer.debuggerSkipFiles` is prepended to the configuration specific `debuggerSkipFiles`.
 - `avaExplorer.logpanel` and `avaExplorer.logfile` are for troubleshooting the plugin.
 
+Please be aware that AVA overrides the settings from the configuration file with those from 'package.json'.
+AVA also always attempts to load a configuration file, defaulting to 'ava.config.js'.
+The extension mimics both behaviors.
+
 ## TypeScript Support
 
 It is recommended that TS files be precompiled or the AVA configuration setup
@@ -76,6 +80,28 @@ to use 'ts-node' to compile them.
 
 You can also install 'ts-node' and set `avaExplorer.nodeArgv` to `["-r", "ts-node/register"]`.
 This will register 'ts-node' with the Node interpreter before running the tests.
+
+## Support
+
+### Node Support
+
+The extension mainly aims to support Node LTS versions 12 and above.
+Issues with Node 10 may be addressed, depending on the nature of the issue.
+
+### AVA Support
+
+The extension currently tested against these AVA versions:
+
+- 2.2.0
+- 2.3.0
+- 2.4.0
+
+Please try these versions before reporting issue.
+For issues newer versions, please submit an issue to the incompatibility can be addressed in a patch.
+
+### VSCode Support
+
+The extension is tested against the latest stable release of VSCode.
 
 ## Developers
 
