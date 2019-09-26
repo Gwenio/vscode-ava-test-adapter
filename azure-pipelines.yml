@@ -6,6 +6,8 @@ trigger:
 
 variables:
 - group: vscode-ava-test-adapter
+- name: PNPM_VERSION
+  value: 3
 
 jobs:
 - job: coverage
@@ -17,18 +19,20 @@ jobs:
     inputs:
       versionSpec: '12.10'
     displayName: 'Install Node.js'
-  - script: npx pnpm@3 install
+  - script: |
+      curl -L https://unpkg.com/@pnpm/self-installer | node
+      pnpm install
     displayName: PNPM Install
-  - script: npx pnpx tsc --project src/tsconfig.json
+  - script: pnpx tsc --project src/tsconfig.json
     displayName: Compile Source
-  - script: npx pnpx tsc --project test/tsconfig.json
+  - script: pnpx tsc --project test/tsconfig.json
     displayName: Compile Tests
-  - script: npx pnpx rollup -c
+  - script: pnpx rollup -c
     displayName: Rollup Bundles
   - script: |
-      npx pnpx nyc -r text ava --config ava.coverage.js
-      npx pnpx nyc report -r json
-      npx pnpx nyc report -r cobertura
+      pnpx nyc -r text ava --config ava.coverage.js
+      pnpx nyc report -r json
+      pnpx nyc report -r cobertura
     displayName: Generate Reports
   - task: PublishCodeCoverageResults@1
     displayName: Publish Azure Report
@@ -55,15 +59,17 @@ jobs:
     inputs:
       versionSpec: $(NODE_VERSION)
     displayName: 'Install Node.js'
-  - script: npx pnpm@3 install
+  - script: |
+      curl -L https://unpkg.com/@pnpm/self-installer | node
+      pnpm install
     displayName: PNPM Install
-  - script: npx pnpx tsc --project src/tsconfig.json
+  - script: pnpx tsc --project src/tsconfig.json
     displayName: Compile Source
-  - script: npx pnpx tsc --project test/tsconfig.json
+  - script: pnpx tsc --project test/tsconfig.json
     displayName: Compile Tests
-  - script: npx pnpx rollup -c
+  - script: pnpx rollup -c
     displayName: Rollup Bundles
-  - bash: (npx pnpx ava --tap | npx pnpx tap-xunit@latest) > tmp/results.xml
+  - bash: (pnpx ava --tap | pnpx tap-xunit@latest) > tmp/results.xml
     displayName: Run Tests
   - task: PublishTestResults@2
     displayName: Publish Azure Results
@@ -74,6 +80,6 @@ jobs:
       testRunTitle: All Tests
       buildConfiguration: Node.js-$(NODE_VERSION)
       publishRunAttachments: true
-  - script: npx pnpx ava
+  - script: pnpx ava
     condition: failed()
     displayName: AVA Native Results
