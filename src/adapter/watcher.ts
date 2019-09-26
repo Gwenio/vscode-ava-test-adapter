@@ -23,7 +23,7 @@ import Disposable from './disposable'
 /** Manages file change events. */
 export default class Watcher implements Disposable {
 	/** Internal event emitter. */
-	private readonly emitter = new Emitter.Typed<{ changed: string }, 'run' | 'load'>()
+	private readonly emitter = new Emitter.Typed<{ changed: [string, boolean] }, 'run' | 'load'>()
 	/** The set of files to watch for changes. */
 	private files = new Set<string>()
 	/** Indicates if the watcher is active. */
@@ -32,25 +32,24 @@ export default class Watcher implements Disposable {
 	/**
 	 * Constructor.
 	 * @param log The Log to use.
-	 * @param workPath The path to the root of the workspace.
 	 */
-	public constructor(log: Log, workPath: string) {
+	public constructor(log: Log) {
 		this.emitter.on(
 			'changed',
-			async (filename): Promise<void> => {
+			async ([filename, run]): Promise<void> => {
+				const emit = this.emitter.emit.bind(this.emitter)
 				/* istanbul ignore if */
-				if (log.enabled) {
-					log.info(`${filename} was saved - checking if this affects ${workPath}`)
-				}
 				if (this.files.has(filename)) {
 					/* istanbul ignore if */
 					if (log.enabled) {
 						log.info(`Sending reload event because ${filename} was saved.`)
 					}
-					this.emitter.emit('load')
-				} else if (filename.startsWith(workPath)) {
-					log.info('Sending autorun event')
-					this.emitter.emit('run')
+					emit('load').then((): void => {
+						emit('run')
+					})
+				} else if (run) {
+					log.info('Emitting autorun event in respose to file change.')
+					emit('run')
 				}
 			}
 		)
@@ -78,10 +77,11 @@ export default class Watcher implements Disposable {
 	/**
 	 * Signals that a file change has occured.
 	 * @param file The name of the file that was changed.
+	 * @param run Forces a run event.
 	 */
-	public changed(file: string): void {
+	public changed(file: string, run: boolean): void {
 		if (this.active) {
-			this.emitter.emitSerial('changed', file)
+			this.emitter.emitSerial('changed', [file, run])
 		}
 	}
 
