@@ -132,7 +132,7 @@
 			"label": "package",
 			"type": "shell",
 			"command": "npx",
-			"args": ["vsce", "package"],
+			"args": ["vsce", "package", "--yarn"],
 			"dependsOn": ["compile", "rollup-production"],
 			"isBackground": false,
 			"presentation": {
