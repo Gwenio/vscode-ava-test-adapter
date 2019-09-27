@@ -69,7 +69,9 @@ jobs:
     displayName: Compile Tests
   - script: pnpx rollup -c
     displayName: Rollup Bundles
-  - bash: (pnpx ava --tap | pnpx tap-xunit@latest) > tmp/results.xml
+  - bash: |
+      pnpm add --global tap-xunit@latest
+      (pnpx ava --tap | pnpx tap-xunit) > tmp/results.xml
     displayName: Run Tests
   - task: PublishTestResults@2
     displayName: Publish Azure Results
