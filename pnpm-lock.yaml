@@ -2512,7 +2512,7 @@ packages:
     dev: true
     resolution:
       integrity: sha1-TK+tdrxi8C+gObL5Tpo906ORpyU=
-  /handlebars/4.3.1:
+  /handlebars/4.3.2:
     dependencies:
       neo-async: 2.6.1
       optimist: 0.6.1
@@ -2524,7 +2524,7 @@ packages:
     optionalDependencies:
       uglify-js: 3.6.0
     resolution:
-      integrity: sha512-c0HoNHzDiHpBt4Kqe99N8tdLPKAnGCQ73gYMPWtAYM4PwGnf7xl8PBUHJqh9ijlzt2uQKaSRxbXRt+rZ7M2/kA==
+      integrity: sha512-LuccMnDrKB72bbClEIucoBNAIMpqmWvIGSKNEngDcYFT6hlCq7ZoCWc26ZT9mr6tfWTJeTswSldoI5LOeezzDQ==
   /has-ansi/2.0.0:
     dependencies:
       ansi-regex: 2.1.1
@@ -3040,7 +3040,7 @@ packages:
       integrity: sha512-R47KzMtDJH6X4/YW9XTx+jrLnZnscW4VpNN+1PViSYTejLVPWv7oov+Duf8YQSPyVRUvueQqz1TcsC6mooZTXw==
   /istanbul-reports/2.2.6:
     dependencies:
-      handlebars: 4.3.1
+      handlebars: 4.3.2
     dev: true
     engines:
       node: '>=6'
@@ -3885,12 +3885,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-0CWcCECdMVc2Rw3U5w9ZjqX6ga6ubk1xDVKxtBQPK7wis/0F2r9T6k4ydGYhecl7YUBxBVxhL5oisPsNxAPe2g==
-  /ow-lite/0.0.2:
-    dev: true
-    engines:
-      node: '>=6'
-    resolution:
-      integrity: sha1-359QDmdAtlkKHpqWVzDUmo61l9E=
   /ow/0.13.2:
     dependencies:
       type-fest: 0.5.2
@@ -4254,7 +4248,7 @@ packages:
     dependencies:
       babel-runtime: 6.26.0
       ow: 0.4.0
-      ow-lite: 0.0.2
+      ow-lite: /ow/0.13.2
       seedrandom: 2.4.4
     dev: true
     engines:
