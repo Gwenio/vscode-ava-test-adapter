@@ -11,7 +11,7 @@ devDependencies:
   '@commitlint/config-conventional': 8.2.0
   '@sindresorhus/is': 1.0.0
   '@types/hash-sum': 1.0.0
-  '@types/node': 12.7.5
+  '@types/node': 12.7.8
   '@types/random': 2.1.0
   '@types/sinon': 7.0.13
   '@types/through2': 2.0.34
@@ -32,10 +32,10 @@ devDependencies:
   emittery: 0.5.1
   eslint: 6.4.0
   eslint-config-prettier: 6.3.0_eslint@6.4.0
-  eslint-plugin-ava: 8.0.0_eslint@6.4.0
+  eslint-plugin-ava: 9.0.0_eslint@6.4.0
   eslint-plugin-node: 10.0.0_eslint@6.4.0
   eslint-plugin-promise: 4.2.1
-  eslint-plugin-unicorn: 11.0.2_eslint@6.4.0
+  eslint-plugin-unicorn: 12.0.1_eslint@6.4.0
   esm: 3.2.25
   get-stream: 5.1.0
   globby: 10.0.1
@@ -600,6 +600,10 @@ packages:
   /@types/node/12.7.5:
     resolution:
       integrity: sha512-9fq4jZVhPNW8r+UYKnxF1e2HkDWOWKM5bC2/7c9wPV835I0aOrVbS/Hw/pWPk2uKrNXQqg9Z959Kz+IYDd5p3w==
+  /@types/node/12.7.8:
+    dev: true
+    resolution:
+      integrity: sha512-FMdVn84tJJdV+xe+53sYiZS4R5yn1mAIxfj+DVoNiQjTYz1+OYmjwEZr1ev9nU0axXwda0QDbYl06QHanRVH3A==
   /@types/normalize-package-data/2.4.0:
     dev: true
     resolution:
@@ -1947,7 +1951,7 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-EWaGjlDAZRzVFveh2Jsglcere2KK5CJBhkNSa1xs3KfMUGdRiT7lG089eqPdvlzWHpAqaekubOsOMu8W8Yk71A==
-  /eslint-plugin-ava/8.0.0_eslint@6.4.0:
+  /eslint-plugin-ava/9.0.0_eslint@6.4.0:
     dependencies:
       deep-strict-equal: 0.2.0
       enhance-visitors: 1.0.0
@@ -1961,9 +1965,9 @@ packages:
     engines:
       node: '>=8'
     peerDependencies:
-      eslint: '>=6'
+      eslint: '>=6.2.0'
     resolution:
-      integrity: sha512-jOrf7FPPLFxFhDXadRuqTN4qN19Lec40sYJ3FwbByLIh0J0l5znLdhox32OdJxW7il10LlfLRnAp+toyvPs+Dw==
+      integrity: sha512-mJqQ1wQ9pxBi5Pu+grrqjfuSLxiSSgnpa5p5vMdEpBqA9n9cUzSCv0xMZ/NkTMAj5ieOB3TWF8j+7C30Yiv4RA==
   /eslint-plugin-es/2.0.0_eslint@6.4.0:
     dependencies:
       eslint: 6.4.0
@@ -1998,12 +2002,13 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-VoM09vT7bfA7D+upt+FjeBO5eHIJQBUWki1aPvB+vbNiHS3+oGIJGIeyBtKQTME6UPXXy3vV07OL1tHd3ANuDw==
-  /eslint-plugin-unicorn/11.0.2_eslint@6.4.0:
+  /eslint-plugin-unicorn/12.0.1_eslint@6.4.0:
     dependencies:
       ci-info: 2.0.0
       clean-regexp: 1.0.0
       eslint: 6.4.0
       eslint-ast-utils: 1.1.0
+      eslint-template-visitor: 1.1.0_eslint@6.4.0
       import-modules: 1.1.0
       lodash.camelcase: 4.3.0
       lodash.defaultsdeep: 4.6.1
@@ -2011,7 +2016,7 @@ packages:
       lodash.snakecase: 4.1.1
       lodash.topairs: 4.3.0
       lodash.upperfirst: 4.3.1
-      read-pkg: 5.2.0
+      read-pkg-up: 6.0.0
       regexpp: 3.0.0
       reserved-words: 0.1.2
       safe-regex: 2.0.2
@@ -2022,7 +2027,7 @@ packages:
     peerDependencies:
       eslint: '>=6.3.0'
     resolution:
-      integrity: sha512-tNpaQPYV4QOrTYY99/rghfjJY8pb4flBa2W9Dfyz/kOwE4Pe0JqatRI9gIIEdnZXwdZ+9Qh0csSxBjFwutow5g==
+      integrity: sha512-wusTPg8zgHyUBp6Gc/QyAgBMnwvYtKefkrPeZMESTfxd+j/zyODWMZ5UEG96PhTzXF/ILVypv7VWTHMNfthKLg==
   /eslint-scope/5.0.0:
     dependencies:
       esrecurse: 4.2.1
@@ -2032,6 +2037,17 @@ packages:
       node: '>=8.0.0'
     resolution:
       integrity: sha512-oYrhJW7S0bxAFDvWqzvMPRm6pcgcnWc4QnofCAqRTRfQC0JcwenzGglTtsLyIuuWFfkqDG9vz67cnttSd53djw==
+  /eslint-template-visitor/1.1.0_eslint@6.4.0:
+    dependencies:
+      eslint: 6.4.0
+      eslint-visitor-keys: 1.1.0
+      espree: 6.1.1
+      multimap: 1.0.2
+    dev: true
+    peerDependencies:
+      eslint: ^6.4.0
+    resolution:
+      integrity: sha512-Lmy6QVlmFiIGl5fPi+8ACnov3sare+0Ouf7deJAGGhmUfeWJ5fVarELUxZRpsZ9sHejiJUq8626d0dn9uvcZTw==
   /eslint-utils/1.4.2:
     dependencies:
       eslint-visitor-keys: 1.1.0
@@ -3656,6 +3672,10 @@ packages:
   /ms/2.1.2:
     resolution:
       integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
+  /multimap/1.0.2:
+    dev: true
+    resolution:
+      integrity: sha1-aqdvwyM5BbqUi75MdNwsOgNW6zY=
   /mute-stream/0.0.7:
     dev: true
     resolution:
@@ -4281,6 +4301,16 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-6etQSH7nJGsK0RbG/2TeDzZFa8shjQ1um+SwQQ5cwKy0dhSXdOncEhb1CPpvQG4h7FyOV6EB6YlV0yJvZQNAkA==
+  /read-pkg-up/6.0.0:
+    dependencies:
+      find-up: 4.1.0
+      read-pkg: 5.2.0
+      type-fest: 0.5.2
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-odtTvLl+EXo1eTsMnoUHRmg/XmXdTkwXVxy4VFE9Kp6cCq7b3l7QMdBndND3eAFzrbSAXC/WCUOQQ9rLjifKZw==
   /read-pkg/3.0.0:
     dependencies:
       load-json-file: 4.0.0
@@ -5568,7 +5598,7 @@ specifiers:
   '@commitlint/config-conventional': ^8.2.0
   '@sindresorhus/is': ^1.0.0
   '@types/hash-sum': ^1.0.0
-  '@types/node': 12.7.5
+  '@types/node': ^12.7.8
   '@types/random': ^2.1.0
   '@types/sinon': ^7.0.13
   '@types/through2': ^2.0.34
@@ -5591,10 +5621,10 @@ specifiers:
   emittery: ^0.5.0
   eslint: 6.4.0
   eslint-config-prettier: ^6.1.0
-  eslint-plugin-ava: ^8.0.0
+  eslint-plugin-ava: ^9.0.0
   eslint-plugin-node: ^10.0.0
   eslint-plugin-promise: ^4.2.1
-  eslint-plugin-unicorn: ^11.0.0
+  eslint-plugin-unicorn: ^12.0.0
   esm: ^3.2.25
   get-port: ^5.0.0
   get-stream: ^5.1.0
