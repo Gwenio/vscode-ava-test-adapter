@@ -21,7 +21,7 @@ jobs:
     displayName: 'Install Node.js'
   - script: |
       curl -L https://unpkg.com/@pnpm/self-installer | node
-      pnpm install --prefer-frozen-lockfile
+      pnpm install --prefer-frozen-lockfile --ignore-scripts
     displayName: PNPM Install
   - script: pnpx tsc --project src/tsconfig.json
     displayName: Compile Source
@@ -61,7 +61,7 @@ jobs:
     displayName: 'Install Node.js'
   - script: |
       curl -L https://unpkg.com/@pnpm/self-installer | node
-      pnpm install --prefer-frozen-lockfile
+      pnpm install --prefer-frozen-lockfile --ignore-scripts
     displayName: PNPM Install
   - script: pnpx tsc --project src/tsconfig.json
     displayName: Compile Source
@@ -69,7 +69,9 @@ jobs:
     displayName: Compile Tests
   - script: pnpx rollup -c
     displayName: Rollup Bundles
-  - bash: (pnpx ava --tap | pnpx tap-xunit@latest) > tmp/results.xml
+  - bash: |
+      pnpm add --global tap-xunit@latest
+      (pnpx ava --tap | pnpx tap-xunit) > tmp/results.xml
     displayName: Run Tests
   - task: PublishTestResults@2
     displayName: Publish Azure Results
