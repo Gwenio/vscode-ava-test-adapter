@@ -18,6 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import path from 'path'
 import ow from 'ow'
+import is from '@sindresorhus/is'
 import Log from './log'
 
 /** The root for the extension's VSCode configurations. */
@@ -54,12 +55,14 @@ interface ConfigCache {
 /** A set of configuration values. */
 export type LoadedConfig = Readonly<ConfigCache>
 
+/** The default values for a SubConfig. */
 const subDefault: Readonly<SubConfig> = {
 	file: 'ava.config.js',
 	serial: false,
 	debuggerSkipFiles: [],
 }
 
+/** The default values for a LoadedConfig. */
 const configDefaults: LoadedConfig = {
 	cwd: '',
 	configs: [subDefault],
@@ -70,69 +73,113 @@ const configDefaults: LoadedConfig = {
 	debuggerSkipFiles: [],
 }
 
-const configValidate: { [K in keyof LoadedConfig]: (_: LoadedConfig[K]) => void } = {
-	cwd: ow.create('cwd', ow.string),
-	configs: ow.create(
-		'configs',
-		ow.array.nonEmpty.ofType(
-			ow.object.partialShape({
-				file: ow.any(ow.nullOrUndefined, ow.string.nonEmpty),
-				serial: ow.optional.boolean,
-				debuggerSkipFiles: ow.optional.array.ofType(ow.string.nonEmpty),
-			})
-		)
-	),
-	environment: ow.create('env', ow.object.plain.valuesOfType(ow.string)),
-	nodePath: ow.create('nodePath', ow.any(ow.undefined, ow.string.nonEmpty)),
-	nodeArgv: ow.create('nodeArgv', ow.array.ofType(ow.string.nonEmpty)),
-	debuggerPort: ow.create('debuggerPort', ow.number.lessThanOrEqual(65535)),
-	debuggerSkipFiles: ow.create('debuggerSkipFiles', ow.optional.array.ofType(ow.string.nonEmpty)),
-}
-
+/** The type for the keys of LoadedConfig. */
 export type ConfigKey = keyof LoadedConfig
 
-const configAliases = {
+/** ConfigKeys with an alias. */
+type Aliased = Extract<ConfigKey, 'environment'>
+
+/** The aliases of aliased ConfigKeys. */
+type Aliases = Exclude<'env', ConfigKey>
+
+/** A mapping of aliases between ConfigKey and the actual config keys. */
+const configAliases: { [K in Aliased]: Aliases } = {
 	environment: 'env',
 }
 
+/** Map of ConfigKey to actual config keys. */
+const configAliasMap: { [K in ConfigKey]: K extends Aliased ? Aliases : K } = {
+	...configAliases,
+	cwd: 'cwd',
+	configs: 'configs',
+	nodePath: 'nodePath',
+	nodeArgv: 'nodeArgv',
+	debuggerPort: 'debuggerPort',
+	debuggerSkipFiles: 'debuggerSkipFiles',
+}
+
+/** Keys for settings to validate the standard way. */
+type ValidateKey = Exclude<ConfigKey, 'configs' | 'environment'>
+
+/** Functions to validate LoadedConfig values. */
+const configValidate: {
+	[K in ValidateKey]: (_: LoadedConfig[K]) => void
+} = {
+	cwd: ow.create(configAliasMap['cwd'], ow.string),
+	nodePath: ow.create(configAliasMap['nodePath'], ow.any(ow.undefined, ow.string.nonEmpty)),
+	nodeArgv: ow.create(configAliasMap['nodeArgv'], ow.array.ofType(ow.string.nonEmpty)),
+	debuggerPort: ow.create(configAliasMap['debuggerPort'], ow.number.lessThanOrEqual(65535)),
+	debuggerSkipFiles: ow.create(
+		configAliasMap['debuggerSkipFiles'],
+		ow.optional.array.ofType(ow.string.nonEmpty)
+	),
+}
+
+/** Immutable map of ConfigKey to string. */
 interface ConfigMap {
+	/**
+	 * Gets the mapped string for a key.
+	 * @param key The key to get the mapping for.
+	 */
 	get(key: ConfigKey): string
+
+	/** Gets an iterator for the map's keys. */
 	keys(): IterableIterator<ConfigKey>
+
+	/** Gets an iterator for the map's entries. */
 	entries(): IterableIterator<[ConfigKey, string]>
 }
 
-const configAliasMap = new Map<ConfigKey, string>(
-	Object.keys(configValidate).map((key): [ConfigKey, string] => [
-		key as ConfigKey,
-		configAliases[key] || key,
-	])
-) as ConfigMap
-
+/** Map of ConfigKey to actual config keys scoped to configRoot. */
 const configMap = new Map<ConfigKey, string>(
-	Object.keys(configValidate).map((key): [ConfigKey, string] => [
-		key as ConfigKey,
-		`${configRoot}.${configAliases[key] || key}`,
-	])
+	Object.entries(configAliasMap).map(([key, value]): [ConfigKey, string] => {
+		return [key as ConfigKey, `${configRoot}.${value}`]
+	})
 ) as ConfigMap
 
+/** Callback type for querying the current value of a configuration. */
 export interface ConfigQuery {
+	/**
+	 * Gets a the setting associated with key.
+	 * @param key A value from configAliasMap to query for.
+	 * @returns The current setting or undefined if not set.
+	 */
 	<T>(key: string): T | undefined
 }
 
+/**
+ * Callback type for checking if a configuration was changed.
+ * @param key A value from configMap to check.
+ * @returns Whether the setting was changed.
+ */
 export type ConfigUpdate = (key: string) => boolean
 
 /** Contains utilities for managing configuration. */
 export class Config<X extends string> {
+	/** The default Node executable path, if one is set. */
 	private readonly defaultNode?: string
+	/** The working directory root path. */
 	private readonly fsPath: string
+	/** Extra configuration keys to monitor for changes. */
 	private readonly extra = new Map<X, string>()
+	/** The Log to use. */
 	private readonly log: Log
+	/** The current configuration values. */
 	private cache: LoadedConfig
 
+	/** Gets the current configuration values. */
 	public get current(): LoadedConfig {
 		return this.cache
 	}
 
+	/**
+	 * Constructs a new Config.
+	 * @param fsPath The working directory root path.
+	 * @param query Callback to load initial settings.
+	 * @param log The Log to use.
+	 * @param additional Additional configuration keys to monitor for changes.
+	 * @param node The default Node executable path, if one is found.
+	 */
 	public constructor(
 		fsPath: string,
 		query: ConfigQuery,
@@ -153,6 +200,12 @@ export class Config<X extends string> {
 		}
 	}
 
+	/**
+	 * Called to update the Config when one or more settings change.
+	 * @param event The callback representing a change event.
+	 * @param query The callback to query new settings with.
+	 * @returns Returns a Set of configuration keys that were changed.
+	 */
 	public update(event: ConfigUpdate, query: ConfigQuery): Set<ConfigKey | X> {
 		const affected = new Set<ConfigKey | X>()
 		const c: ConfigCache = { ...this.cache }
@@ -174,10 +227,31 @@ export class Config<X extends string> {
 		return affected
 	}
 
-	private getValue<K extends ConfigKey>(key: K, query: ConfigQuery): LoadedConfig[K] {
-		const value = query<LoadedConfig[K]>(configAliasMap.get(key))
-		if (value === undefined) {
-			this.log.info(`No value for ${key} set, using default.`)
+	/**
+	 * Gets the configured Node executable path.
+	 * @param query The callback to get the currently set Node path.
+	 */
+	private getNode(query: ConfigQuery): LoadedConfig['nodePath'] {
+		const value = query<LoadedConfig['nodePath']>('nodePath')
+		try {
+			configValidate['nodePath'](value)
+		} catch (error) {
+			this.log.error('Found invalid value for avaExplorer.nodePath', error)
+			return undefined
+		}
+		return value
+	}
+
+	/**
+	 * Gets the current value for a ConfigKey.
+	 * @param key The ConfigKey to get a value for.
+	 * @param query The callback to get the value from.
+	 * @returns The current value for the key or the default if a valid value was not found.
+	 */
+	private getValue<K extends ValidateKey>(key: K, query: ConfigQuery): LoadedConfig[K] {
+		const value = query<LoadedConfig[K]>(configAliasMap[key])
+		if (is.undefined(value)) {
+			this.log.info(`No value for ${configMap.get(key)} set, using default.`)
 			return configDefaults[key]
 		} else {
 			try {
@@ -191,27 +265,87 @@ export class Config<X extends string> {
 		}
 	}
 
+	/**
+	 * Gets and sanitizes an environment.
+	 * @param query The callback to get the value from.
+	 */
+	private getEnvironment(query: ConfigQuery): NodeJS.ProcessEnv {
+		const value = query<unknown>(configAliasMap['environment'])
+		if (is.plainObject(value)) {
+			const x: NodeJS.ProcessEnv = {}
+			for (const [key, y] of Object.entries(value)) {
+				if (is.string(y)) {
+					x[key] = y
+				} else {
+					this.log.warn(
+						'The values in avaExplorer.env must be string.',
+						`avaExplorer.env.['${key}'] will be omitted.`
+					)
+				}
+			}
+			return x
+		} else if (!is.undefined(value)) {
+			this.log.error(
+				`Found invalid value for ${configMap.get('environment')}, using default.`
+			)
+		}
+		return configDefaults['environment']
+	}
+
+	/**
+	 * Gets and sanitizes the SubConfigs.
+	 * @param query The callback to get the value from.
+	 */
+	private getConfigs(query: ConfigQuery): SubConfig[] {
+		const value = query<unknown>(configAliasMap['configs'])
+		if (is.nonEmptyArray(value)) {
+			return value.map(
+				(x: unknown): SubConfig => {
+					if (is.plainObject(x)) {
+						const { file, serial, debuggerSkipFiles } = x
+						return {
+							file: is.nonEmptyString(file) ? file : subDefault.file,
+							serial: serial === true,
+							debuggerSkipFiles: is.array(debuggerSkipFiles)
+								? debuggerSkipFiles.filter(is.nonEmptyString)
+								: [],
+						}
+					} else {
+						this.log.error(
+							'avaExplorer.configs may only contain objects.',
+							'Replacing invalid item with default.'
+						)
+						return subDefault
+					}
+				}
+			)
+		} else if (!is.undefined(value)) {
+			this.log.error(`Found invalid value for ${configMap.get('configs')}, using default.`)
+		}
+		return configDefaults['configs']
+	}
+
+	/**
+	 * Sets the value for a ConfigKey on a configuration cache.
+	 * @param c A cache of configuration values to update.
+	 * @param key The key of the value to set.
+	 * @param query The callback to get the value from.
+	 */
 	private setValue(c: ConfigCache, key: ConfigKey, query: ConfigQuery): void {
 		switch (key) {
 			case 'cwd':
+				// resolve from fsPath
 				c[key] = path.resolve(this.fsPath, this.getValue(key, query))
 				return
 			case 'configs':
-				c[key] = this.getValue(key, query).map(
-					({ file, serial, debuggerSkipFiles }): SubConfig => {
-						return {
-							file: file || subDefault.file,
-							serial: serial === true,
-							debuggerSkipFiles: debuggerSkipFiles || [],
-						}
-					}
-				)
-				return
-			case 'nodePath':
-				c[key] = this.getValue(key, query) || this.defaultNode
+				c[key] = this.getConfigs(query)
 				return
 			case 'environment':
-				c[key] = this.getValue(key, query)
+				c[key] = this.getEnvironment(query)
+				return
+			case 'nodePath':
+				// use defaultNode if a path is not set
+				c[key] = this.getNode(query) || this.defaultNode
 				return
 			case 'nodeArgv':
 				c[key] = this.getValue(key, query)

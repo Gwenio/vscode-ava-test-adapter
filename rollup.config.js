@@ -12,7 +12,6 @@ import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
 import jsonfile from 'rollup-plugin-json'
 import license from 'rollup-plugin-license'
-import alias from 'rollup-plugin-alias'
 import globby from 'globby'
 // eslint-disable-next-line node/no-extraneous-import
 import chalk from 'chalk'
@@ -74,16 +73,9 @@ function outputBundle(filename, options = {}) {
 	}
 }
 
-function aliases() {
-	return alias({
-		entries: [{ find: 'ow-lite', replacement: require.resolve('ow') }],
-	})
-}
-
 function configurePlugins() {
 	if (process.env.NODE_ENV === 'production') {
 		return [
-			aliases(),
 			resolve({}),
 			commonjs({
 				sourceMap: false,
@@ -145,7 +137,6 @@ function configurePlugins() {
 	} else {
 		return [
 			sourcemaps(),
-			aliases(),
 			resolve({}),
 			commonjs({
 				sourceMap: true,
