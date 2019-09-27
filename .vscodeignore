@@ -6,8 +6,7 @@ dist/*.map
 img/
 !img/icon.png
 tsconfig.json
-yarn.lock
-yarn-error.log
+*.log
 node_modules/
 !node_modules/veza/dist/index.js
 !node_modules/veza/dist/lib/*.js
@@ -39,3 +38,6 @@ ava.*.js
 azure-pipelines.yml
 codecov.yml
 commitlint.config.js
+pnpm-lock.yaml
+pnpmfile.js
+.npmrc
