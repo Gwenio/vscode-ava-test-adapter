@@ -46,6 +46,7 @@ that caching be enabled in your AVA configuration.
 | `avaExplorer.nodeArgv`          | The arguments to the Node executable                                    |
 | `avaExplorer.debuggerPort`      | The port for running the debug sessions                                 | 9229                                   |
 | `avaExplorer.debuggerSkipFiles` | An array of glob patterns for files to skip when debugging              | `[]`                                   |
+| `avaExplorer.workerTimeout`     | How long to wait for the worker process to connect in milliseconds.     | 15000                                  |
 | `avaExplorer.logpanel`          | If `true` writes a diagnostic log to AVA Explorer Log                   | `false`                                |
 | `avaExplorer.logfile`           | A file to write diagnostics to                                          | `null`                                 |
 
