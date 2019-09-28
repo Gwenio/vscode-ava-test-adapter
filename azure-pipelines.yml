@@ -1,8 +1,12 @@
 trigger:
 - master
+- next
 - pipeline
 - greenkeeper/*
 - fix/*
+- feat/*
+- perf/*
+- refactor/*
 
 variables:
 - group: vscode-ava-test-adapter
