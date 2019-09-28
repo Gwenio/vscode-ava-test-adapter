@@ -55,6 +55,7 @@ const defaultConfig: LoadedConfig = {
 	nodeArgv: [],
 	debuggerPort: defaultPort,
 	debuggerSkipFiles: [],
+	timeout: 10000,
 }
 const alternateConfig: LoadedConfig = {
 	cwd: path.resolve(fsPath, 'dir'),
@@ -72,12 +73,14 @@ const alternateConfig: LoadedConfig = {
 	nodeArgv: ['-r', 'ts-node/register'],
 	debuggerPort: 10000,
 	debuggerSkipFiles: ['fs.js'],
+	timeout: 5000,
 }
 const aliases: { [key: string]: ConfigKey } = {
 	/* eslint unicorn/prevent-abbreviations: "off" */
 	env: 'environment',
+	workerTimeout: 'timeout',
 }
-const queryKeys = new Set<string>([
+const baseKeys = [
 	'cwd',
 	'configs',
 	'env',
@@ -85,11 +88,11 @@ const queryKeys = new Set<string>([
 	'nodeArgv',
 	'debuggerPort',
 	'debuggerSkipFiles',
-])
+	'workerTimeout',
+]
+const queryKeys = new Set<string>(baseKeys)
 const checkKeys = new Set<string>(
-	['cwd', 'configs', 'env', 'nodePath', 'nodeArgv', 'debuggerPort', 'debuggerSkipFiles']
-		.concat(extraKeys)
-		.map((key: string): string => `${configRoot}.${key}`)
+	baseKeys.concat(extraKeys).map((key: string): string => `${configRoot}.${key}`)
 )
 const invalid: { [key: string]: unknown } = {
 	/* eslint unicorn/prevent-abbreviations: "off" */
@@ -100,6 +103,7 @@ const invalid: { [key: string]: unknown } = {
 	nodeArgv: {},
 	debuggerPort: 70000,
 	debuggerSkipFiles: null,
+	timeout: 500,
 }
 
 const logger = (..._: []): void => {}
