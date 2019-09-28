@@ -50,6 +50,8 @@ interface ConfigCache {
 	debuggerPort: number
 	/** Files to skip while debugging. */
 	debuggerSkipFiles: string[]
+	/** How long to wait for the worker process to connect in milliseconds */
+	timeout: number
 }
 
 /** A set of configuration values. */
@@ -71,20 +73,22 @@ const configDefaults: LoadedConfig = {
 	nodeArgv: [],
 	debuggerPort: 9229,
 	debuggerSkipFiles: [],
+	timeout: 10000,
 }
 
 /** The type for the keys of LoadedConfig. */
 export type ConfigKey = keyof LoadedConfig
 
 /** ConfigKeys with an alias. */
-type Aliased = Extract<ConfigKey, 'environment'>
+type Aliased = Extract<ConfigKey, 'environment' | 'timeout'>
 
 /** The aliases of aliased ConfigKeys. */
-type Aliases = Exclude<'env', ConfigKey>
+type Aliases = Exclude<'env' | 'workerTimeout', ConfigKey>
 
 /** A mapping of aliases between ConfigKey and the actual config keys. */
 const configAliases: { [K in Aliased]: Aliases } = {
 	environment: 'env',
+	timeout: 'workerTimeout',
 }
 
 /** Map of ConfigKey to actual config keys. */
@@ -112,6 +116,10 @@ const configValidate: {
 	debuggerSkipFiles: ow.create(
 		configAliasMap['debuggerSkipFiles'],
 		ow.optional.array.ofType(ow.string.nonEmpty)
+	),
+	timeout: ow.create(
+		configAliasMap['timeout'],
+		ow.number.greaterThanOrEqual(1000).lessThanOrEqual(300000)
 	),
 }
 
@@ -354,6 +362,9 @@ export class Config<X extends string> {
 				c[key] = this.getValue(key, query)
 				return
 			case 'debuggerSkipFiles':
+				c[key] = this.getValue(key, query)
+				return
+			case 'timeout':
 				c[key] = this.getValue(key, query)
 				return
 		}
