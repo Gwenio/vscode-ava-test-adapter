@@ -17,7 +17,9 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import { ChildProcess, fork } from 'child_process'
+import { Writable } from 'stream'
 import Emitter from 'emittery'
+import Cancelable from 'p-cancelable'
 import { Client, ClientSocket, NetworkError } from 'veza'
 import {
 	Parent,
@@ -59,10 +61,8 @@ interface WorkerConfig {
 
 /** Single occurance events. */
 type Single = 'exit' | 'connect' | 'disconnect'
-/** Worker console output events. */
-type Output = 'stdout' | 'stderr'
 /** The Worker event types. */
-type Events = 'error' | Output | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
+type Events = 'error' | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
 
 /** Worker Event Handler type. */
 type Handler = (_: any) => void // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -76,8 +76,6 @@ export class Worker {
 	/** The emitter for worker events. */
 	private readonly emitter = new Emitter.Typed<
 		{
-			stdout: Buffer | string
-			stderr: Buffer | string
 			error: Error | NetworkError
 			prefix: Prefix
 			file: TestFile
@@ -98,10 +96,23 @@ export class Worker {
 	/** Stores exit event. */
 	private readonly onExit = this.emitter.once('exit')
 	/** Stores connect event. */
-	private readonly onConnect = this.emitter.once('connect')
+	private readonly onConnect = new Cancelable<Worker>((resolve, _reject, onCancel): void => {
+		const off = this.emitter.on('connect', (data): void => {
+			off()
+			resolve(data)
+		})
+		onCancel.shouldReject = true
+		onCancel(off)
+	})
 	/** Stores disconnect event. */
-	private readonly onDisconnect = this.emitter.once('disconnect')
-
+	private readonly onDisconnect = new Cancelable<Worker>((resolve, _reject, onCancel): void => {
+		const off = this.emitter.on('disconnect', (data): void => {
+			off()
+			resolve(data)
+		})
+		onCancel.shouldReject = true
+		onCancel(off)
+	})
 	/** The exit code of the worker process. */
 	private code: number | null = null
 	/** Gets the exit code of the worker process. */
@@ -112,15 +123,22 @@ export class Worker {
 	/**
 	 * Constructor.
 	 * @param config The worker configuration.
+	 * @param stream The stream to forward worker output to.
 	 * @param script The worker script file.
 	 */
-	public constructor(config: WorkerConfig, script = './child.js') {
+	public constructor(config: WorkerConfig, stream: Writable, script = './child.js') {
 		this.timeout = config.timeout
 		const emitter = this.emitter
 		this.onExit.then(() => {
 			this.alive = false
+			const reason = 'The worker exited before '
+			this.onConnect.cancel(reason + 'connecting')
+			this.onDisconnect.cancel(reason + 'disconnecting')
 			emitter.clearListeners()
+			this.child.removeAllListeners()
 		})
+		const cleanup = this.cleanup.bind(this)
+		const timer = setTimeout(cleanup, this.timeout)
 		this.child = fork(
 			/* eslint node/no-missing-require: "off" */
 			require.resolve(script),
@@ -131,27 +149,24 @@ export class Worker {
 				env: config.environment,
 				execPath: config.nodePath,
 				execArgv: config.nodeArgv,
-				stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+				stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
 			}
-		).once('exit', (code): void => {
-			this.code = code
-			emitter.emit('exit', this)
-		})
-		const child = this.child
-		if (child.stdout) {
-			child.stdout.on('data', emitter.emit.bind(emitter, 'stdout'))
-		}
-		if (child.stderr) {
-			child.stderr.on('data', emitter.emit.bind(emitter, 'stdout'))
-		}
-		const cleanup = this.cleanup.bind(this)
-		const timer = setTimeout(cleanup, this.timeout)
-		child.once('message', (message: string): void => {
-			clearTimeout(timer)
-			const s = message.split(':')
-			child.disconnect()
-			this.connect(Number.parseInt(s[0], 16), s[1])
-		})
+		)
+			.once('exit', (code): void => {
+				this.code = code
+				emitter.emit('exit', this)
+			})
+			.once('message', (message: string): void => {
+				clearTimeout(timer)
+				const s = message.split(':')
+				this.child.disconnect()
+				this.connect(Number.parseInt(s[0], 16), s[1])
+			})
+		const { stdout, stderr } = this.child
+		/* istanbul ignore if */
+		if (stdout) stdout.pipe(stream)
+		/* istanbul ignore if */
+		if (stderr) stderr.pipe(stream)
 		this.onExit.then((): void => {
 			process.off('beforeExit', cleanup)
 		})
@@ -169,60 +184,61 @@ export class Worker {
 		const c = new Client(token, {
 			handshakeTimeout: this.timeout,
 		})
-			.once('connect', (c): void => {
-				this.connection = c
-				emit('connect', this)
-			})
-			.once('disconnect', (): void => {
-				this.connection = undefined
-				const timer = setTimeout(cleanup, this.timeout)
-				this.onExit.then(clearTimeout.bind(null, timer))
-				emit('disconnect', this)
-			})
-			.on('error', emit.bind('error'))
-			.on('message', (message): void => {
-				const { data } = message
-				if (isMessage(data)) {
-					try {
-						switch (data.type) {
-							case 'prefix':
-								if (isPrefix(data)) emit('prefix', data)
-								return
-							case 'file':
-								if (isTestFile(data)) emit('file', data)
-								return
-							case 'case':
-								if (isTestCase(data)) emit('case', data)
-								return
-							case 'result':
-								if (isResult(data)) emit('result', data)
-								return
-							case 'done':
-								if (isDone(data)) emit('done', data.file)
-								return
-							case 'ready':
-								if (isReady(data)) emit('ready', data)
-								return
-							default:
-								throw new TypeError(`Invalid message type: ${data.type}`)
+			.once('connect', (socket): void => {
+				this.connection = socket
+				socket.client.on('message', (message): void => {
+					const { data } = message
+					if (isMessage(data)) {
+						try {
+							switch (data.type) {
+								case 'prefix':
+									if (isPrefix(data)) emit('prefix', data)
+									return
+								case 'file':
+									if (isTestFile(data)) emit('file', data)
+									return
+								case 'case':
+									if (isTestCase(data)) emit('case', data)
+									return
+								case 'result':
+									if (isResult(data)) emit('result', data)
+									return
+								case 'done':
+									if (isDone(data)) emit('done', data.file)
+									return
+								case 'ready':
+									if (isReady(data)) emit('ready', data)
+									return
+								default:
+									throw new TypeError(`Invalid message type: ${data.type}`)
+							}
+						} catch (error) {
+							debugger
+							emit('error', error)
+							if (message.receptive) {
+								message.reply(null)
+							}
 						}
-					} catch (error) {
-						debugger
-						emit('error', error)
+					} else {
+						if (data !== 'ava-adapter-worker') {
+							debugger
+							emit('error', new TypeError('Worker sent an invalid message.'))
+						}
 						if (message.receptive) {
 							message.reply(null)
 						}
 					}
-				} else {
-					if (data !== 'ava-adapter-worker') {
-						debugger
-						emit('error', new TypeError('Worker sent an invalid message.'))
-					}
-					if (message.receptive) {
-						message.reply(null)
-					}
-				}
+				})
+				emit('connect', this)
 			})
+			.once('disconnect', (socket): void => {
+				this.connection = undefined
+				const timer = setTimeout(cleanup, this.timeout)
+				this.onExit.then(clearTimeout.bind(null, timer))
+				emit('disconnect', this)
+				socket.client.removeAllListeners()
+			})
+			.on('error', emit.bind('error'))
 		c.connectTo({ port, host: '127.0.0.1' }).catch((error): void => {
 			if (error instanceof Error) {
 				this.emitter.emitSerial('error', error)
@@ -242,16 +258,6 @@ export class Worker {
 	public on(
 		event: 'error',
 		listener: (error: Error | NetworkError) => void,
-		remove?: (() => void)[]
-	): Worker
-	public on(
-		event: 'stdout',
-		listener: (chunk: Buffer | string) => void,
-		remove?: (() => void)[]
-	): Worker
-	public on(
-		event: 'stderr',
-		listener: (chunk: Buffer | string) => void,
 		remove?: (() => void)[]
 	): Worker
 	public on(event: 'prefix', listener: (prefix: Prefix) => void, remove?: (() => void)[]): Worker
@@ -276,32 +282,19 @@ export class Worker {
 	 * @param event The event type to listen for.
 	 * @param listener The event listener.
 	 */
-	public once(event: 'error', listener: (error: Error | NetworkError) => void): Worker
 	public once(event: 'exit', listener: (worker: Worker) => void): Worker
 	public once(event: 'connect', listener: (worker: Worker) => void): Worker
 	public once(event: 'disconnect', listener: (worker: Worker) => void): Worker
-	public once(event: 'stdout', listener: (chunk: Buffer | string) => void): Worker
-	public once(event: 'stderr', listener: (chunk: Buffer | string) => void): Worker
-	public once(event: 'prefix', listener: (prefix: Prefix) => void): Worker
-	public once(event: 'file', listener: (file: TestFile) => void): Worker
-	public once(event: 'case', listener: (test: TestCase) => void): Worker
-	public once(event: 'result', listener: (result: Result) => void): Worker
-	public once(event: 'ready', listener: (message: Ready) => void): Worker
-	public once(event: Events | Single, listener: Handler): Worker {
+	public once(event: Single, listener: Handler): Worker {
 		switch (event) {
 			case 'exit':
 				this.onExit.then(listener)
 				break
 			case 'connect':
-				this.onConnect.then(listener)
+				this.onConnect.then(listener, this.emitter.emitSerial.bind('error'))
 				break
 			case 'disconnect':
-				this.onDisconnect.then(listener)
-				break
-			default:
-				if (this.alive) {
-					this.emitter.once(event).then(listener)
-				}
+				this.onDisconnect.then(listener, this.emitter.emitSerial.bind('error'))
 				break
 		}
 		return this
@@ -314,14 +307,12 @@ export class Worker {
 	 * @returns this
 	 */
 	public off(event: 'error', listener: (error: Error | NetworkError) => void): Worker
-	public off(event: 'stdout', listener: (chunk: Buffer | string) => void): Worker
-	public off(event: 'stderr', listener: (chunk: Buffer | string) => void): Worker
 	public off(event: 'prefix', listener: (prefix: Prefix) => void): Worker
 	public off(event: 'file', listener: (file: TestFile) => void): Worker
 	public off(event: 'case', listener: (test: TestCase) => void): Worker
 	public off(event: 'result', listener: (result: Result) => void): Worker
 	public off(event: 'ready', listener: (message: Ready) => void): Worker
-	public off(event: Events, listener: Handler): Worker {
+	public off(event: Exclude<Events, Single>, listener: Handler): Worker {
 		this.emitter.off(event, listener)
 		return this
 	}

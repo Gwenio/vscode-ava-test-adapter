@@ -21,6 +21,8 @@ import sinon, { SinonSandbox } from 'sinon'
 import Emitter from 'emittery'
 import delay from 'delay'
 // eslint-disable-next-line node/no-unpublished-import
+import through from 'through2'
+// eslint-disable-next-line node/no-unpublished-import
 import is from '@sindresorhus/is'
 import { Worker } from '../../src/adapter/worker'
 import { SerialQueue } from '../../src/adapter/queue'
@@ -53,6 +55,14 @@ test('start up and shut down', async (t): Promise<void> => {
 	const spy = t.context.sandbox.spy
 	const q = new SerialQueue()
 	const l: (string | Buffer)[] = []
+	const stream = through({ objectMode: true }, (chunk: string | Buffer, _, callback): void => {
+		if (is.buffer(chunk)) {
+			t.log(chunk.toString())
+		} else {
+			t.log(chunk)
+		}
+		callback()
+	})
 	const emitter = new Emitter()
 	const exited = emitter.once('exit')
 	const onConnect = spy((w: Worker): void => {
@@ -62,20 +72,10 @@ test('start up and shut down', async (t): Promise<void> => {
 	const onExit = spy((_: Worker): void => {
 		emitter.emitSerial('exit')
 	})
-	const w = new Worker(workerConfig, workerPath)
+	const w = new Worker(workerConfig, stream, workerPath)
 		.on('error', (x): void => {
 			q.add((): void => {
 				t.log(x)
-			})
-		})
-		.on('stdout', (x): void => {
-			q.add((): void => {
-				l.push(x)
-			})
-		})
-		.on('stderr', (x): void => {
-			q.add((): void => {
-				l.push(x)
 			})
 		})
 		.once('connect', onConnect)

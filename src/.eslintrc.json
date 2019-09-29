@@ -24,7 +24,9 @@
 				"hash-sum",
 				"random",
 				"@sindresorhus/is",
-				"ow"
+				"ow",
+				"through2",
+				"p-cancelable"
 			],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}
