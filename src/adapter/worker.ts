@@ -163,9 +163,9 @@ export class Worker {
 				this.connect(Number.parseInt(s[0], 16), s[1])
 			})
 		const { stdout, stderr } = this.child
-		/* istanbul ignore if */
+		/* istanbul ignore else */
 		if (stdout) stdout.pipe(stream)
-		/* istanbul ignore if */
+		/* istanbul ignore else */
 		if (stderr) stderr.pipe(stream)
 		this.onExit.then((): void => {
 			process.off('beforeExit', cleanup)
@@ -215,15 +215,15 @@ export class Worker {
 						} catch (error) {
 							debugger
 							emit('error', error)
+							/* istanbul ignore next */
 							if (message.receptive) {
 								message.reply(null)
 							}
 						}
 					} else {
-						if (data !== 'ava-adapter-worker') {
-							debugger
-							emit('error', new TypeError('Worker sent an invalid message.'))
-						}
+						debugger
+						emit('error', new TypeError('Worker sent an invalid message.'))
+						/* istanbul ignore next */
 						if (message.receptive) {
 							message.reply(null)
 						}
@@ -240,6 +240,7 @@ export class Worker {
 			})
 			.on('error', emit.bind('error'))
 		c.connectTo({ port, host: '127.0.0.1' }).catch((error): void => {
+			/* istanbul ignore next */
 			if (error instanceof Error) {
 				this.emitter.emitSerial('error', error)
 			} else {
