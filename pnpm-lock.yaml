@@ -70,6 +70,7 @@ importers:
       through2: 3.0.1
       tslib: 1.10.0
       typescript: 3.6.3
+      veza: 1.1.0
       vinyl-buffer: 1.0.1
       vsce: 1.66.0
       vscode-test-adapter-api: 1.7.0
@@ -143,6 +144,7 @@ importers:
       through2: ^3.0.1
       tslib: ^1.9.3
       typescript: 3.6.3
+      veza: ^1.1.0
       vinyl-buffer: ^1.0.1
       vsce: ^1.65.0
       vscode-test-adapter-api: ^1.7.0
@@ -1423,7 +1425,6 @@ packages:
     resolution:
       integrity: sha512-Phlt0plgpIIBOGTT/ehfFnbNlfsDEiqmzE2KRXoX1bLIlir4X/MR+zSyBEkL05ffWgnRSf/DXv+WrUAVr93/ow==
   /binarytf/2.0.0:
-    dev: false
     resolution:
       integrity: sha512-CS0MvijAFAHBBw4LgIHBP7wzdW3KWEB0KeMjblK0rHOyyhnkoMu3puW7uhJXlnS5WDn5M2XQFaQBtw00FwRfcA==
   /bl/1.2.2:
@@ -7488,7 +7489,6 @@ packages:
   /veza/1.1.0:
     dependencies:
       binarytf: 2.0.0
-    dev: false
     resolution:
       integrity: sha512-JxDVZZXwFJ+FxsX+kPdsjRK9XZdwayEYzPsPLxpZjzzgncWphjvMlzn8ioVAgeonZ/Aa7vEZOb4Hp13ergwybA==
   /vinyl-buffer/1.0.1:
