@@ -213,35 +213,40 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	 * @inheritdoc
 	 */
 	public async run(testsToRun: string[]): Promise<void> {
+		const { serialRuns } = this.config.current
 		if (this.log.enabled) {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Running test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		return this.queue.add((): void => {
-			const w = this.worker
-			if (w) {
-				this.running += 1
-				this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
-				w.send({
-					type: 'run',
-					run: testsToRun,
-				})
-					.then((): void => {
-						this.log.info('Finished running tests.')
-					})
-					.catch((error: Error): void => {
-						this.log.error(error)
-					})
-					.finally((): void => {
-						this.running -= 1
-						if (this.running === 0) {
-							this.testStatesEmitter.fire({ type: 'finished' })
-						}
-					})
-			} else {
-				this.log.error('No worker connected.')
+		return this.queue.add(
+			async (): Promise<void> => {
+				const w = this.worker
+				if (w) {
+					this.running += 1
+					this.testStatesEmitter.fire({ type: 'started', tests: testsToRun })
+					const p = w
+						.send({
+							type: 'run',
+							run: testsToRun,
+						})
+						.then((): void => {
+							this.log.info('Finished running tests.')
+						})
+						.catch((error: Error): void => {
+							this.log.error(error)
+						})
+						.finally((): void => {
+							this.running -= 1
+							if (this.running === 0) {
+								this.testStatesEmitter.fire({ type: 'finished' })
+							}
+						})
+					if (serialRuns) return p
+				} else {
+					this.log.error('No worker connected.')
+				}
 			}
-		})
+		)
 	}
 
 	/**
@@ -258,60 +263,64 @@ export class AVAAdapter implements TestAdapter, Disposable {
 			const toRun = JSON.stringify(testsToRun)
 			this.log.info(`Debugging test(s) ${toRun} of ${this.workspace.uri.fsPath}`)
 		}
-		return this.queue.add((): void => {
-			const w = this.worker
-			if (w) {
-				const m = this.configMap
-				const serial: string[] = []
-				const con: string[] = []
-				const skip = config.debuggerSkipFiles
-				for (const [id, { serial: s }] of m) {
-					if (s) {
-						serial.push(id)
-					} else {
-						con.push(id)
+		return this.queue.add(
+			async (): Promise<void> => {
+				const w = this.worker
+				if (w) {
+					const m = this.configMap
+					const serial: string[] = []
+					const con: string[] = []
+					const skip = config.debuggerSkipFiles
+					for (const [id, { serial: s }] of m) {
+						if (s) {
+							serial.push(id)
+						} else {
+							con.push(id)
+						}
 					}
-				}
-				const ready = ({ config, port }): void => {
-					const y = m.get(config)
-					if (y) {
-						connectDebugger(
-							this.log,
-							this.workspace,
-							skip.concat(y.debuggerSkipFiles),
-							port
-						)
-					} else {
-						connectDebugger(this.log, this.workspace, skip, port)
+					const ready = ({ config, port }): void => {
+						const y = m.get(config)
+						if (y) {
+							connectDebugger(
+								this.log,
+								this.workspace,
+								skip.concat(y.debuggerSkipFiles),
+								port
+							)
+						} else {
+							connectDebugger(this.log, this.workspace, skip, port)
+						}
 					}
+					w.on('ready', ready)
+					const p = w
+						.send({
+							type: 'debug',
+							port: config.debuggerPort,
+							serial:
+								serial.length > con.length
+									? {
+											x: true,
+											list: con,
+									  }
+									: {
+											x: false,
+											list: serial,
+									  },
+							run: testsToRun,
+						})
+						.catch((error: Error): void => {
+							this.log.error(error)
+						})
+						.finally((): void => {
+							this.log.info('Done debugging.')
+							w.off('ready', ready)
+						})
+					if (config.serialRuns) return p
+				} else {
+					this.log.error('No worker connected.')
 				}
-				w.on('ready', ready)
-				w.send({
-					type: 'debug',
-					port: config.debuggerPort,
-					serial:
-						serial.length > con.length
-							? {
-									x: true,
-									list: con,
-							  }
-							: {
-									x: false,
-									list: serial,
-							  },
-					run: testsToRun,
-				})
-					.catch((error: Error): void => {
-						this.log.error(error)
-					})
-					.finally((): void => {
-						this.log.info('Done debugging.')
-						w.off('ready', ready)
-					})
-			} else {
-				this.log.error('No worker connected.')
 			}
-		})
+		)
 	}
 
 	/**

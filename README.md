@@ -42,6 +42,7 @@ that caching be enabled in your AVA configuration.
 | `avaExplorer.cwd`               | The working directory for AVA relative to the workspace.                | The workspace folder.                  |
 | `avaExplorer.configs`           | Array of configurations, see [Sub-Configurations](#sub-configurations). | `[{}]`                                 |
 | `avaExplorer.env`               | Environment variables for the background worker.                        | `{}`                                   |
+| `avaExplorer.serialRuns`        | If true then only one test or debug session will occur at a time.       | `false`                                |
 | `avaExplorer.nodePath`          | The path to the Node executable to use.                                 | Searches PATH or VSCode's installation |
 | `avaExplorer.nodeArgv`          | The arguments to the Node executable                                    |
 | `avaExplorer.debuggerPort`      | The port for running the debug sessions                                 | 9229                                   |

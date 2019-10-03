@@ -51,6 +51,7 @@ const defaultConfig: LoadedConfig = {
 		},
 	],
 	environment: {},
+	serialRuns: false,
 	nodePath,
 	nodeArgv: [],
 	debuggerPort: defaultPort,
@@ -68,6 +69,7 @@ const alternateConfig: LoadedConfig = {
 	environment: {
 		x: 'world',
 	},
+	serialRuns: true,
 	nodePath: path.resolve(path.dirname(nodePath), '12.10.0', path.basename(nodePath)),
 	nodeArgv: ['-r', 'ts-node/register'],
 	debuggerPort: 10000,
@@ -85,9 +87,19 @@ const queryKeys = new Set<string>([
 	'nodeArgv',
 	'debuggerPort',
 	'debuggerSkipFiles',
+	'serialRuns',
 ])
 const checkKeys = new Set<string>(
-	['cwd', 'configs', 'env', 'nodePath', 'nodeArgv', 'debuggerPort', 'debuggerSkipFiles']
+	[
+		'cwd',
+		'configs',
+		'env',
+		'nodePath',
+		'nodeArgv',
+		'debuggerPort',
+		'debuggerSkipFiles',
+		'serialRuns',
+	]
 		.concat(extraKeys)
 		.map((key: string): string => `${configRoot}.${key}`)
 )
@@ -96,6 +108,7 @@ const invalid: { [key: string]: unknown } = {
 	cwd: 42,
 	configs: [],
 	env: [],
+	serialRuns: 'true',
 	nodePath: false,
 	nodeArgv: {},
 	debuggerPort: 70000,

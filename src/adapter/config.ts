@@ -42,6 +42,8 @@ interface ConfigCache {
 	configs: SubConfig[]
 	/** The environment for the Worker. */
 	environment: Readonly<NodeJS.ProcessEnv>
+	/** If only one test or debug session is allowed. */
+	serialRuns: boolean
 	/** The path to the NodeJS executable to use. */
 	nodePath: string | undefined
 	/** The CLI arguments for Node. */
@@ -67,6 +69,7 @@ const configDefaults: LoadedConfig = {
 	cwd: '',
 	configs: [subDefault],
 	environment: {},
+	serialRuns: false,
 	nodePath: undefined,
 	nodeArgv: [],
 	debuggerPort: 9229,
@@ -96,6 +99,7 @@ const configAliasMap: { [K in ConfigKey]: K extends Aliased ? Aliases : K } = {
 	nodeArgv: 'nodeArgv',
 	debuggerPort: 'debuggerPort',
 	debuggerSkipFiles: 'debuggerSkipFiles',
+	serialRuns: 'serialRuns',
 }
 
 /** Keys for settings to validate the standard way. */
@@ -113,6 +117,7 @@ const configValidate: {
 		configAliasMap['debuggerSkipFiles'],
 		ow.optional.array.ofType(ow.string.nonEmpty)
 	),
+	serialRuns: ow.create(configAliasMap['serialRuns'], ow.optional.boolean),
 }
 
 /** Immutable map of ConfigKey to string. */
@@ -346,6 +351,9 @@ export class Config<X extends string> {
 			case 'nodePath':
 				// use defaultNode if a path is not set
 				c[key] = this.getNode(query) || this.defaultNode
+				return
+			case 'serialRuns':
+				c[key] = this.getValue(key, query)
 				return
 			case 'nodeArgv':
 				c[key] = this.getValue(key, query)
