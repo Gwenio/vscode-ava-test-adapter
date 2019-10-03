@@ -17,24 +17,11 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import { ChildProcess, fork } from 'child_process'
-import { Writable } from 'stream'
+import { Writable, Readable } from 'stream'
 import Emitter from 'emittery'
 import Cancelable from 'p-cancelable'
 import { Client, ClientSocket, NetworkError } from 'veza'
-import {
-	Parent,
-	Load,
-	Run,
-	Debug,
-	Drop,
-	Stop,
-	Prefix,
-	TestCase,
-	TestFile,
-	Result,
-	Logging,
-	Ready,
-} from '../ipc'
+import { Parent, Prefix, TestCase, TestFile, Result, Ready } from '../ipc'
 import {
 	isMessage,
 	isPrefix,
@@ -96,23 +83,9 @@ export class Worker {
 	/** Stores exit event. */
 	private readonly onExit = this.emitter.once('exit')
 	/** Stores connect event. */
-	private readonly onConnect = new Cancelable<Worker>((resolve, _reject, onCancel): void => {
-		const off = this.emitter.on('connect', (data): void => {
-			off()
-			resolve(data)
-		})
-		onCancel.shouldReject = true
-		onCancel(off)
-	})
+	private readonly onConnect = this.onceHandler('connect')
 	/** Stores disconnect event. */
-	private readonly onDisconnect = new Cancelable<Worker>((resolve, _reject, onCancel): void => {
-		const off = this.emitter.on('disconnect', (data): void => {
-			off()
-			resolve(data)
-		})
-		onCancel.shouldReject = true
-		onCancel(off)
-	})
+	private readonly onDisconnect = this.onceHandler('disconnect')
 	/** The exit code of the worker process. */
 	private code: number | null = null
 	/** Gets the exit code of the worker process. */
@@ -160,10 +133,9 @@ export class Worker {
 				this.connect(Number.parseInt(s[0], 16), s[1])
 			})
 		const { stdout, stderr } = this.child
-		/* istanbul ignore else */
-		if (stdout) stdout.pipe(stream)
-		/* istanbul ignore else */
-		if (stderr) stderr.pipe(stream)
+		const pipe = Worker.pipe.bind(null, stream)
+		pipe(stderr)
+		pipe(stdout)
 		const cleanup = this.cleanup.bind(this)
 		this.onExit.then((): void => {
 			process.off('beforeExit', cleanup)
@@ -211,7 +183,6 @@ export class Worker {
 									throw new TypeError(`Invalid message type: ${data.type}`)
 							}
 						} catch (error) {
-							debugger
 							emit('error', error)
 							/* istanbul ignore next */
 							if (message.receptive) {
@@ -219,7 +190,6 @@ export class Worker {
 							}
 						}
 					} else {
-						debugger
 						emit('error', new TypeError('Worker sent an invalid message.'))
 						/* istanbul ignore next */
 						if (message.receptive) {
@@ -266,6 +236,7 @@ export class Worker {
 	public on(event: 'done', listener: (file: string) => void, remove?: (() => void)[]): Worker
 	public on(event: 'ready', listener: (message: Ready) => void, remove?: (() => void)[]): Worker
 	public on(event: Events, listener: Handler, remove?: (() => void)[]): Worker {
+		/* istanbul ignore else */
 		if (this.alive) {
 			if (remove) {
 				remove.push(this.emitter.on(event, listener))
@@ -321,24 +292,17 @@ export class Worker {
 	 * @param message The message to send.
 	 * @returns A promise to await for the triggered action to complete.
 	 */
-	public send(message: Load | Run | Debug): Promise<void>
-	/**
-	 * Sends a message to the worker.
-	 * @param message The message to send.
-	 */
-	public send(message: Drop | Stop | Logging): void
-	public send(message: Parent): void | Promise<void> {
+	public async send(message: Parent): Promise<void> {
 		const c = this.connection
 		if (c) {
 			switch (message.type) {
 				case 'debug':
 				case 'run':
 				case 'load':
-					return c
-						.send(message, {
-							receptive: true,
-						})
-						.then((): void => {})
+					await c.send(message, {
+						receptive: true,
+					})
+					return
 				default:
 					c.send(message, {
 						receptive: false,
@@ -355,15 +319,46 @@ export class Worker {
 		const c = this.connection
 		if (c) {
 			c.disconnect()
-		} else if (this.alive) {
-			this.child.kill()
-		}
+		} else this.cleanup()
 	}
 
 	/** Kills the child process, if it is alive. */
 	private cleanup(): void {
+		/* istanbul ignore else */
 		if (this.alive) {
 			this.child.kill()
 		}
+	}
+
+	/**
+	 * Sets up a pipe between streams.
+	 * @param sink The target stream.
+	 * @param source The stream to pipe to sink.
+	 */
+	private static pipe(sink: Writable, source: Readable | null): void {
+		/* istanbul ignore else */
+		if (source) {
+			source
+				.pipe(
+					sink,
+					{ end: false }
+				)
+				.once('end', source.unpipe.bind(source, sink))
+		}
+	}
+
+	/**
+	 * Prepares a cancelable one time event handler.
+	 * @param event The event to handle once.
+	 */
+	private onceHandler(event: Single): Cancelable<Worker> {
+		return new Cancelable<Worker>((resolve, _reject, onCancel): void => {
+			const off = this.emitter.on(event, (data): void => {
+				off()
+				resolve(data)
+			})
+			onCancel.shouldReject = true
+			onCancel(off)
+		})
 	}
 }
