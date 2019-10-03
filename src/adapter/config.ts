@@ -116,7 +116,10 @@ const configValidate: {
 	cwd: ow.create(configAliasMap['cwd'], ow.string),
 	nodePath: ow.create(configAliasMap['nodePath'], ow.any(ow.undefined, ow.string.nonEmpty)),
 	nodeArgv: ow.create(configAliasMap['nodeArgv'], ow.array.ofType(ow.string.nonEmpty)),
-	debuggerPort: ow.create(configAliasMap['debuggerPort'], ow.number.lessThanOrEqual(65535)),
+	debuggerPort: ow.create(
+		configAliasMap['debuggerPort'],
+		ow.number.greaterThanOrEqual(0).lessThanOrEqual(65535)
+	),
 	debuggerSkipFiles: ow.create(
 		configAliasMap['debuggerSkipFiles'],
 		ow.optional.array.ofType(ow.string.nonEmpty)

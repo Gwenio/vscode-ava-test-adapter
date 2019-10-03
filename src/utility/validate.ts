@@ -224,7 +224,7 @@ export function isResult(x: Message | Result): x is Result {
 }
 
 /** OW shape for a network port number. */
-const portNumber = ow.number.lessThanOrEqual(65535)
+const portNumber = ow.number.greaterThanOrEqual(0).lessThanOrEqual(65535)
 
 /** Throws an error if not called with a valid debug message. */
 const debugFilter = ow.create(
