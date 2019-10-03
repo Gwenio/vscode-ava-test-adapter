@@ -24,7 +24,8 @@
 				"hash-sum",
 				"random",
 				"@sindresorhus/is",
-				"ow"
+				"ow",
+				"veza"
 			],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}

@@ -19,6 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import Emitter from 'emittery'
+import delay from 'delay'
 // eslint-disable-next-line node/no-unpublished-import
 import is from '@sindresorhus/is'
 import { Worker } from '../../src/adapter/worker'
@@ -37,12 +38,14 @@ test.beforeEach(
 	}
 )
 
+const timeout = 10000
 const inspectFilter = /^--inspect(.*)/i
 const workerConfig = {
 	cwd: process.cwd(),
 	environment: process.env,
 	nodePath: process.execPath,
 	nodeArgv: process.execArgv.filter((x): boolean => !inspectFilter.test(x)),
+	timeout,
 }
 const workerPath = '../../../dist/child.js'
 
@@ -51,7 +54,7 @@ test('start up and shut down', async (t): Promise<void> => {
 	const q = new SerialQueue()
 	const l: (string | Buffer)[] = []
 	const emitter = new Emitter()
-	const exited = q.add(() => emitter.once('exit'))
+	const exited = emitter.once('exit')
 	const onConnect = spy((w: Worker): void => {
 		w.disconnect()
 	})
@@ -78,8 +81,7 @@ test('start up and shut down', async (t): Promise<void> => {
 		.once('connect', onConnect)
 		.once('disconnect', onDisconnect)
 		.once('exit', onExit)
-	t.timeout(30000)
-	await exited
+	await Promise.race([exited, delay(timeout)])
 	await q.add((): void => {
 		for (const x of l) {
 			if (is.buffer(x)) {

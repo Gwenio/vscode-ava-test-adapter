@@ -242,6 +242,14 @@
 					},
 					"scope": "resource"
 				},
+				"avaExplorer.workerTimeout": {
+					"description": "How long to wait for the worker process to connect in milliseconds.",
+					"type": "number",
+					"minimum": 1000,
+					"default": 10000,
+					"maximum": 300000,
+					"scope": "resource"
+				},
 				"avaExplorer.logpanel": {
 					"description": "write diagnostic logs to an output panel",
 					"type": "boolean",

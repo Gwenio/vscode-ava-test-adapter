@@ -43,9 +43,6 @@ import {
 	isReady,
 } from '../utility/validate'
 
-/** The timeout duration for the worker in milliseconds. */
-const timeout = 30000
-
 /** Interface for the configuration of the worker. */
 interface WorkerConfig {
 	/** The current working directory of the worker. */
@@ -56,6 +53,8 @@ interface WorkerConfig {
 	nodePath: string | undefined
 	/** The CLI arguments for Node. */
 	nodeArgv: string[]
+	/** How long to wait for the worker process in milliseconds. */
+	timeout: number
 }
 
 /** Single occurance events. */
@@ -94,6 +93,8 @@ export class Worker {
 	>()
 	/** Indicates if the worker has exited. */
 	private alive = true
+	/** How long to wait on the worker process in milliseconds. */
+	private readonly timeout: number
 	/** Stores exit event. */
 	private readonly onExit = this.emitter.once('exit')
 	/** Stores connect event. */
@@ -114,6 +115,7 @@ export class Worker {
 	 * @param script The worker script file.
 	 */
 	public constructor(config: WorkerConfig, script = './child.js') {
+		this.timeout = config.timeout
 		const emitter = this.emitter
 		this.onExit.then(() => {
 			this.alive = false
@@ -143,7 +145,7 @@ export class Worker {
 			child.stderr.on('data', emitter.emit.bind(emitter, 'stdout'))
 		}
 		const cleanup = this.cleanup.bind(this)
-		const timer = setTimeout(cleanup, timeout)
+		const timer = setTimeout(cleanup, this.timeout)
 		child.once('message', (message: string): void => {
 			clearTimeout(timer)
 			const s = message.split(':')
@@ -165,7 +167,7 @@ export class Worker {
 		const emit = this.emitter.emit.bind(this.emitter)
 		const cleanup = this.cleanup.bind(this)
 		const c = new Client(token, {
-			handshakeTimeout: timeout,
+			handshakeTimeout: this.timeout,
 		})
 			.once('connect', (c): void => {
 				this.connection = c
@@ -173,7 +175,7 @@ export class Worker {
 			})
 			.once('disconnect', (): void => {
 				this.connection = undefined
-				const timer = setTimeout(cleanup, timeout)
+				const timer = setTimeout(cleanup, this.timeout)
 				this.onExit.then(clearTimeout.bind(null, timer))
 				emit('disconnect', this)
 			})
