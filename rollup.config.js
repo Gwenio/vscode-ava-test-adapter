@@ -30,6 +30,31 @@ function bundleSize() {
 	}
 }
 
+function normalizeSources() {
+	return {
+		name: 'normalize-sources',
+		generateBundle(options, bundle) {
+			const f = path.basename(options.file)
+			const m = bundle[f].map
+			if (m) {
+				const { sources } = m
+				const normal = []
+				const n = '/node_modules/'
+				for (const x of sources) {
+					if (x.includes(n)) {
+						const y = x.split(':')
+						const z = y[0]
+						const i = z.lastIndexOf(n)
+						y[0] = '.' + z.slice(i)
+						normal.push(y.join(':'))
+					} else normal.push(x)
+				}
+				m.sources = normal
+			}
+		},
+	}
+}
+
 function dependList() {
 	return {
 		name: 'depend-list',
@@ -68,7 +93,7 @@ function outputBundle(filename, options = {}) {
 		...options,
 		file: filename,
 		format: 'cjs',
-		sourcemap: process.env.NODE_ENV !== 'production',
+		sourcemap: true,
 		sourcemapFile: `${filename}.map`,
 		preferConst: true,
 	}
@@ -135,6 +160,7 @@ function configurePlugins() {
 			}),
 			dependList(),
 			bundleSize(),
+			normalizeSources(),
 		]
 	} else {
 		return [
