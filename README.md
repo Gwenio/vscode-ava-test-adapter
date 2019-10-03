@@ -47,17 +47,17 @@ that caching be enabled in your AVA configuration.
 | `avaExplorer.nodeArgv`          | The arguments to the Node executable                                    |
 | `avaExplorer.debuggerPort`      | The port for running the debug sessions                                 | 9229                                   |
 | `avaExplorer.debuggerSkipFiles` | An array of glob patterns for files to skip when debugging              | `[]`                                   |
-| `avaExplorer.workerTimeout`     | How long to wait for the worker process to connect in milliseconds.     | 15000                                  |
+| `avaExplorer.workerTimeout`     | How long to wait for the worker process to connect in milliseconds.     | 10000                                  |
 | `avaExplorer.logpanel`          | If `true` writes a diagnostic log to AVA Explorer Log                   | `false`                                |
-| `avaExplorer.logfile`           | A file to write diagnostics to                                          | `null`                                 |
+| `avaExplorer.logfile`           | A file to write diagnostics to                                          | `undefined`                            |
 
 ### Sub-Configurations
 
-| Property            | Description                                                | Default |
-| ------------------- | ---------------------------------------------------------- | ------- |
-| `file`              | The configuration file relative to `avaExplorer.cwd`.      | `null`  |
-| `serial`            | If `true` then test will be run serially.                  | `false` |
-| `debuggerSkipFiles` | An array of glob patterns for files to skip when debugging | `[]`    |
+| Property            | Description                                                | Default         |
+| ------------------- | ---------------------------------------------------------- | --------------- |
+| `file`              | The configuration file relative to `avaExplorer.cwd`.      | `ava.config.js` |
+| `serial`            | If `true` then test will be run serially.                  | `false`         |
+| `debuggerSkipFiles` | An array of glob patterns for files to skip when debugging | `[]`            |
 
 ### Configuration Notes
 
