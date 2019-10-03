@@ -62,7 +62,6 @@ importers:
       rollup-plugin-babel: 4.3.3_@babel+core@7.6.2+rollup@1.21.4
       rollup-plugin-commonjs: 10.1.0_rollup@1.21.4
       rollup-plugin-json: 4.0.0
-      rollup-plugin-license: 0.12.1_rollup@1.21.4
       rollup-plugin-node-resolve: 5.2.0_rollup@1.21.4
       rollup-plugin-sourcemaps: 0.4.2_rollup@1.21.4
       rollup-plugin-terser: 5.1.2_rollup@1.21.4
@@ -137,7 +136,6 @@ importers:
       rollup-plugin-babel: ^4.3.3
       rollup-plugin-commonjs: ^10.1.0
       rollup-plugin-json: ^4.0.0
-      rollup-plugin-license: ^0.12.1
       rollup-plugin-node-resolve: ^5.2.0
       rollup-plugin-sourcemaps: ^0.4.2
       rollup-plugin-terser: ^5.1.1
@@ -1915,10 +1913,6 @@ packages:
       node: '>= 0.6.x'
     resolution:
       integrity: sha1-nJkJQXbhIkDLItbFFGCYQA/g99Q=
-  /commenting/1.1.0:
-    dev: true
-    resolution:
-      integrity: sha512-YeNK4tavZwtH7jEgK1ZINXzLKm6DZdEMfsaaieOsCAN0S8vsY7UeuO3Q7d/M018EFgE+IeUAuBOKkFccBZsUZA==
   /common-path-prefix/1.0.0:
     dev: false
     resolution:
@@ -5092,10 +5086,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
-  /moment/2.24.0:
-    dev: true
-    resolution:
-      integrity: sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
   /ms/2.0.0:
     dev: true
     resolution:
@@ -6426,20 +6416,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-hgb8N7Cgfw5SZAkb3jf0QXii6QX/FOkiIq2M7BAQIEydjHvTyxXHQiIzZaTFgx1GK0cRCHOCBHIyEkkLdWKxow==
-  /rollup-plugin-license/0.12.1_rollup@1.21.4:
-    dependencies:
-      commenting: 1.1.0
-      glob: 7.1.4
-      lodash: 4.17.15
-      magic-string: 0.25.3
-      mkdirp: 0.5.1
-      moment: 2.24.0
-      rollup: 1.21.4
-    dev: true
-    peerDependencies:
-      rollup: < 2
-    resolution:
-      integrity: sha512-zT8UO+Tc+DAVQHM5qeX4jnuHzTtDUYJ/8AHzUgVgqYrx5Wj5kHlvoZNaQqg7hOQbjSuHuJFlQGZmxxSQq2WMqA==
   /rollup-plugin-node-resolve/5.2.0_rollup@1.21.4:
     dependencies:
       '@types/resolve': 0.0.8

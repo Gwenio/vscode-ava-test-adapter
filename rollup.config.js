@@ -4,6 +4,7 @@
 /* eslint node/no-unpublished-import: "off" */
 
 import path from 'path'
+import fs from 'fs'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 import { terser } from 'rollup-plugin-terser'
@@ -11,10 +12,10 @@ import babel from 'rollup-plugin-babel'
 import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
 import jsonfile from 'rollup-plugin-json'
-import license from 'rollup-plugin-license'
 import globby from 'globby'
 // eslint-disable-next-line node/no-extraneous-import
 import chalk from 'chalk'
+import is from '@sindresorhus/is'
 
 function bundleSize() {
 	return {
@@ -73,16 +74,26 @@ function outputBundle(filename, options = {}) {
 	}
 }
 
+const eol = /(\r?)\n/g
+
+function formatLicense() {
+	const raw = fs.readFileSync('LICENSE')
+	if (is.string(raw)) return `/*\n${raw}*/`.replace(eol, '\r\n')
+	else if (is.buffer(raw)) return `/*\n${raw.toString()}*/`.replace(eol, '\r\n')
+	else throw new TypeError('Expected fs.readFileSync to return a string or buffer.')
+}
+
 function configurePlugins() {
 	if (process.env.NODE_ENV === 'production') {
 		return [
+			sourcemaps(),
 			resolve({}),
 			commonjs({
-				sourceMap: false,
+				sourcemap: true,
 			}),
 			jsonfile({}),
 			babel({
-				sourcemap: false,
+				sourcemap: true,
 				plugins: [
 					[
 						'transform-inline-environment-variables',
@@ -109,26 +120,17 @@ function configurePlugins() {
 				configFile: false,
 				babelrc: false,
 			}),
-			license({
-				sourcemap: false,
-				banner: {
-					commentStyle: 'ignored',
-					content: {
-						file: path.join(__dirname, 'LICENSE'),
-						encoding: 'utf-8',
-					},
-				},
-			}),
 			terser({
-				sourcemap: false,
+				sourcemap: true,
 				toplevel: true,
 				ecma: 8,
 				parse: {
 					shebang: true,
 				},
 				output: {
-					comments: /^!/,
+					comments: false,
 					shebang: true,
+					preamble: formatLicense(),
 				},
 			}),
 			dependList(),
@@ -151,11 +153,6 @@ function configurePlugins() {
 						'transform-inline-environment-variables',
 						typeof process.env.NODE_ENV === 'string' ? { include: ['NODE_ENV'] } : {},
 					],
-					'transform-remove-undefined',
-					'transform-inline-consecutive-adds',
-					'transform-property-literals',
-					'transform-regexp-constructors',
-					'minify-guarded-expressions',
 					[
 						'minify-dead-code-elimination',
 						{
