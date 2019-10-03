@@ -25,8 +25,8 @@ import hash from './worker/hash'
 import Suite from './worker/suite'
 import { isMessage, isLogging, isLoad, isDrop, isRun, isDebug } from './utility/validate'
 
-/** Whether a connection has been established. */
-let connected = false
+/** The connected client. */
+let client: ServerSocket | null = null
 /** The name for the parent's veza Client. */
 const token = hash(
 	process.cwd(),
@@ -42,14 +42,14 @@ const suite = new Suite()
 /**
  * Loads test information.
  * @param info The Load message begin handled.
- * @param client The socket to send messages too.
+ * @param socket The socket to send messages too.
  */
-async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
+async function loadTests(info: IPC.Load, socket: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
 	const send = (data: IPC.Tree): void => {
 		wait.push(
-			client.send(data, {
+			socket.send(data, {
 				receptive: false,
 			})
 		)
@@ -62,14 +62,14 @@ async function loadTests(info: IPC.Load, client: ServerSocket): Promise<void> {
  * Runs tests.
  * @param info The Run message being handled.
  * @param id The session ID.
- * @param client The socket to send messages too.
+ * @param socket The socket to send messages too.
  */
-async function runTests(info: IPC.Run, id: number, client: ServerSocket): Promise<void> {
+async function runTests(info: IPC.Run, id: number, socket: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	const wait: Promise<unknown>[] = []
 	const send = (data: IPC.Event): void => {
 		wait.push(
-			client.send(data, {
+			socket.send(data, {
 				receptive: false,
 			})
 		)
@@ -81,13 +81,13 @@ async function runTests(info: IPC.Run, id: number, client: ServerSocket): Promis
 /**
  * Debugs tests.
  * @param info The Debug message being handled.
- * @param client The socket to send messages too.
+ * @param socket The socket to send messages too.
  */
-async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> {
+async function debugTests(info: IPC.Debug, socket: ServerSocket): Promise<void> {
 	const logger = logEnabled ? console.log : undefined
 	await suite.debug(
 		function(config: string, port: number): void {
-			client.send({
+			socket.send({
 				type: 'ready',
 				config,
 				port,
@@ -103,37 +103,43 @@ async function debugTests(info: IPC.Debug, client: ServerSocket): Promise<void> 
 /** The veza server. Constructed externally. */
 declare const connection: Server
 connection
-	.on('error', (error, client): void => {
-		if (client) {
-			console.error(`[IPC] Error from ${client.name}:`, error)
+	.on('error', (error, socket): void => {
+		if (socket) {
+			console.error(`[IPC] Error from ${socket.name}:`, error)
 		} else {
 			console.error(error)
 		}
 	})
-	.on('connect', (client): void => {
-		if (client.name === token) {
-			if (connected) {
-				client.disconnect(true)
-				console.error('[Worker] Another connection made.')
+	.on('connect', (socket): void => {
+		if (socket.name === token) {
+			if (client) {
+				socket.disconnect(true)
+				console.error('[Worker] Another connection was attempted.')
 			} else {
-				connected = true
+				client = socket
 				if (logEnabled) {
 					console.log('[Worker] Connected.')
 				}
 			}
 		} else {
-			client.disconnect(true)
-			console.error(`[Worker] Connection attempt with: ${client.name}`)
+			socket.disconnect(true)
+			console.error(`[Worker] Connection attempt with: ${socket.name}`)
 		}
 	})
-	.on('disconnect', (client): void => {
-		if (client.name === token && connected) {
-			client.server.close()
+	.on('disconnect', (socket): void => {
+		if (socket.name === token && client) {
+			socket.server.close()
 		}
 	})
 	.on(
 		'message',
-		async (message, client): Promise<void> => {
+		async (message, socket): Promise<void> => {
+			if (socket !== client) {
+				if (message.receptive) {
+					message.reply(null)
+				}
+				return
+			}
 			const data = message.data
 			try {
 				if (isMessage(data)) {
@@ -146,7 +152,7 @@ connection
 							return
 						case 'load':
 							if (isLoad(data)) {
-								await loadTests(data, client)
+								await loadTests(data, socket)
 							}
 							return
 						case 'drop':
@@ -156,7 +162,7 @@ connection
 							return
 						case 'run':
 							if (isRun(data)) {
-								await runTests(data, message.id, client)
+								await runTests(data, message.id, socket)
 							}
 							return
 						case 'stop':
@@ -164,13 +170,13 @@ connection
 							return
 						case 'debug':
 							if (isDebug(data)) {
-								await debugTests(data, client)
+								await debugTests(data, socket)
 							}
 							return
 						default:
 							throw new TypeError(`Invalid message type: ${data.type}`)
 					}
-				} else if (data !== client.name) {
+				} else if (data !== socket.name) {
 					if (process.env.NODE_ENV !== 'production') {
 						console.debug(JSON.stringify(data))
 					}

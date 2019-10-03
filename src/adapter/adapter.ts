@@ -27,6 +27,7 @@ import {
 	TestEvent,
 } from 'vscode-test-adapter-api'
 import is from '@sindresorhus/is'
+import through from 'through2'
 import Disposable from './disposable'
 import Log from './log'
 import { Config, LoadedConfig, SubConfig, configRoot, ConfigKey } from './config'
@@ -67,6 +68,15 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	public readonly channel: vscode.OutputChannel
 	/** The output Log. */
 	private readonly log: Log
+	/** Stream to forward worker output to channel. */
+	private readonly output = through((chunk: string | Buffer, _encoding, callback): void => {
+		if (is.buffer(chunk)) {
+			this.channel.append(chunk.toString())
+		} else if (is.string(chunk)) {
+			this.channel.append(chunk)
+		}
+		callback()
+	})
 	/** Count of active test runs. */
 	private running = 0
 
@@ -350,18 +360,6 @@ export class AVAAdapter implements TestAdapter, Disposable {
 		this.configMap = new Map<string, SubConfig>()
 	}
 
-	/**
-	 * Appends data to the Adapter's channel.
-	 * @param chunk The data to append.
-	 */
-	private append(chunk: string | Buffer): void {
-		if (is.buffer(chunk)) {
-			this.channel.append(chunk.toString())
-		} else if (is.string(chunk)) {
-			this.channel.append(chunk)
-		}
-	}
-
 	private setWorkerLog(): void {
 		this.queue.add((): void => {
 			const w = this.worker
@@ -415,25 +413,17 @@ export class AVAAdapter implements TestAdapter, Disposable {
 					if (this.worker) {
 						this.worker.disconnect()
 					}
-					this.worker = new Worker(config)
-						.on('stdout', this.append.bind(this))
-						.on('stderr', this.append.bind(this))
+					this.worker = new Worker(config, this.output)
+						.once('exit', (w: Worker): void => {
+							if (this.worker === w) {
+								this.worker = undefined
+							}
+							if (failed) {
+								resolve()
+							}
+						})
 						.on('error', (error): void => {
 							log.error(error)
-						})
-						.on('result', (result): void => {
-							this.testStatesEmitter.fire({
-								type: 'test',
-								state: result.state,
-								test: result.test,
-							})
-						})
-						.on('done', (file): void => {
-							this.testStatesEmitter.fire({
-								type: 'suite',
-								suite: file,
-								state: 'completed',
-							})
 						})
 						.once('connect', (w: Worker): void => {
 							log.debug('Worker connected.')
@@ -449,13 +439,19 @@ export class AVAAdapter implements TestAdapter, Disposable {
 							this.setWorkerLog()
 							resolve()
 						})
-						.once('exit', (w: Worker): void => {
-							if (this.worker === w) {
-								this.worker = undefined
-							}
-							if (failed) {
-								resolve()
-							}
+						.on('result', (result): void => {
+							this.testStatesEmitter.fire({
+								type: 'test',
+								state: result.state,
+								test: result.test,
+							})
+						})
+						.on('done', (file): void => {
+							this.testStatesEmitter.fire({
+								type: 'suite',
+								suite: file,
+								state: 'completed',
+							})
 						})
 				})
 			}

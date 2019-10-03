@@ -25,7 +25,9 @@
 				"random",
 				"@sindresorhus/is",
 				"ow",
-				"veza"
+				"veza",
+				"through2",
+				"p-cancelable"
 			],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}
