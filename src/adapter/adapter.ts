@@ -16,6 +16,7 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
+import { Writable } from 'stream'
 import vscode from 'vscode'
 import {
 	TestAdapter,
@@ -29,7 +30,6 @@ import {
 import is from '@sindresorhus/is'
 import Cancelable from 'p-cancelable'
 import delay from 'delay'
-import through from 'through2'
 import Disposable from './disposable'
 import Log from './log'
 import { Config, LoadedConfig, SubConfig, configRoot, ConfigKey } from './config'
@@ -71,13 +71,20 @@ export class AVAAdapter implements TestAdapter, Disposable {
 	/** The output Log. */
 	private readonly log: Log
 	/** Stream to forward worker output to channel. */
-	private readonly output = through((chunk: string | Buffer, _encoding, callback): void => {
-		if (is.buffer(chunk)) {
-			this.channel.append(chunk.toString())
-		} else if (is.string(chunk)) {
-			this.channel.append(chunk)
-		}
-		callback()
+	private readonly output = new Writable({
+		objectMode: false,
+		write: (chunk: string | Buffer, _encoding, callback): void => {
+			if (is.buffer(chunk)) {
+				this.channel.append(chunk.toString())
+			} else if (is.string(chunk)) {
+				this.channel.append(chunk)
+			} else {
+				this.log.warn(
+					'The output stream recieved a chunk that was not a Buffer nor a string.'
+				)
+			}
+			callback()
+		},
 	})
 	/** Count of active test runs. */
 	private running = 0
