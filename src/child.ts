@@ -18,7 +18,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import { Server, ServerSocket } from 'veza'
 import getPort from 'get-port'
-import random from 'random'
+import random from 'prando'
 import is from '@sindresorhus/is'
 import * as IPC from './ipc'
 import hash from './worker/hash'
@@ -31,7 +31,8 @@ let client: ServerSocket | null = null
 const token = hash(
 	process.cwd(),
 	(): boolean => false,
-	(h): string => process.cwd().length.toString(16) + h + random.int(0, 0xffff).toString(16)
+	(h): string =>
+		process.cwd().length.toString(16) + h + new random(h).nextInt(0, 0xffff).toString(16)
 )
 /** Whether logging is enabled. */
 let logEnabled = process.env.NODE_ENV !== 'production'

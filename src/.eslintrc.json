@@ -22,7 +22,7 @@
 				"vscode-test-adapter-util",
 				"emittery",
 				"hash-sum",
-				"random",
+				"prando",
 				"@sindresorhus/is",
 				"ow",
 				"veza",

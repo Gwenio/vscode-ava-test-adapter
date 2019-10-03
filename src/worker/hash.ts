@@ -17,10 +17,10 @@ PERFORMANCE OF THIS SOFTWARE.
 */
 
 import hashSum from 'hash-sum'
-import random from 'random'
+import random from 'prando'
 
-/** Generates random integers to salt hashes with. */
-const generate = random.uniformInt(0, 0xffff)
+/** The max random number to use. */
+const max = Number.MAX_SAFE_INTEGER
 
 /**
  * Callback type to check if a hash is already in use.
@@ -44,14 +44,20 @@ export default function hash(text: string, has: Checker, modify?: Modify): strin
 	let x = hashSum(text)
 	if (modify) {
 		let y = modify(x)
-		while (has(y)) {
-			x = hashSum(x + generate().toString(16))
-			y = modify(x)
+		if (has(y)) {
+			const prng = new random(x)
+			do {
+				x = hashSum(prng.nextInt(0, max))
+				y = modify(x)
+			} while (has(y))
 		}
 		return y
 	} else {
-		while (has(x)) {
-			x = hashSum(x + generate().toString(16))
+		if (has(x)) {
+			const prng = new random(x)
+			do {
+				x = hashSum(prng.nextInt(0, max))
+			} while (has(x))
 		}
 		return x
 	}

@@ -54,8 +54,8 @@ importers:
       nyc: 14.1.1
       ow: 0.13.2
       p-cancelable: 2.0.0
+      prando: 5.1.1
       prettier: 1.18.2
-      random: 2.1.1
       rimraf: 3.0.0
       rollup: 1.21.4
       rollup-plugin-alias: 2.0.0
@@ -128,8 +128,8 @@ importers:
       nyc: ^14.1.1
       ow: ^0.13.2
       p-cancelable: ^2.0.0
+      prando: ^5.1.1
       prettier: 1.18.2
-      random: ^2.1.1
       rimraf: ^3.0.0
       rollup: ^1.17.0
       rollup-plugin-alias: ^2.0.0
@@ -5462,12 +5462,6 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-9wvr+q+ZTDRvXDjL6eDOdFe5WUl/wa5sntf9kAolxqSpkBqaIObwLgFCGXSJASFw+YciXnOVtDWpxXa9cqV94A==
-  /ow/0.4.0:
-    dev: true
-    engines:
-      node: '>=6'
-    resolution:
-      integrity: sha512-kJNzxUgVd6EF5LoGs+s2/etJPwjfRDLXPTCfEgV8At77sRrV+PSFA8lcoW2HF15Qd455mIR2Stee/2MzDiFBDA==
   /p-cancelable/1.1.0:
     dev: false
     engines:
@@ -5853,6 +5847,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-AerA/jta9xoqbAL+q7jB/vfgDqs=
+  /prando/5.1.1:
+    dev: true
+    resolution:
+      integrity: sha512-KstlnYTOUs+3DJWaVZGmdpBh9Y2fHhPPB+BkxfZ7ZWb8qqUfDxBz/QC4pXNwGEYWtkjMaCuBWDPDUQ5BZQksEA==
   /prelude-ls/1.1.2:
     dev: true
     engines:
@@ -5938,17 +5936,6 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-Q2CxfGETatOAeDl/8RQW4Ybc+7g=
-  /random/2.1.1:
-    dependencies:
-      babel-runtime: 6.26.0
-      ow: 0.4.0
-      ow-lite: /ow/0.13.2
-      seedrandom: 2.4.4
-    dev: true
-    engines:
-      node: '>=6'
-    resolution:
-      integrity: sha512-8HQriGPwjc8R+7hPOI9ZphAEEWmIt/RmuqXZ682ww9kjK5HRGXcN7hgWUxZ9AabgjZm5wIa6EwapTI1sg11XXg==
   /rc/1.2.8:
     dependencies:
       deep-extend: 0.6.0
@@ -6518,10 +6505,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
-  /seedrandom/2.4.4:
-    dev: true
-    resolution:
-      integrity: sha512-9A+PDmgm+2du77B5i0Ip2cxOqqHjgNxnBgglxLcX78A2D6c2rTo61z4jnVABpF4cKeDMDG+cmXXvdnqse2VqMA==
   /semver-compare/1.0.0:
     dev: true
     resolution:
