@@ -137,8 +137,6 @@ export class Worker {
 			emitter.clearListeners()
 			this.child.removeAllListeners()
 		})
-		const cleanup = this.cleanup.bind(this)
-		const timer = setTimeout(cleanup, this.timeout)
 		this.child = fork(
 			/* eslint node/no-missing-require: "off" */
 			require.resolve(script),
@@ -157,7 +155,6 @@ export class Worker {
 				emitter.emit('exit', this)
 			})
 			.once('message', (message: string): void => {
-				clearTimeout(timer)
 				const s = message.split(':')
 				this.child.disconnect()
 				this.connect(Number.parseInt(s[0], 16), s[1])
@@ -167,6 +164,7 @@ export class Worker {
 		if (stdout) stdout.pipe(stream)
 		/* istanbul ignore else */
 		if (stderr) stderr.pipe(stream)
+		const cleanup = this.cleanup.bind(this)
 		this.onExit.then((): void => {
 			process.off('beforeExit', cleanup)
 		})
@@ -358,9 +356,7 @@ export class Worker {
 		if (c) {
 			c.disconnect()
 		} else if (this.alive) {
-			this.emitter.once('connect').then((): void => {
-				setImmediate(this.disconnect.bind(this))
-			})
+			this.child.kill()
 		}
 	}
 

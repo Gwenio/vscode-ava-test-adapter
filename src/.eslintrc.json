@@ -27,7 +27,8 @@
 				"ow",
 				"veza",
 				"through2",
-				"p-cancelable"
+				"p-cancelable",
+				"delay"
 			],
 			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
 		}

@@ -27,6 +27,8 @@ import {
 	TestEvent,
 } from 'vscode-test-adapter-api'
 import is from '@sindresorhus/is'
+import Cancelable from 'p-cancelable'
+import delay from 'delay'
 import through from 'through2'
 import Disposable from './disposable'
 import Log from './log'
@@ -407,19 +409,16 @@ export class AVAAdapter implements TestAdapter, Disposable {
 		const log = this.log
 		return this.queue.add(
 			(): Promise<void> => {
-				return new Promise<void>((resolve): void => {
-					let failed = true
+				const p = new Cancelable<void>((resolve, _reject, onCancel): void => {
+					onCancel.shouldReject = true
 					log.debug('Spawning worker...')
 					if (this.worker) {
 						this.worker.disconnect()
 					}
-					this.worker = new Worker(config, this.output)
+					const worker = new Worker(config, this.output)
 						.once('exit', (w: Worker): void => {
 							if (this.worker === w) {
 								this.worker = undefined
-							}
-							if (failed) {
-								resolve()
 							}
 						})
 						.on('error', (error): void => {
@@ -435,7 +434,6 @@ export class AVAAdapter implements TestAdapter, Disposable {
 								}
 								log.debug('Worker disconnected.')
 							})
-							failed = false
 							this.setWorkerLog()
 							resolve()
 						})
@@ -453,7 +451,19 @@ export class AVAAdapter implements TestAdapter, Disposable {
 								state: 'completed',
 							})
 						})
+					this.worker = worker
+					onCancel((): void => {
+						if (this.worker === worker) {
+							this.watcher.activate = false
+							this.worker = undefined
+						}
+						worker.disconnect()
+					})
 				})
+				delay(config.timeout).then((): void => {
+					p.cancel('Attempt to connect to worker timed out.')
+				})
+				return p
 			}
 		)
 	}
