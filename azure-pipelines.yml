@@ -34,7 +34,7 @@ jobs:
   - script: pnpx rollup -c
     displayName: Rollup Bundles
   - script: pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: Install Pakc Deps
+    displayName: Install Pack Deps
     workingDirectory: deps
   - script: pnpx gulp prepare
     displayName: Prepare Pack Deps
