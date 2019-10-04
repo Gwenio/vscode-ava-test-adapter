@@ -163,6 +163,7 @@
 				"avaExplorer.cwd": {
 					"description": "The working directory where AVA is run (relative to the workspace folder)",
 					"type": "string",
+					"default": "",
 					"scope": "resource"
 				},
 				"avaExplorer.configs": {
@@ -209,7 +210,7 @@
 					"default": {},
 					"scope": "resource"
 				},
-				"serialRuns": {
+				"avaExplorer.serialRuns": {
 					"description": "If true then only one test or debug session will occur at a time.",
 					"type": "boolean",
 					"default": false
@@ -256,6 +257,7 @@
 				"avaExplorer.logpanel": {
 					"description": "write diagnostic logs to an output panel",
 					"type": "boolean",
+					"default": "false",
 					"scope": "resource"
 				},
 				"avaExplorer.logfile": {
