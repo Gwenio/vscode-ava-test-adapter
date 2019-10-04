@@ -388,20 +388,20 @@ export class AVAAdapter implements TestAdapter, Disposable {
 		const has = list.has.bind(list)
 		const affected = (...x: (ConfigKey | 'logpanel' | 'logfile')[]): boolean => x.some(has)
 		if (affected('cwd', 'environment', 'nodePath', 'nodeArgv')) {
-			this.log.info('Sending reload event')
-			await this.spawn(this.config.current)
-			this.load()
+			this.log.info('Re-spawning worker and sending reload event')
+			this.spawn(this.config.current).then(this.load.bind(this))
 			return
 		} else if (has('configs')) {
 			this.log.info('Sending reload event')
 			if (!this.worker) {
-				await this.spawn(this.config.current)
+				this.spawn(this.config.current).then(this.load.bind(this))
 			} else if (affected('logpanel', 'logfile')) {
 				this.setWorkerLog()
+				this.load()
 			}
-			this.load()
+			return
 		} else if (!this.worker) {
-			await this.spawn(this.config.current)
+			this.spawn(this.config.current)
 		} else if (affected('logpanel', 'logfile')) {
 			this.channel.appendLine('[Main] Logging settings changed.')
 			this.setWorkerLog()
@@ -470,7 +470,9 @@ export class AVAAdapter implements TestAdapter, Disposable {
 				delay(config.timeout).then((): void => {
 					p.cancel('Attempt to connect to worker timed out.')
 				})
-				return p
+				return p.catch((error): void => {
+					log.error(error)
+				})
 			}
 		)
 	}
