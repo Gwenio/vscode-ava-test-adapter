@@ -105,6 +105,40 @@ For issues newer versions, please submit an issue to the incompatibility can be 
 
 The extension is tested against the latest stable release of VSCode.
 
+## Debugging
+
+The extension's worker process can be debugged from VSCode.
+First add a launch configuration like the following in your '.vscode/launch.json':
+
+```json5
+{
+    [
+        // your other entries
+		{
+			"type": "node",
+			"request": "attach",
+			"protocol": "inspector",
+			"sourceMaps": true, // source maps are provided in the installation
+			"name": "Worker", // replace with name of choice
+			"stopOnEntry": true,
+			"skipFiles": [],
+			"showAsyncStacks": true,
+			"port": 9229 // replace with port number of choice
+		}
+    ]
+}
+```
+
+It is important that `avaExplorer.workerTimeout` is set so that you have time to begin debugging.
+Otherwise, the worker will be killed once the timeout has passed without a connection.
+
+Finally,  add `"--inspect-brk=<port#>"` to `avaExplorer.nodeArgv`.
+Changing `avaExplorer.nodeArgv` should cause a new worker process to be spawned.
+Then connect the debugger using your launch configuration.
+
+It is recommended that you remove `"--inspect-brk=<port#>"` from `avaExplorer.nodeArgv` when finished.
+Otherwise, you may forget about it and be suprised when the worker does not connect.
+
 ## Developers
 
 - Adam Armstrong
