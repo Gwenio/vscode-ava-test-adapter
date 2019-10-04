@@ -104,9 +104,8 @@ export class Worker {
 		const emitter = this.emitter
 		this.onExit.then(() => {
 			this.alive = false
-			const reason = 'The worker exited before '
-			this.onConnect.cancel(reason + 'connecting')
-			this.onDisconnect.cancel(reason + 'disconnecting')
+			this.onConnect.cancel()
+			this.onDisconnect.cancel()
 			emitter.clearListeners()
 			this.child.removeAllListeners()
 		})
@@ -261,10 +260,10 @@ export class Worker {
 				this.onExit.then(listener)
 				break
 			case 'connect':
-				this.onConnect.then(listener, this.emitter.emitSerial.bind('error'))
+				this.onConnect.then(listener, (): void => {})
 				break
 			case 'disconnect':
-				this.onDisconnect.then(listener, this.emitter.emitSerial.bind('error'))
+				this.onDisconnect.then(listener, (): void => {})
 				break
 		}
 		return this
