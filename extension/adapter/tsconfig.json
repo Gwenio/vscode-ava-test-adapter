@@ -1,0 +1,24 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "tmp",
+		"declarationDir": "tmp",
+		"tsBuildInfoFile": "./tmp/tsconfig.tsbuildinfo",
+		"baseUrl": ".",
+		"paths": {
+			"~ipc/*": ["node_modules/~ipc/lib/*"]
+		},
+		"allowSyntheticDefaultImports": true,
+		"importHelpers": true,
+		"declaration": true,
+		"composite": true,
+		"esModuleInterop": true,
+		"preserveSymlinks": true
+	},
+	"references": [
+		{
+			"path": "./node_modules/~ipc/tsconfig.json"
+		}
+	]
+}

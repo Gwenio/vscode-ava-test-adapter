@@ -34,10 +34,10 @@ jobs:
   - script: pnpx rollup -c
     displayName: Rollup Bundles
   - script: pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: Install Bundle Deps
+    displayName: Install Pack Deps
     workingDirectory: deps
   - script: pnpx gulp prepare
-    displayName: Prepare Bundle Deps
+    displayName: Prepare Pack Deps
   - script: |
       pnpx nyc -r text ava --config ava.coverage.js
       pnpx nyc report -r json
@@ -79,10 +79,10 @@ jobs:
   - script: pnpx rollup -c
     displayName: Rollup Bundles
   - script: pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: Install Bundle Deps
+    displayName: Install Pack Deps
     workingDirectory: deps
   - script: pnpx gulp prepare
-    displayName: Prepare Bundle Deps
+    displayName: Prepare Pack Deps
   - bash: |
       pnpm add --global tap-xunit@latest
       (pnpx ava --tap | pnpx tap-xunit) > tmp/results.xml

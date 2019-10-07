@@ -12,16 +12,14 @@
 		},
 		{
 			"type": "node",
-			"request": "launch",
+			"request": "attach",
 			"protocol": "inspector",
 			"sourceMaps": true,
 			"name": "Worker",
 			"stopOnEntry": true,
 			"skipFiles": [],
-			"runtimeExecutable": "node",
 			"showAsyncStacks": true,
-			"program": "${workspaceFolder}/dist/child.js",
-			"console": "integratedTerminal"
+			"port": 9229
 		}
 	]
 }

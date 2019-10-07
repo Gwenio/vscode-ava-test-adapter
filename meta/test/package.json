@@ -1,0 +1,86 @@
+{
+	"private": true,
+	"description": "The tests for the repository.",
+	"author": "James Adam Armstrong",
+	"version": "0.4.0",
+	"license": "ISC",
+	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Gwenio/vscode-ava-test-adapter.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Gwenio/vscode-ava-test-adapter/issues"
+	},
+	"scripts": {
+		"clean": "rimraf tmp",
+		"compile": "tsc -p tsconfig.json",
+		"coverage": "nyc ava --config ava.coverage.js",
+		"report": "nyc report -r text",
+		"test": "ava"
+	},
+	"dependencies": {
+		"arrify": "^2.0.1",
+		"ava": "^2.2.0",
+		"get-port": "^5.0.0",
+		"matcher": "^2.0.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.5.5",
+		"@babel/plugin-syntax-bigint": "^7.4.4",
+		"@sindresorhus/is": "^1.2.0",
+		"@types/hash-sum": "^1.0.0",
+		"@types/node": "^12.7.11",
+		"@types/sinon": "^7.5.0",
+		"@types/through2": "^2.0.34",
+		"babel-plugin-minify-dead-code-elimination": "^0.5.0",
+		"babel-plugin-minify-guarded-expressions": "^0.4.3",
+		"babel-plugin-transform-inline-consecutive-adds": "^0.4.3",
+		"babel-plugin-transform-inline-environment-variables": "^0.4.3",
+		"babel-plugin-transform-property-literals": "^6.9.4",
+		"babel-plugin-transform-regexp-constructors": "^0.4.3",
+		"babel-plugin-transform-remove-undefined": "^0.5.0",
+		"builtin-modules": "^3.1.0",
+		"chalk": "^2.4.2",
+		"delay": "^4.3.0",
+		"emittery": "^0.5.0",
+		"esm": "^3.2.25",
+		"get-stream": "^5.1.0",
+		"globby": "^10.0.1",
+		"gulp": "^4.0.2",
+		"gulp-babel": "^8.0.0",
+		"gulp-filter": "^6.0.0",
+		"gulp-plumber": "^1.2.1",
+		"gulp-sourcemaps": "^2.6.5",
+		"gulp-terser": "^1.2.0",
+		"hash-sum": "^2.0.0",
+		"json5": "^2.1.1",
+		"module-alias": "^2.2.2",
+		"nyc": "^14.1.1",
+		"ow": "^0.13.2",
+		"p-cancelable": "^2.0.0",
+		"prando": "^5.1.1",
+		"rimraf": "^3.0.0",
+		"sinon": "^7.4.1",
+		"through2": "^3.0.1",
+		"tslib": "^1.9.3",
+		"typescript": "3.6.3",
+		"veza": "^1.1.0",
+		"~adapter": "workspace:*",
+		"~build": "workspace:*",
+		"~ipc": "workspace:*",
+		"~types": "workspace:*",
+		"~worker": "workspace:*"
+	},
+	"engines": {
+		"node": ">=10.16.0 <11 || >=12.7.0"
+	},
+	"_moduleAliases": {
+		"~adapter": "./node_modules/~adapter/tmp/src",
+		"~worker": "./node_modules/~worker/tmp/src",
+		"~ipc": "./node_modules/~ipc/lib"
+	},
+	"esm": {
+		"cjs": true
+	}
+}

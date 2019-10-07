@@ -1,0 +1,6 @@
+{
+	"name": "~types",
+	"private": true,
+	"version": "1.0.0",
+	"description": "Private type definitions for external modules."
+}

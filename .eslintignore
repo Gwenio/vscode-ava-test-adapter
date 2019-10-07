@@ -1,3 +1,2 @@
-dist/**.js
-tmp/*/**.js
-types/**.d.ts
+**/tmp/**
+extenstion/worker/types/**
