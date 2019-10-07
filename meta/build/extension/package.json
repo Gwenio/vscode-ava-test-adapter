@@ -1,0 +1,150 @@
+{
+	"name": "vscode-ava-test-adapter",
+	"displayName": "AVA Test Explorer",
+	"description": "Run your AVA tests in the Sidebar of Visual Studio Code",
+	"icon": "img/icon.png",
+	"author": "James Adam Armstrong",
+	"publisher": "gwenio",
+	"version": "0.4.0",
+	"license": "ISC",
+	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Gwenio/vscode-ava-test-adapter.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Gwenio/vscode-ava-test-adapter/issues"
+	},
+	"categories": ["Other"],
+	"keywords": ["ava", "test", "testing"],
+	"main": "main.js",
+	"peerDependencies": {
+		"arrify": "^2.0.1",
+		"ava": "^2.2.0",
+		"get-port": "^5.0.0",
+		"matcher": "^2.0.0"
+	},
+	"dependencies": {
+		"import-from": "^3.0.0",
+		"veza": "^1.1.0"
+	},
+	"engines": {
+		"node": ">=10.16.0 <11 || >=12.7.0",
+		"vscode": ">=1.23.0"
+	},
+	"extensionDependencies": ["hbenl.vscode-test-explorer"],
+	"activationEvents": ["*"],
+	"contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "AVA Test Explorer",
+			"properties": {
+				"avaExplorer.cwd": {
+					"description": "The working directory where AVA is run (relative to the workspace folder)",
+					"type": "string",
+					"default": "",
+					"scope": "resource"
+				},
+				"avaExplorer.configs": {
+					"description": "The location of the AVA config file (relative to the working directory)",
+					"type": "array",
+					"default": [
+						{
+							"file": null,
+							"serial": false,
+							"debuggerSkipFiles": []
+						}
+					],
+					"items": {
+						"description": "An AVA configuration.",
+						"properties": {
+							"file": {
+								"description": "The configuration file relative to 'avaExplorer.cwd'.",
+								"type": "string",
+								"default": "ava.config.js"
+							},
+							"serial": {
+								"description": "If true then test will be run serially.",
+								"type": "boolean",
+								"default": false
+							},
+							"debuggerSkipFiles": {
+								"description": "An array of glob patterns for files to skip when debugging",
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"default": []
+							}
+						}
+					},
+					"scope": "resource"
+				},
+				"avaExplorer.env": {
+					"description": "Environment variables for the background worker.",
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					},
+					"default": {},
+					"scope": "resource"
+				},
+				"avaExplorer.serialRuns": {
+					"description": "If true then only one test or debug session will occur at a time.",
+					"type": "boolean",
+					"default": false
+				},
+				"avaExplorer.debuggerPort": {
+					"description": "The preferred port to use for debugging sessions",
+					"type": "number",
+					"minimum": 0,
+					"default": 9229,
+					"maximum": 65535,
+					"scope": "resource"
+				},
+				"avaExplorer.nodePath": {
+					"description": "The path to the node executable to use. By default it will attempt to find it on your PATH, if it can't find it or if this option is set to `null`, it will use the one shipped with VS Code",
+					"type": "string",
+					"scope": "resource"
+				},
+				"avaExplorer.nodeArgv": {
+					"description": "The arguments to the node executable to use. To enable typescript support, install the ts-node npm package and set this property to [\"-r\", \"ts-node/register\"]",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"scope": "resource"
+				},
+				"avaExplorer.debuggerSkipFiles": {
+					"description": "An array of glob patterns for files to skip when debugging",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"scope": "resource"
+				},
+				"avaExplorer.workerTimeout": {
+					"description": "How long to wait for the worker process to connect in milliseconds.",
+					"type": "number",
+					"minimum": 1000,
+					"default": 10000,
+					"maximum": 300000,
+					"scope": "resource"
+				},
+				"avaExplorer.logpanel": {
+					"description": "write diagnostic logs to an output panel",
+					"type": "boolean",
+					"default": "false",
+					"scope": "resource"
+				},
+				"avaExplorer.logfile": {
+					"description": "write diagnostic logs to the given file",
+					"type": "string",
+					"scope": "resource"
+				}
+			}
+		}
+	}
+}

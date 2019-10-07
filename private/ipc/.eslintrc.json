@@ -1,0 +1,42 @@
+{
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"project": "./tsconfig.json",
+		"ecmaVersion": 10,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"classes": true,
+			"modules": true,
+			"templateStrings": true,
+			"impliedStrict": true,
+			"arrowFunctions": true
+		}
+	},
+	"plugins": ["@typescript-eslint"],
+	"extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+	"settings": {
+		"node": {
+			"allowModules": ["@sindresorhus/is", "ow"],
+			"tryExtensions": [".d.ts", ".ts", ".js", ".json"]
+		}
+	},
+	"rules": {
+		"@typescript-eslint/indent": "off",
+		"@typescript-eslint/semi": "off",
+		"@typescript-eslint/member-delimiter-style": "off",
+		"new-parens": "error",
+		"no-bitwise": "error",
+		"no-console": "off",
+		"@typescript-eslint/no-var-requires": "error",
+		"node/no-unpublished-require": "error",
+		"node/no-unsupported-features/es-syntax": "off",
+		"@typescript-eslint/no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"caughtErrorsIgnorePattern": "^_"
+			}
+		],
+		"@typescript-eslint/interface-name-prefix": "off"
+	}
+}

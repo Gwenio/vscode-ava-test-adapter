@@ -1,2 +1,9 @@
 packages:
-  - "."
+  - .
+  - extension/adapter/
+  - extension/worker/
+  - private/ipc/
+  - private/types/
+  - meta/deps/
+  - meta/build/
+  - meta/test/

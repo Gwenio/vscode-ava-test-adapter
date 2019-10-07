@@ -1,0 +1,34 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "tmp",
+		"tsBuildInfoFile": "./tmp/tsconfig.tsbuildinfo",
+		"baseUrl": ".",
+		"paths": {
+			"~ipc/*": ["node_modules/~ipc/lib/*"],
+			"~adapter/*": ["node_modules/~adapter/tmp/src/*"],
+			"~worker/*": ["node_modules/~worker/tmp/src/*"],
+			"ava/lib/*": ["node_modules/~types/ava/lib/*"],
+			"ava/namespace": ["node_modules/~types/ava/namespace"]
+		},
+		"allowSyntheticDefaultImports": true,
+		"importHelpers": true,
+		"declaration": false,
+		"composite": false,
+		"esModuleInterop": true,
+		"preserveSymlinks": true,
+		"incremental": true
+	},
+	"references": [
+		{
+			"path": "./node_modules/~ipc/tsconfig.json"
+		},
+		{
+			"path": "./node_modules/~adapter/tsconfig.json"
+		},
+		{
+			"path": "./node_modules/~worker/tsconfig.json"
+		}
+	]
+}

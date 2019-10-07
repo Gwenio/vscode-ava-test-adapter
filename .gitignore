@@ -1,6 +1,10 @@
 node_modules/
-tmp/
-dist/
-*.vsix
+**/node_modules/
+**/tmp/
+private/ipc/lib/
+meta/build/**/*.vsix
+meta/build/extension/*.js
+meta/build/extension/*.js.map
 .vscode/settings.json
-yarn-error.log
+*/log
+**/*.log
