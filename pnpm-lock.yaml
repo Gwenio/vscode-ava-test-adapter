@@ -38,17 +38,6 @@ importers:
       rxjs: ^6.5.3
       tslib: ^1.9.3
       typescript: 3.6.3
-  deps:
-    dependencies:
-      binarytf: 2.0.0
-      import-from: 3.0.0
-      resolve-from: 5.0.0
-      veza: 1.1.0
-    specifiers:
-      binarytf: ^2.0.0
-      import-from: ^3.0.0
-      resolve-from: ^5.0.0
-      veza: ^1.1.0
   extension/adapter:
     devDependencies:
       '@sindresorhus/is': 1.2.0
@@ -392,7 +381,7 @@ importers:
     devDependencies:
       emittery: 0.5.1
     specifiers:
-      emittery: ^0.5.1
+      emittery: ^0.5.0
 lockfileVersion: 5.1
 packages:
   /@ava/babel-plugin-throws-helper/4.0.0:

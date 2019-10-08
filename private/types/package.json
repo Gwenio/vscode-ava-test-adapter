@@ -4,6 +4,6 @@
 	"version": "1.0.0",
 	"description": "Private type definitions for external modules.",
 	"devDependencies": {
-		"emittery": "^0.5.1"
+		"emittery": "^0.5.0"
 	}
 }

@@ -189,7 +189,9 @@ function configurePlugins() {
 				plugins: [
 					[
 						'transform-inline-environment-variables',
-						is.nonEmptyString(process.env.NODE_ENV) ? { include: ['NODE_ENV'] } : {},
+						is.nonEmptyString(process.env.NODE_ENV)
+							? { include: ['NODE_ENV'] }
+							: { include: [] },
 					],
 					'transform-inline-consecutive-adds',
 					[

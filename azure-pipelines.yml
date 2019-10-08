@@ -11,7 +11,7 @@ trigger:
 variables:
 - group: vscode-ava-test-adapter
 - name: PNPM_VERSION
-  value: '3'
+  value: '4'
 - name: GLOBAL_NODE_VERSION
   value: '12'
 
@@ -99,8 +99,7 @@ jobs:
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: meta/test/tmp/results.xml
-      testRunTitle: All Tests
-      buildConfiguration: NodeJS-$(NODE_VERSION)
+      testRunTitle: All Tests NodeJS-$(NODE_VERSION)
       publishRunAttachments: true
   - script: pnpx nve $(NODE_VERSION) ava
     condition: and(failed(), ne(variables['GLOBAL_NODE_VERSION'], variables['NVE']))
