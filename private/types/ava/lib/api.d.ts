@@ -20,7 +20,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 import AVA from '../namespace'
 import { FileStats, TestStats } from '../events'
-import { Typed } from 'emittery'
+import Emitter from 'emittery'
 
 interface Options {
 	babelConfig: AVA.BabalConfig
@@ -54,7 +54,7 @@ interface Options {
 type Results = AVA.Status & { readonly stats: FileStats & TestStats }
 
 declare module 'ava/lib/api' {
-	export default class Api extends Typed<{ run: AVA.Plan }> {
+	export default class Api extends Emitter.Typed<{ run: AVA.Plan }> {
 		constructor(Options)
 		run(files: string[] = [], runtimeOptions: AVA.RuntimeOptions = {}): Promise<Results>
 		_interruptHandler(): void
