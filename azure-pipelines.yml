@@ -11,7 +11,9 @@ trigger:
 variables:
 - group: vscode-ava-test-adapter
 - name: PNPM_VERSION
-  value: 3
+  value: '3'
+- name: GLOBAL_NODE_VERSION
+  value: '12'
 
 jobs:
 - job: coverage
@@ -19,38 +21,38 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '12.10'
-    displayName: 'Install Node.js'
+  - template: .azure/pnpm.yml
+    parameters:
+      node: $(GLOBAL_NODE_VERSION)
+      pnpm: $(PNPM_VERSION)
+  - template: .azure/compile_extension.yml
+  - template: .azure/prepare_extension.yml
+    parameters:
+      deps: true
+      type: production
   - script: |
-      curl -L https://unpkg.com/@pnpm/self-installer | node
       pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: PNPM Install
-  - script: pnpx tsc --project src/tsconfig.json
-    displayName: Compile Source
-  - script: pnpx tsc --project test/tsconfig.json
+      pnpx tsc --project tsconfig.json
     displayName: Compile Tests
-  - script: pnpx rollup -c
-    displayName: Rollup Bundles
-  - script: pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: Install Pack Deps
-    workingDirectory: deps
-  - script: pnpx gulp prepare
-    displayName: Prepare Pack Deps
+    workingDirectory: meta/test
   - script: |
       pnpx nyc -r text ava --config ava.coverage.js
       pnpx nyc report -r json
       pnpx nyc report -r cobertura
     displayName: Generate Reports
+    workingDirectory: meta/test
+  - script: pnpm server stop
+    displayName: Stop PNPM Store Server
+    condition: always()
   - task: PublishCodeCoverageResults@1
     displayName: Publish Azure Report
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/tmp/nyc/cobertura-coverage.xml'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/meta/test/tmp/nyc/cobertura-coverage.xml'
   - script: |
-      bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f ./tmp/nyc/coverage-final.json
+      bash <(curl https://codecov.io/bash) -t $CODECOV_TOKEN -f tmp/nyc/coverage-final.json
     displayName: Publish Codecov Report
+    workingDirectory: meta/test
     env:
       CODECOV_TOKEN: $(CODECOV_TOKEN)
 - job: test
@@ -59,43 +61,55 @@ jobs:
     vmImage: 'ubuntu-latest'
   strategy:
     matrix:
-      Node12_10:
-        NODE_VERSION: '12.10'
+      Node12:
+        NVE: '12'
       Node10:
-        NODE_VERSION: '10.16'
+        NVE: '10'
   steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: $(NODE_VERSION)
-    displayName: 'Install Node.js'
+  - template: .azure/pnpm.yml
+    parameters:
+      node: $(GLOBAL_NODE_VERSION)
+      pnpm: $(PNPM_VERSION)
+  - template: .azure/compile_extension.yml
+  - template: .azure/prepare_extension.yml
+    parameters:
+      deps: false
   - script: |
-      curl -L https://unpkg.com/@pnpm/self-installer | node
       pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: PNPM Install
-  - script: pnpx tsc --project src/tsconfig.json
-    displayName: Compile Source
-  - script: pnpx tsc --project test/tsconfig.json
+      pnpx tsc --project tsconfig.json
     displayName: Compile Tests
-  - script: pnpx rollup -c
-    displayName: Rollup Bundles
-  - script: pnpm install --prefer-frozen-lockfile --ignore-scripts
-    displayName: Install Pack Deps
-    workingDirectory: deps
-  - script: pnpx gulp prepare
-    displayName: Prepare Pack Deps
+    workingDirectory: meta/test
+  - bash: |
+      pnpm add --global tap-xunit@latest nve@latest
+      echo "##vso[task.setvariable variable=NODE_VERSION]`pnpx nve $(NVE) node --version`"
+      (pnpx nve $(NVE) ava --tap | pnpx tap-xunit) > tmp/results.xml
+    displayName: Run Tests
+    workingDirectory: meta/test
+    condition: and(succeeded(), ne(variables['GLOBAL_NODE_VERSION'], variables['NVE']))
   - bash: |
       pnpm add --global tap-xunit@latest
+      echo "##vso[task.setvariable variable=NODE_VERSION]`node --version`"
       (pnpx ava --tap | pnpx tap-xunit) > tmp/results.xml
     displayName: Run Tests
+    workingDirectory: meta/test
+    condition: and(succeeded(), eq(variables['GLOBAL_NODE_VERSION'], variables['NVE']))
   - task: PublishTestResults@2
     displayName: Publish Azure Results
     condition: succeededOrFailed()
     inputs:
       testResultsFormat: 'JUnit'
-      testResultsFiles: tmp/results.xml
+      testResultsFiles: meta/test/tmp/results.xml
       testRunTitle: All Tests
-      buildConfiguration: Node.js-$(NODE_VERSION)
+      buildConfiguration: NodeJS-$(NODE_VERSION)
       publishRunAttachments: true
-  - script: pnpx ava
-    condition: failed()
+  - script: pnpx nve $(NODE_VERSION) ava
+    condition: and(failed(), ne(variables['GLOBAL_NODE_VERSION'], variables['NVE']))
     displayName: AVA Native Results
+    workingDirectory: meta/test
+  - script: pnpx ava
+    condition: and(failed(), eq(variables['GLOBAL_NODE_VERSION'], variables['NVE']))
+    displayName: AVA Native Results
+    workingDirectory: meta/test
+  - script: pnpm server stop
+    displayName: Stop PNPM Store Server
+    condition: always()
