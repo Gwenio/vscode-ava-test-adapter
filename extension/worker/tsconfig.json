@@ -8,15 +8,15 @@
 		"baseUrl": ".",
 		"paths": {
 			"~ipc/*": ["node_modules/~ipc/lib/*"],
-			"ava/lib/*": ["node_modules/~types/ava/lib/*"],
-			"ava/namespace": ["node_modules/~types/ava/namespace"]
+			"ava/lib/*": ["../../private/types/ava/lib/*"],
+			"ava/namespace": ["../../private/types/ava/namespace"]
 		},
 		"allowSyntheticDefaultImports": true,
 		"importHelpers": true,
 		"declaration": true,
 		"composite": true,
-		"esModuleInterop": true,
-		"preserveSymlinks": true
+		"incremental": true,
+		"esModuleInterop": true
 	},
 	"references": [
 		{

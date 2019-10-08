@@ -2,5 +2,8 @@
 	"name": "~types",
 	"private": true,
 	"version": "1.0.0",
-	"description": "Private type definitions for external modules."
+	"description": "Private type definitions for external modules.",
+	"devDependencies": {
+		"emittery": "^0.5.1"
+	}
 }
