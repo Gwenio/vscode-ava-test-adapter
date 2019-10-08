@@ -80,6 +80,7 @@ jobs:
     workingDirectory: meta/test
   - bash: |
       pnpm add --global tap-xunit@latest nve@latest
+      pnpx nve $(NODE_VERSION) ava --tap
       (pnpx nve $(NODE_VERSION) ava --tap | pnpx tap-xunit) > tmp/results.xml
     displayName: Run Tests
     workingDirectory: meta/test
