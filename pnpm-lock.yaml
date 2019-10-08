@@ -7,13 +7,13 @@ importers:
       '@typescript-eslint/parser': 2.3.3_eslint@6.5.1
       '@typescript-eslint/typescript-estree': 2.3.3
       eslint: 6.5.1
-      eslint-config-prettier: 6.3.0_eslint@6.5.1
+      eslint-config-prettier: 6.4.0_eslint@6.5.1
       eslint-plugin-ava: 9.0.0_eslint@6.5.1
       eslint-plugin-node: 10.0.0_eslint@6.5.1
       eslint-plugin-promise: 4.2.1
       eslint-plugin-unicorn: 12.0.2_eslint@6.5.1
       husky: 3.0.8
-      lint-staged: 9.4.1
+      lint-staged: 9.4.2
       markdownlint-cli: 0.18.0
       prettier: 1.18.2
       rxjs: 6.5.3
@@ -381,7 +381,7 @@ importers:
     devDependencies:
       emittery: 0.5.1
     specifiers:
-      emittery: ^0.5.1
+      emittery: ^0.5.0
 lockfileVersion: 5.1
 packages:
   /@ava/babel-plugin-throws-helper/4.0.0:
@@ -732,7 +732,7 @@ packages:
     dependencies:
       conventional-changelog-angular: 1.6.6
       conventional-commits-parser: 2.1.7
-      lodash: 4.17.15
+      lodash: 4.17.14
     dev: true
     engines:
       node: '>=4'
@@ -751,7 +751,7 @@ packages:
       integrity: sha512-1tBai1VuSQmsOTsvJr3Fi/GZqX3zdxRqYe/yN4i3cLA5S2Y4QGJ5I3l6nGZlKgm/sSelTCVKHltrfWU8s5H7SA==
   /@commitlint/resolve-extends/8.2.0:
     dependencies:
-      '@types/node': 12.7.5
+      '@types/node': 12.7.11
       import-fresh: 3.1.0
       lodash: 4.17.14
       resolve-from: 5.0.0
@@ -926,10 +926,6 @@ packages:
   /@types/node/12.7.11:
     resolution:
       integrity: sha512-Otxmr2rrZLKRYIybtdG/sgeO+tHY20GxeDjcGmUnmmlCWyEnv2a2x1ZXBo3BTec4OiTXMQCiazB8NMBf0iRlFw==
-  /@types/node/12.7.5:
-    dev: true
-    resolution:
-      integrity: sha512-9fq4jZVhPNW8r+UYKnxF1e2HkDWOWKM5bC2/7c9wPV835I0aOrVbS/Hw/pWPk2uKrNXQqg9Z959Kz+IYDd5p3w==
   /@types/normalize-package-data/2.4.0:
     dev: true
     resolution:
@@ -2069,6 +2065,11 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-qiBjkpbMLO/HL68y+lh4q0/O1MZFj2RX6X/KmMa3+gJD3z+WwI1ZzDHysvqHGS3mP6mznPckpXmw1nI9cJjyRg==
+  /commander/2.20.0:
+    dev: true
+    optional: true
+    resolution:
+      integrity: sha512-7j2y+40w61zy6YC2iRNpUe/NwhNyoXrYpHMrSunaMG64nRnaf96zO/KMQR4OyN/UnE5KLyEBnKHd4aG3rskjpQ==
   /commander/2.20.1:
     dev: true
     resolution:
@@ -2734,7 +2735,7 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-otzzTim2/1+lVrlH19EfQQJEhVJSu0zOb9ygb3iapN6UlyaDtyRq4b5U1FuW0v1lRa9Fp/GJyHkSwm6NqABgCA==
-  /eslint-config-prettier/6.3.0_eslint@6.5.1:
+  /eslint-config-prettier/6.4.0_eslint@6.5.1:
     dependencies:
       eslint: 6.5.1
       get-stdin: 6.0.0
@@ -2743,7 +2744,7 @@ packages:
     peerDependencies:
       eslint: '>=3.14.1'
     resolution:
-      integrity: sha512-EWaGjlDAZRzVFveh2Jsglcere2KK5CJBhkNSa1xs3KfMUGdRiT7lG089eqPdvlzWHpAqaekubOsOMu8W8Yk71A==
+      integrity: sha512-YrKucoFdc7SEko5Sxe4r6ixqXPDP1tunGw91POeZTTRKItf/AMFYt/YLEQtZMkR2LVpAVhcAcZgcWpm1oGPW7w==
   /eslint-plugin-ava/9.0.0_eslint@6.5.1:
     dependencies:
       deep-strict-equal: 0.2.0
@@ -3699,7 +3700,7 @@ packages:
       node: '>=0.4.7'
     hasBin: true
     optionalDependencies:
-      uglify-js: 3.6.0
+      uglify-js: 3.6.1
     resolution:
       integrity: sha512-cIv17+GhL8pHHnRJzGu2wwcthL5sb8uDKBHvZ2Dtu5s1YNt0ljbzKbamnc+gr69y7bzwQiBdr5+hOpRd5pnOdg==
   /has-ansi/2.0.0:
@@ -3800,9 +3801,9 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==
-  /hosted-git-info/2.8.4:
+  /hosted-git-info/2.8.5:
     resolution:
-      integrity: sha512-pzXIvANXEFrc5oFFXRMkbLPQ2rXRoDERwDLyrcUxGhaZhgP54BBSl9Oheh7Vv0T090cszWBxPjkQQ5Sq1PbBRQ==
+      integrity: sha512-kssjab8CvdXfcXMXVcvsXum4Hwdq9XGtRD3TteMEvEbq0LXyiNQr6AprqKqfeaDXze7SxWvRxdpwE6ku7ikLkg==
   /htmlparser2/3.10.1:
     dependencies:
       domelementtype: 1.3.1
@@ -4603,7 +4604,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-GnAl/knGn+i1U/wjBz3akz2stz+HrHLsxMwHQGofCDfPvlf+gDKN58UtfmUquTY4/MXeE2x7k19KQmeoZi94Iw==
-  /lint-staged/9.4.1:
+  /lint-staged/9.4.2:
     dependencies:
       chalk: 2.4.2
       commander: 2.20.1
@@ -4622,7 +4623,7 @@ packages:
     dev: true
     hasBin: true
     resolution:
-      integrity: sha512-zFRbo1bAJEVf1m33paTTjDVfy2v3lICCqHfmQSgNoI+lWpi7HPG5y/R2Y7Whdce+FKxlZYs/U1sDSx8+nmQdDA==
+      integrity: sha512-OFyGokJSWTn2M6vngnlLXjaHhi8n83VIZZ5/1Z26SULRUWgR3ITWpAEQC9Pnm3MC/EpCxlwts/mQWDHNji2+zA==
   /listr-silent-renderer/1.1.1:
     dev: true
     engines:
@@ -5278,7 +5279,7 @@ packages:
       integrity: sha512-/6RhOUlicRCbE9s+94qCUsyE+pKlVJ5AhIv+jEE7ESKwnbXqulKZ1FYU+XAtHHWE9TinYvAxDUJAb912PwPoWA==
   /normalize-package-data/2.5.0:
     dependencies:
-      hosted-git-info: 2.8.4
+      hosted-git-info: 2.8.5
       resolve: 1.12.0
       semver: 5.7.1
       validate-npm-package-license: 3.0.4
@@ -7297,9 +7298,9 @@ packages:
     dev: true
     resolution:
       integrity: sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==
-  /uglify-js/3.6.0:
+  /uglify-js/3.6.1:
     dependencies:
-      commander: 2.20.1
+      commander: 2.20.0
       source-map: 0.6.1
     dev: true
     engines:
@@ -7307,7 +7308,7 @@ packages:
     hasBin: true
     optional: true
     resolution:
-      integrity: sha512-W+jrUHJr3DXKhrsS7NUVxn3zqMOFn0hL/Ei6v0anCIMoKC93TjcflTagwIHLW7SfMFfiQuktQyFVCFHGUE0+yg==
+      integrity: sha512-+dSJLJpXBb6oMHP+Yvw8hUgElz4gLTh82XuX68QiJVTXaE5ibl6buzhNkQdYhBlIhozWOC9ge16wyRmjG4TwVQ==
   /uid2/0.0.3:
     resolution:
       integrity: sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I=
