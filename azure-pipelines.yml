@@ -83,13 +83,13 @@ jobs:
       (pnpx nve $(NODE_VERSION) ava --tap | pnpx tap-xunit) > tmp/results.xml
     displayName: Run Tests
     workingDirectory: meta/test
-    condition: and(succeeded(), ne($(GLOBAL_NODE_VERSION), $(NODE_VERSION)))
+    condition: and(succeeded(), ne(variables['GLOBAL_NODE_VERSION'], variables['NODE_VERSION']))
   - bash: |
       pnpm add --global tap-xunit@latest
       (pnpx ava --tap | pnpx tap-xunit) > tmp/results.xml
     displayName: Run Tests
     workingDirectory: meta/test
-    condition: and(succeeded(), eq($(GLOBAL_NODE_VERSION), $(NODE_VERSION)))
+    condition: and(succeeded(), eq(variables['GLOBAL_NODE_VERSION'], variables['NODE_VERSION']))
   - task: PublishTestResults@2
     displayName: Publish Azure Results
     condition: succeededOrFailed()
@@ -100,11 +100,11 @@ jobs:
       buildConfiguration: Node.js-$(NODE_VERSION)
       publishRunAttachments: true
   - script: pnpx nve $(NODE_VERSION) ava
-    condition: and(failed(), ne($(GLOBAL_NODE_VERSION), $(NODE_VERSION)))
+    condition: and(failed(), ne(variables['GLOBAL_NODE_VERSION'], variables['NODE_VERSION']))
     displayName: AVA Native Results
     workingDirectory: meta/test
   - script: pnpx ava
-    condition: and(failed(), eq($(GLOBAL_NODE_VERSION), $(NODE_VERSION)))
+    condition: and(failed(), eq(variables['GLOBAL_NODE_VERSION'], variables['NODE_VERSION']))
     displayName: AVA Native Results
     workingDirectory: meta/test
   - script: pnpm server stop
