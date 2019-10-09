@@ -3,8 +3,8 @@
 /* eslint node/no-unsupported-features/es-syntax: ["error", { "ignores": ["modules"] }] */
 
 export default {
-	require: ['esm', 'module-alias/register'],
-	files: ['tmp/test/mock/**'],
+	require: ['esm'],
+	files: ['tmp/mock/**'],
 	babel: {
 		testOptions: {
 			babelrc: false,
