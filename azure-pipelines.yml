@@ -28,7 +28,6 @@ jobs:
   - template: .azure/compile_extension.yml
   - template: .azure/prepare_extension.yml
     parameters:
-      deps: true
       type: production
   - script: |
       pnpm install --prefer-frozen-lockfile --ignore-scripts
@@ -72,8 +71,6 @@ jobs:
       pnpm: $(PNPM_VERSION)
   - template: .azure/compile_extension.yml
   - template: .azure/prepare_extension.yml
-    parameters:
-      deps: false
   - script: |
       pnpm install --prefer-frozen-lockfile --ignore-scripts
       pnpx tsc --project tsconfig.json
