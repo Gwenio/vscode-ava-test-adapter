@@ -16,7 +16,7 @@
 	"scripts": {
 		"clean": "rimraf extension/node_modules extension/*.vsix extension/*.js.map extension/*.js",
 		"prepackage": "rollup -c && gulp prepare",
-		"package": "cd extension && vsce package --yarn",
+		"package": "cd extension && vsce package",
 		"publish": "cd extension && vsce publish"
 	},
 	"devDependencies": {
@@ -45,8 +45,8 @@
 		"hash-sum": "^2.0.0",
 		"matcher": "^2.0.0",
 		"ow": "^0.13.2",
-		"prando": "^5.1.1",
 		"p-cancelable": "^2.0.0",
+		"prando": "^5.1.1",
 		"rimraf": "^3.0.0",
 		"rollup": "^1.23.0",
 		"rollup-plugin-alias": "^2.0.1",
@@ -60,7 +60,6 @@
 		"tslib": "^1.9.3",
 		"veza": "^1.1.0",
 		"vinyl-buffer": "^1.0.1",
-		"vsce": "^1.67.1",
 		"vscode-test-adapter-api": "^1.7.0",
 		"vscode-test-adapter-util": "^0.7.0",
 		"~adapter": "workspace:*",
