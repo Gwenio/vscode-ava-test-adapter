@@ -1,13 +1,14 @@
 {
 	"cache": true,
-	"exclude": ["tmp/nyc/**", "rollup.config.js", "ava.*.js", "**/*.d.ts"],
-	"include": ["tmp/src/**", "src/**"],
+	"exclude": ["meta/test/ava.*.js", "meta/test/tmp/**", "meta/test/**/*.d.ts"],
+	"include": ["extension/adapter/**", "extension/worker/**", "private/ipc/**"],
 	"extension": [".ts"],
 	"produce-source-map": true,
-	"reporter": "lcov",
-	"report-dir": "tmp/nyc",
+	"reporter": "lcovonly",
+	"report-dir": "meta/test/tmp/nyc",
+	"require": ["esm", "module-alias/register"],
 	"skip-empty": true,
 	"skip-full": false,
 	"source-map": true,
-	"temp-dir": "tmp/nyc/raw"
+	"temp-dir": "meta/test/tmp/nyc/raw"
 }

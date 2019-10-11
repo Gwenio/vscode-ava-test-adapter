@@ -6,6 +6,7 @@ import base from './ava.config'
 
 export default {
 	...base,
+	require: [],
 	babel: false,
 	compileEnhancements: false,
 	cache: false,

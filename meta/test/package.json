@@ -15,8 +15,8 @@
 	"scripts": {
 		"clean": "rimraf tmp",
 		"compile": "tsc -p tsconfig.json",
-		"coverage": "nyc ava --config ava.coverage.js",
-		"report": "nyc report -r text",
+		"coverage": "nyc --clean --cwd=\"../..\" --nycrc=\"meta/test/.nycrc.json\" ava --config ava.coverage.js",
+		"report": "nyc report -r text --cwd=\"../..\" --nycrc=\"meta/test/.nycrc.json\"",
 		"test": "ava"
 	},
 	"dependencies": {
@@ -76,11 +76,12 @@
 		"node": ">=10.16.0 <11 || >=12.7.0"
 	},
 	"_moduleAliases": {
-		"~adapter": "./node_modules/~adapter/tmp/src",
-		"~worker": "./node_modules/~worker/tmp/src",
-		"~ipc": "./node_modules/~ipc/lib"
+		"~adapter": "node_modules/~adapter/tmp/src",
+		"~worker": "node_modules/~worker/tmp/src",
+		"~ipc": "node_modules/~ipc/lib"
 	},
 	"esm": {
-		"cjs": true
+		"cjs": true,
+		"cache": false
 	}
 }
