@@ -47,7 +47,7 @@ interface WorkerConfig {
 }
 
 /** Single occurance events. */
-type Single = 'exit' | 'connect' | 'disconnect'
+type Single = 'exit' | 'connect' | 'begin' | 'disconnect'
 /** The Worker event types. */
 type Events = 'error' | 'prefix' | 'file' | 'case' | 'result' | 'done' | 'ready'
 
@@ -72,6 +72,7 @@ export class Worker {
 			done: string
 			exit: Worker
 			connect: Worker
+			begin: Worker
 			disconnect: Worker
 		},
 		Events | Single
@@ -84,6 +85,8 @@ export class Worker {
 	private readonly onExit = this.emitter.once('exit')
 	/** Stores connect event. */
 	private readonly onConnect = this.onceHandler('connect')
+	/** Stores begin event. */
+	private readonly onBegin = this.onceHandler('begin')
 	/** Stores disconnect event. */
 	private readonly onDisconnect = this.onceHandler('disconnect')
 	/** The exit code of the worker process. */
@@ -105,6 +108,7 @@ export class Worker {
 		this.onExit.then(() => {
 			this.alive = false
 			this.onConnect.cancel()
+			this.onBegin.cancel()
 			this.onDisconnect.cancel()
 			emitter.clearListeners()
 			this.child.removeAllListeners()
@@ -155,6 +159,16 @@ export class Worker {
 		})
 			.once('connect', (socket): void => {
 				this.connection = socket
+				emit('connect', this)
+			})
+			.once('disconnect', (socket): void => {
+				this.connection = undefined
+				const timer = setTimeout(cleanup, this.timeout)
+				this.onExit.then(clearTimeout.bind(null, timer))
+				emit('disconnect', this)
+				socket.client.removeAllListeners()
+			})
+			.once('ready', (socket): void => {
 				socket.client.on('message', (message): void => {
 					const { data } = message
 					if (isMessage(data)) {
@@ -196,14 +210,7 @@ export class Worker {
 						}
 					}
 				})
-				emit('connect', this)
-			})
-			.once('disconnect', (socket): void => {
-				this.connection = undefined
-				const timer = setTimeout(cleanup, this.timeout)
-				this.onExit.then(clearTimeout.bind(null, timer))
-				emit('disconnect', this)
-				socket.client.removeAllListeners()
+				emit('begin', this)
 			})
 			.on('error', emit.bind('error'))
 		c.connectTo({ port, host: '127.0.0.1' }).catch((error): void => {
@@ -252,21 +259,65 @@ export class Worker {
 	 * @param listener The event listener.
 	 */
 	public once(event: 'exit', listener: (worker: Worker) => void): Worker
-	public once(event: 'connect', listener: (worker: Worker) => void): Worker
-	public once(event: 'disconnect', listener: (worker: Worker) => void): Worker
+	public once(event: 'connect', listener: (worker: Worker | null) => void): Worker
+	public once(event: 'begin', listener: (worker: Worker | null) => void): Worker
+	public once(event: 'disconnect', listener: (worker: Worker | null) => void): Worker
 	public once(event: Single, listener: Handler): Worker {
 		switch (event) {
 			case 'exit':
 				this.onExit.then(listener)
 				break
 			case 'connect':
-				this.onConnect.then(listener, (): void => {})
+				this.onConnect.then(
+					listener,
+					/* istanbul ignore next */
+					(): void => {
+						listener(null)
+					}
+				)
+				break
+			case 'begin':
+				this.onBegin.then(
+					listener,
+					/* istanbul ignore next */
+					(): void => {
+						listener(null)
+					}
+				)
 				break
 			case 'disconnect':
-				this.onDisconnect.then(listener, (): void => {})
+				this.onDisconnect.then(
+					listener,
+					/* istanbul ignore next */
+					(): void => {
+						listener(null)
+					}
+				)
 				break
 		}
 		return this
+	}
+
+	/**
+	 * Get a Promise for a on time event.
+	 * @param event The event wait for.
+	 * @returns `this` if event occurs before exit, `null` otherwise.
+	 */
+	public when(event: 'exit'): Promise<Worker>
+	public when(event: 'connect'): Promise<Worker | null>
+	public when(event: 'begin'): Promise<Worker | null>
+	public when(event: 'disconnect'): Promise<Worker | null>
+	public when(event: Single): Promise<Worker | null> {
+		switch (event) {
+			case 'exit':
+				return this.onExit
+			case 'connect':
+				return this.onConnect.catch((): null => null)
+			case 'begin':
+				return this.onBegin.catch((): null => null)
+			case 'disconnect':
+				return this.onDisconnect.catch((): null => null)
+		}
 	}
 
 	/**
@@ -291,25 +342,24 @@ export class Worker {
 	 * @param message The message to send.
 	 * @returns A promise to await for the triggered action to complete.
 	 */
-	public async send(message: Parent): Promise<void> {
+	public send(message: Parent): Promise<unknown> {
 		const c = this.connection
 		if (c) {
 			switch (message.type) {
 				case 'debug':
 				case 'run':
 				case 'load':
-					await c.send(message, {
+					return c.send(message, {
 						receptive: true,
 					})
-					return
 				default:
-					c.send(message, {
+					return c.send(message, {
 						receptive: false,
 					})
-					return
 			}
 		} else {
 			this.emitter.emit('error', new Error('Attempted to send over a closed connection.'))
+			return Promise.resolve()
 		}
 	}
 
