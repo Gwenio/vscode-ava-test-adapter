@@ -179,6 +179,24 @@
 			}
 		},
 		{
+			"label": "clean:deps",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "clean"],
+			"isBackground": false,
+			"options": {
+				"cwd": "meta/deps"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
 			"label": "clear-test-cache",
 			"type": "shell",
 			"command": "pnpx",
@@ -234,6 +252,7 @@
 			"type": "shell",
 			"command": "pnpx",
 			"args": ["tsc", "-p", "extension/worker/tsconfig.json"],
+			"dependsOn": ["compile:ipc"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,
@@ -250,7 +269,7 @@
 			"type": "shell",
 			"command": "pnpx",
 			"args": ["vsce", "package"],
-			"dependsOn": ["clean:build", "rollup:production"],
+			"dependsOn": ["clean:build", "clean:deps", "rollup:production"],
 			"dependsOrder": "sequence",
 			"isBackground": false,
 			"options": {
