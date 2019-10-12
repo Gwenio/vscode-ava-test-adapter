@@ -4,7 +4,8 @@
 			"packages": ["package.json"]
 		},
 		"extension": {
-			"packages": ["extension/worker/package.json", "extension/adapter/package.json"]
+			"packages": ["extension/worker/package.json", "extension/adapter/package.json"],
+			"ignore": ["@types/vscode"]
 		},
 		"private": {
 			"packages": ["private/ipc/package.json"]
