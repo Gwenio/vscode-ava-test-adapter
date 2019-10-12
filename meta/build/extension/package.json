@@ -92,7 +92,8 @@
 				"avaExplorer.serialRuns": {
 					"description": "If true then only one test or debug session will occur at a time.",
 					"type": "boolean",
-					"default": false
+					"default": false,
+					"scope": "resource"
 				},
 				"avaExplorer.debuggerPort": {
 					"description": "The preferred port to use for debugging sessions",
