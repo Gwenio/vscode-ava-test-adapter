@@ -42,7 +42,7 @@ importers:
     devDependencies:
       '@sindresorhus/is': 1.2.0
       '@types/node': 12.7.12
-      '@types/vscode': 1.23.0
+      '@types/vscode': 1.39.0
       delay: 4.3.0
       emittery: 0.5.1
       ow: 0.13.2
@@ -57,7 +57,7 @@ importers:
     specifiers:
       '@sindresorhus/is': ^1.2.0
       '@types/node': ^12.7.12
-      '@types/vscode': 1.23.0
+      '@types/vscode': 1.39.0
       delay: ^4.3.0
       emittery: ^0.5.0
       ow: ^0.13.2
@@ -1015,10 +1015,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-nhRG8+RuG/L+0fAZBQYaRflXKjTrHOKH8MFTChnf+dNVMxA3wHYYrfj0tztK0W51ABXjGfRCDc0vRkecCOrsow==
-  /@types/vscode/1.23.0:
+  /@types/vscode/1.39.0:
     dev: true
     resolution:
-      integrity: sha512-gMIEQTtt84M2PglQ8pmuanc9I8TZIHkK9bWz8teandxZX5o+gGGdbt0bfA5OMtotDqf3Ni+iRW5YaZCJFzJ07A==
+      integrity: sha512-rlg0okXDt7NjAyHXbZ2nO1I/VY/8y9w67ltLRrOxXQ46ayvrYZavD4A6zpYrGbs2+ZOEQzcUs+QZOqcVGQIxXQ==
   /@typescript-eslint/eslint-plugin/2.3.3_ac2af3c58153fd08c91227fd925d839a:
     dependencies:
       '@typescript-eslint/experimental-utils': 2.3.3_eslint@6.5.1
