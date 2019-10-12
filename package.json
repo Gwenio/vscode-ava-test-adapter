@@ -36,7 +36,24 @@
 		"node": ">=10.16.0 <11 || >=12.7.0"
 	},
 	"greenkeeper": {
-		"ignore": ["prettier", "husky", "lint-staged", "markdownlint-cli"]
+		"ignore": ["prettier", "husky", "lint-staged", "markdownlint-cli"],
+		"commitMessages": {
+			"initialBadge": "docs(readme): add greenkeeper badge",
+			"initialDependencies": "chore(package) update dependencies",
+			"initialBranches": "ci: whitelist greenkeeper branches",
+			"dependencyUpdate": "chore(package): update ${dependency} to version ${version}",
+			"devDependencyUpdate": "chore(package): update ${dependency} to version ${version}",
+			"dependencyPin": "build(package): pin ${dependency} to ${oldVersion}",
+			"devDependencyPin": "build(package): pin ${dependency} to ${oldVersion}"
+		},
+		"prTitles": {
+			"initialPR": "Enable Greenkeeper",
+			"initialPrBadge": "Add Greenkeeper badge to enable Greenkeeper",
+			"initialPrBadgeOnly": "Add Greenkeeper badge",
+			"initialSubgroupPR": "Update dependencies for ${group}",
+			"basicPR": "Update ${dependency} to the latest",
+			"groupPR": "Update ${dependency} in group ${group} to the latest"
+		}
 	},
 	"husky": {
 		"hooks": {
