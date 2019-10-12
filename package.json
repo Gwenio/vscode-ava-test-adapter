@@ -11,9 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/Gwenio/vscode-ava-test-adapter/issues"
 	},
-	"scripts": {
-		"clean": "pnpm recursive run clean"
-	},
+	"scripts": {},
 	"devDependencies": {
 		"@commitlint/cli": "^8.2.0",
 		"@commitlint/config-conventional": "^8.2.0",
