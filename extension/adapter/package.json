@@ -2,7 +2,7 @@
 	"name": "~adapter",
 	"private": true,
 	"description": "The test adapter for the VSCode extension.",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"author": "James Adam Armstrong",
 	"license": "ISC",
 	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",

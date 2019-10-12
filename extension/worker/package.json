@@ -1,7 +1,7 @@
 {
 	"name": "~worker",
 	"private": true,
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "The worker for the VSCode extension.",
 	"author": "James Adam Armstrong",
 	"license": "ISC",

@@ -4,6 +4,7 @@
 
 1. [Version 0](#version-0)
     1. [V0 Release 4, 04-10-2019](#v0-release-4-04-10-2019)
+        1. [V0R4 Patch 1, 12-10-2019](#v0r4-patch-1-12-10-2019)
     2. [V0 Release 3, 24-08-2019](#v0-release-3-24-08-2019)
         1. [V0R3 Patch 3, 26-09-2019](#v0r3-patch-3-26-09-2019)
         2. [V0R3 Patch 2, 13-09-2019](#v0r3-patch-2-13-09-2019)
@@ -33,6 +34,13 @@ Features:
 - The worker process can now be debugged from VSCode.
 - Can now set test and debug sessions to occur serially.
   This can help avoid issues in the adapter and prevent running tests that interfere with each other.
+
+#### V0R4 Patch 1, 12-10-2019
+
+Fixes:
+
+- Adresses [issue #13](https://github.com/Gwenio/vscode-ava-test-adapter/issues/13).
+- `avaExplorer.serialRuns` now has the proper scope set in the settings schema.
 
 ---
 
