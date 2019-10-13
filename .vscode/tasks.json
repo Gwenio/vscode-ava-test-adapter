@@ -49,13 +49,11 @@
 			"command": "pnpx",
 			"args": [
 				"nyc",
+				"report",
 				"-r",
 				"text",
 				"--cwd=\"../..\"",
-				"--nycrc=\"meta/test/.nycrc.json\"",
-				"ava",
-				"--config",
-				"ava.coverage.js"
+				"--nycrc=\"meta/test/.nycrc.json\""
 			],
 			"dependsOn": ["coverage"],
 			"isBackground": false,
