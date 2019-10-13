@@ -139,6 +139,7 @@ importers:
       rimraf: 3.0.0
       rollup: 1.23.1
       rollup-plugin-alias: 2.0.1
+      rollup-plugin-analyzer: 3.2.1
       rollup-plugin-babel: 4.3.3_@babel+core@7.6.4+rollup@1.23.1
       rollup-plugin-commonjs: 10.1.0_rollup@1.23.1
       rollup-plugin-json: 4.0.0
@@ -186,6 +187,7 @@ importers:
       rimraf: ^3.0.0
       rollup: ^1.23.0
       rollup-plugin-alias: ^2.0.1
+      rollup-plugin-analyzer: ^3.2.1
       rollup-plugin-babel: ^4.3.3
       rollup-plugin-commonjs: ^10.1.0
       rollup-plugin-json: ^4.0.0
@@ -6343,6 +6345,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-/wOySYmFzR1TPijsiNBOAV12HYPs7GZtAuim2LKdk5V6RnQSZ34ueVgkFfjJffe/HIFR6Jdwc4+7YOlY5uty4w==
+  /rollup-plugin-analyzer/3.2.1:
+    dev: true
+    engines:
+      node: '>=8.0.0'
+    resolution:
+      integrity: sha512-J5dKAcbYLa31rNj0pA5Osp1zbv765ENPCBzKtDTE9lKlkm94XuE99qKVS+nPIujhdvaxPJsCQQP4SX5SCp6jIw==
   /rollup-plugin-babel/4.3.3_@babel+core@7.6.4+rollup@1.23.1:
     dependencies:
       '@babel/core': 7.6.4

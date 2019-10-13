@@ -13,6 +13,7 @@ import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
 import jsonfile from 'rollup-plugin-json'
 import alias from 'rollup-plugin-alias'
+import analyzer from 'rollup-plugin-analyzer'
 import globby from 'globby'
 // eslint-disable-next-line node/no-extraneous-import
 import chalk from 'chalk'
@@ -169,9 +170,14 @@ function configurePlugins() {
 					preamble: formatLicense(),
 				},
 			}),
+			normalizeSources(),
+			analyzer({
+				stdout: true,
+				root: path.resolve(process.cwd(), '../..'),
+				limit: 5,
+			}),
 			dependList(),
 			bundleSize(),
-			normalizeSources(),
 		]
 	} else {
 		return [
