@@ -19,33 +19,14 @@
 	},
 	"devDependencies": {
 		"@sindresorhus/is": "^1.2.0",
-		"@types/node": "^12.7.11",
-		"rimraf": "^3.0.0",
+		"@types/node": "^12.7.12",
 		"ow": "^0.13.2",
+		"rimraf": "^3.0.0",
 		"tslib": "^1.9.3",
-		"typescript": "3.6.3"
+		"typescript": "3.6.*"
 	},
 	"engines": {
 		"node": ">=10.16.0 <11 || >=12.7.0",
 		"vscode": ">=1.23.0"
-	},
-	"greenkeeper": {
-		"commitMessages": {
-			"initialBadge": "docs(readme): add greenkeeper badge",
-			"initialDependencies": "chore(package) update dependencies",
-			"initialBranches": "ci: whitelist greenkeeper branches",
-			"dependencyUpdate": "chore(package): update ${dependency} to version ${version}",
-			"devDependencyUpdate": "chore(package): update ${dependency} to version ${version}",
-			"dependencyPin": "build(package): pin ${dependency} to ${oldVersion}",
-			"devDependencyPin": "build(package): pin ${dependency} to ${oldVersion}"
-		},
-		"prTitles": {
-			"initialPR": "Enable Greenkeeper",
-			"initialPrBadge": "Add Greenkeeper badge to enable Greenkeeper",
-			"initialPrBadgeOnly": "Add Greenkeeper badge",
-			"initialSubgroupPR": "Update dependencies for ${group}",
-			"basicPR": "Update ${dependency} to the latest",
-			"groupPR": "Update ${dependency} in group ${group} to the latest"
-		}
 	}
 }

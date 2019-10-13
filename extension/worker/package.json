@@ -1,7 +1,7 @@
 {
 	"name": "~worker",
 	"private": true,
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "The worker for the VSCode extension.",
 	"author": "James Adam Armstrong",
 	"license": "ISC",
@@ -26,14 +26,14 @@
 	"devDependencies": {
 		"@sindresorhus/is": "^1.2.0",
 		"@types/hash-sum": "^1.0.0",
-		"@types/node": "^12.7.11",
+		"@types/node": "^12.7.12",
 		"emittery": "^0.5.0",
 		"globby": "^10.0.1",
 		"hash-sum": "^2.0.0",
 		"prando": "^5.1.1",
 		"rimraf": "^3.0.0",
 		"tslib": "^1.9.3",
-		"typescript": "3.6.3",
+		"typescript": "3.6.*",
 		"veza": "^1.1.0",
 		"~ipc": "workspace:*",
 		"~types": "workspace:*"

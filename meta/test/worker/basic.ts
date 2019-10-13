@@ -49,7 +49,8 @@ const workerConfig = {
 	nodeArgv: process.execArgv.filter((x): boolean => !inspectFilter.test(x)),
 	timeout,
 }
-const workerPath = '~build/extension/child'
+// eslint-disable-next-line node/no-unpublished-require
+const workerPath = require.resolve('~build/extension/child')
 
 test('start up and shut down', async (t): Promise<void> => {
 	const spy = t.context.sandbox.spy
@@ -65,10 +66,11 @@ test('start up and shut down', async (t): Promise<void> => {
 	})
 	const emitter = new Emitter()
 	const exited = emitter.once('exit')
-	const onConnect = spy((w: Worker): void => {
-		w.disconnect()
+	const onConnect = spy((_: Worker | null): void => {})
+	const onBegin = spy((w: Worker | null): void => {
+		if (w) w.disconnect()
 	})
-	const onDisconnect = spy((_: Worker): void => {})
+	const onDisconnect = spy((_: Worker | null): void => {})
 	const onExit = spy((_: Worker): void => {
 		emitter.emitSerial('exit')
 	})
@@ -79,6 +81,7 @@ test('start up and shut down', async (t): Promise<void> => {
 			})
 		})
 		.once('connect', onConnect)
+		.once('begin', onBegin)
 		.once('disconnect', onDisconnect)
 		.once('exit', onExit)
 	await Promise.race([exited, delay(timeout)])
@@ -92,6 +95,124 @@ test('start up and shut down', async (t): Promise<void> => {
 		}
 		t.is(onConnect.callCount, 1)
 		t.true(onConnect.firstCall.calledWithExactly(w))
+		t.is(onBegin.callCount, 1)
+		t.true(onBegin.firstCall.calledWithExactly(w))
+		t.is(onDisconnect.callCount, 1)
+		t.true(onDisconnect.firstCall.calledWithExactly(w))
+		t.is(onExit.callCount, 1)
+		t.true(onExit.firstCall.calledWithExactly(w))
+		t.true(w.exitCode === 0 || w.exitCode === null)
+	})
+})
+
+test('once triggers after exit', async (t): Promise<void> => {
+	const spy = t.context.sandbox.spy
+	const q = new SerialQueue()
+	const l: (string | Buffer)[] = []
+	const stream = through({ objectMode: true }, (chunk: string | Buffer, _, callback): void => {
+		if (is.buffer(chunk)) {
+			t.log(chunk.toString())
+		} else {
+			t.log(chunk)
+		}
+		callback()
+	})
+	const emitter = new Emitter()
+	const exited = emitter.once('exit')
+	const onConnect = spy((_: Worker | null): void => {})
+	const onBegin = spy((_: Worker | null): void => {})
+	const onDisconnect = spy((_: Worker | null): void => {})
+	const onExit = spy((_: Worker): void => {})
+	const w = new Worker(workerConfig, stream, workerPath)
+		.on('error', (x): void => {
+			q.add((): void => {
+				t.log(x)
+			})
+		})
+		.once('connect', (_: Worker | null): void => {})
+		.once('begin', (w: Worker | null): void => {
+			if (w) w.disconnect()
+		})
+		.once('disconnect', (_: Worker | null): void => {})
+		.once('exit', (_: Worker): void => {
+			emitter.emitSerial('exit')
+		})
+	await Promise.race([exited, delay(timeout)])
+	w.once('connect', onConnect)
+	w.once('begin', onBegin)
+	w.once('disconnect', onDisconnect)
+	w.once('exit', onExit)
+	await delay(500)
+	await q.add((): void => {
+		for (const x of l) {
+			if (is.buffer(x)) {
+				t.log(x.toString())
+			} else if (is.string(x)) {
+				t.log(x)
+			}
+		}
+		t.is(onConnect.callCount, 1)
+		t.true(onConnect.firstCall.calledWithExactly(w))
+		t.is(onBegin.callCount, 1)
+		t.true(onBegin.firstCall.calledWithExactly(w))
+		t.is(onDisconnect.callCount, 1)
+		t.true(onDisconnect.firstCall.calledWithExactly(w))
+		t.is(onExit.callCount, 1)
+		t.true(onExit.firstCall.calledWithExactly(w))
+		t.true(w.exitCode === 0 || w.exitCode === null)
+	})
+})
+
+test('when triggers after exit', async (t): Promise<void> => {
+	const spy = t.context.sandbox.spy
+	const q = new SerialQueue()
+	const l: (string | Buffer)[] = []
+	const stream = through({ objectMode: true }, (chunk: string | Buffer, _, callback): void => {
+		if (is.buffer(chunk)) {
+			t.log(chunk.toString())
+		} else {
+			t.log(chunk)
+		}
+		callback()
+	})
+	const emitter = new Emitter()
+	const exited = emitter.once('exit')
+	const onConnect = spy((_: Worker | null): void => {})
+	const onBegin = spy((_: Worker | null): void => {})
+	const onDisconnect = spy((_: Worker | null): void => {})
+	const onExit = spy((_: Worker): void => {})
+	const w = new Worker(workerConfig, stream, workerPath)
+		.on('error', (x): void => {
+			q.add((): void => {
+				t.log(x)
+			})
+		})
+		.once('connect', (_: Worker | null): void => {})
+		.once('begin', (w: Worker | null): void => {
+			if (w) w.disconnect()
+		})
+		.once('disconnect', (_: Worker | null): void => {})
+		.once('exit', (_: Worker): void => {
+			emitter.emitSerial('exit')
+		})
+	await Promise.race([exited, delay(timeout)])
+	w.when('connect').then(onConnect)
+	w.when('begin').then(onBegin)
+	w.when('disconnect').then(onDisconnect)
+	w.when('exit').then(onExit)
+	await delay(500)
+	await q.add((): void => {
+		for (const x of l) {
+			if (is.buffer(x)) {
+				t.log(x.toString())
+			} else if (is.string(x)) {
+				t.log(x)
+			}
+		}
+		t.is(onConnect.callCount, 1)
+		t.true(onConnect.firstCall.calledWithExactly(w))
+		t.is(onBegin.callCount, 1)
+		t.true(onBegin.firstCall.calledWithExactly(w))
 		t.is(onDisconnect.callCount, 1)
 		t.true(onDisconnect.firstCall.calledWithExactly(w))
 		t.is(onExit.callCount, 1)

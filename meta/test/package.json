@@ -2,7 +2,7 @@
 	"private": true,
 	"description": "The tests for the repository.",
 	"author": "James Adam Armstrong",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"license": "ISC",
 	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",
 	"repository": {
@@ -15,8 +15,8 @@
 	"scripts": {
 		"clean": "rimraf tmp",
 		"compile": "tsc -p tsconfig.json",
-		"coverage": "nyc ava --config ava.coverage.js",
-		"report": "nyc report -r text",
+		"coverage": "nyc --clean --cwd=\"../..\" --nycrc=\"meta/test/.nycrc.json\" ava --config ava.coverage.js",
+		"report": "nyc report -r text --cwd=\"../..\" --nycrc=\"meta/test/.nycrc.json\"",
 		"test": "ava"
 	},
 	"dependencies": {
@@ -26,11 +26,11 @@
 		"matcher": "^2.0.0"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.5.5",
+		"@babel/core": "^7.6.4",
 		"@babel/plugin-syntax-bigint": "^7.4.4",
 		"@sindresorhus/is": "^1.2.0",
 		"@types/hash-sum": "^1.0.0",
-		"@types/node": "^12.7.11",
+		"@types/node": "^12.7.12",
 		"@types/sinon": "^7.5.0",
 		"@types/through2": "^2.0.34",
 		"babel-plugin-minify-dead-code-elimination": "^0.5.0",
@@ -64,7 +64,7 @@
 		"sinon": "^7.4.1",
 		"through2": "^3.0.1",
 		"tslib": "^1.9.3",
-		"typescript": "3.6.3",
+		"typescript": "3.6.*",
 		"veza": "^1.1.0",
 		"~adapter": "workspace:*",
 		"~build": "workspace:*",
@@ -76,11 +76,12 @@
 		"node": ">=10.16.0 <11 || >=12.7.0"
 	},
 	"_moduleAliases": {
-		"~adapter": "./node_modules/~adapter/tmp/src",
-		"~worker": "./node_modules/~worker/tmp/src",
-		"~ipc": "./node_modules/~ipc/lib"
+		"~adapter": "node_modules/~adapter/tmp/src",
+		"~worker": "node_modules/~worker/tmp/src",
+		"~ipc": "node_modules/~ipc/lib"
 	},
 	"esm": {
-		"cjs": true
+		"cjs": true,
+		"cache": false
 	}
 }

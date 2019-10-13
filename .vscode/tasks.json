@@ -18,6 +18,60 @@
 			"problemMatcher": ["$eslint-stylish"]
 		},
 		{
+			"label": "coverage",
+			"type": "shell",
+			"command": "pnpx",
+			"args": [
+				"nyc",
+				"--clean",
+				"--cwd=\"../..\"",
+				"--nycrc=\"meta/test/.nycrc.json\"",
+				"ava",
+				"--config",
+				"ava.coverage.js"
+			],
+			"isBackground": false,
+			"options": {
+				"cwd": "meta/test"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "coverage:report",
+			"type": "shell",
+			"command": "pnpx",
+			"args": [
+				"nyc",
+				"-r",
+				"text",
+				"--cwd=\"../..\"",
+				"--nycrc=\"meta/test/.nycrc.json\"",
+				"ava",
+				"--config",
+				"ava.coverage.js"
+			],
+			"dependsOn": ["coverage"],
+			"isBackground": false,
+			"options": {
+				"cwd": "meta/test"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
 			"label": "rollup-watch",
 			"type": "shell",
 			"command": "pnpx",
@@ -36,11 +90,46 @@
 			}
 		},
 		{
-			"label": "rollup-production",
+			"label": "deps:prepare",
+			"type": "shell",
+			"command": "pnpx",
+			"args": ["gulp", "prepare"],
+			"options": {
+				"cwd": "meta/deps"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "deps:add",
+			"type": "shell",
+			"command": "pnpx",
+			"args": ["gulp", "prepare"],
+			"dependsOn": ["deps:prepare"],
+			"options": {
+				"cwd": "meta/build"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "rollup:production",
 			"type": "shell",
 			"command": "pnpx",
 			"args": ["rollup", "-c"],
-			"dependsOn": ["compile"],
+			"dependsOn": ["compile:adapter", "compile:worker", "deps:add"],
 			"options": {
 				"cwd": "meta/build",
 				"env": {
@@ -60,8 +149,44 @@
 			"label": "clean",
 			"type": "shell",
 			"command": "pnpm",
-			"args": ["recursive", "clean"],
+			"args": ["recursive", "run", "clean"],
 			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "clean:build",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "clean"],
+			"isBackground": false,
+			"options": {
+				"cwd": "meta/build"
+			},
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			}
+		},
+		{
+			"label": "clean:deps",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "clean"],
+			"isBackground": false,
+			"options": {
+				"cwd": "meta/deps"
+			},
 			"presentation": {
 				"echo": true,
 				"reveal": "never",
@@ -90,18 +215,44 @@
 			}
 		},
 		{
-			"label": "compile",
+			"label": "compile:ipc",
 			"type": "shell",
 			"command": "pnpx",
-			"args": [
-				"tsc",
-				"-p",
-				"private/ipc/tsconfig.json",
-				"-p",
-				"extension/adapter/tsconfig.json",
-				"-p",
-				"extension/worker/tsconfig.json"
-			],
+			"args": ["tsc", "-p", "private/ipc/tsconfig.json"],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "compile:adapter",
+			"type": "shell",
+			"command": "pnpx",
+			"args": ["tsc", "-p", "extension/adapter/tsconfig.json"],
+			"dependsOn": ["compile:ipc"],
+			"isBackground": false,
+			"presentation": {
+				"echo": true,
+				"reveal": "never",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": ["$tsc"]
+		},
+		{
+			"label": "compile:worker",
+			"type": "shell",
+			"command": "pnpx",
+			"args": ["tsc", "-p", "extension/worker/tsconfig.json"],
+			"dependsOn": ["compile:ipc"],
 			"isBackground": false,
 			"presentation": {
 				"echo": true,
@@ -117,8 +268,9 @@
 			"label": "package",
 			"type": "shell",
 			"command": "pnpx",
-			"args": ["vsce", "package", "--yarn"],
-			"dependsOn": ["compile", "rollup-production"],
+			"args": ["vsce", "package"],
+			"dependsOn": ["clean:build", "clean:deps", "rollup:production"],
+			"dependsOrder": "sequence",
 			"isBackground": false,
 			"options": {
 				"cwd": "meta/build/extension"

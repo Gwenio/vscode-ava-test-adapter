@@ -5,7 +5,7 @@
 	"icon": "img/icon.png",
 	"author": "James Adam Armstrong",
 	"publisher": "gwenio",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"license": "ISC",
 	"homepage": "https://github.com/Gwenio/vscode-ava-test-adapter.git",
 	"repository": {
@@ -92,7 +92,8 @@
 				"avaExplorer.serialRuns": {
 					"description": "If true then only one test or debug session will occur at a time.",
 					"type": "boolean",
-					"default": false
+					"default": false,
+					"scope": "resource"
 				},
 				"avaExplorer.debuggerPort": {
 					"description": "The preferred port to use for debugging sessions",

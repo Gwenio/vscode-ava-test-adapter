@@ -260,7 +260,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 								this.testStatesEmitter.fire({ type: 'finished' })
 							}
 						})
-					if (serialRuns) return p
+					if (serialRuns) await p
 				} else {
 					this.log.error('No worker connected.')
 				}
@@ -334,7 +334,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 							this.log.info('Done debugging.')
 							w.off('ready', ready)
 						})
-					if (config.serialRuns) return p
+					if (config.serialRuns) await p
 				} else {
 					this.log.error('No worker connected.')
 				}
@@ -416,7 +416,7 @@ export class AVAAdapter implements TestAdapter, Disposable {
 		const log = this.log
 		return this.queue.add(
 			(): Promise<void> => {
-				const p = new Cancelable<void>((resolve, _reject, onCancel): void => {
+				const p = new Cancelable<Worker | null>((resolve, _reject, onCancel): void => {
 					onCancel.shouldReject = true
 					log.debug('Spawning worker...')
 					if (this.worker) {
@@ -431,18 +431,20 @@ export class AVAAdapter implements TestAdapter, Disposable {
 						.on('error', (error): void => {
 							log.error(error)
 						})
-						.once('connect', (w: Worker): void => {
-							log.debug('Worker connected.')
-							this.watcher.activate = true
-							w.once('disconnect', (w: Worker): void => {
-								if (this.worker === w) {
-									this.watcher.activate = false
-									this.worker = undefined
-								}
-								log.debug('Worker disconnected.')
-							})
-							this.setWorkerLog()
-							resolve()
+						.once('connect', (w: Worker | null): void => {
+							if (w) {
+								log.debug('Worker connected.')
+								this.watcher.activate = true
+								w.once('disconnect', (w: Worker | null): void => {
+									if (this.worker === w) {
+										this.watcher.activate = false
+										this.worker = undefined
+									}
+									log.debug('Worker disconnected.')
+								})
+								this.setWorkerLog()
+								resolve(w.when('begin'))
+							}
 						})
 						.on('result', (result): void => {
 							this.testStatesEmitter.fire({
@@ -467,10 +469,9 @@ export class AVAAdapter implements TestAdapter, Disposable {
 						worker.disconnect()
 					})
 				})
-				delay(config.timeout).then((): void => {
-					p.cancel('Attempt to connect to worker timed out.')
-				})
-				return p.catch((error): void => {
+				const d = delay(config.timeout)
+				d.then(p.cancel.bind(p, 'Attempt to connect to worker timed out.'))
+				return p.then(d.clear.bind(d)).catch((error): void => {
 					log.error(error)
 				})
 			}

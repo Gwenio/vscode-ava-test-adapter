@@ -35,9 +35,9 @@ jobs:
     displayName: Compile Tests
     workingDirectory: meta/test
   - script: |
-      pnpx nyc -r text ava --config ava.coverage.js
-      pnpx nyc report -r json
-      pnpx nyc report -r cobertura
+      pnpx nyc -r text --cwd="../.." --nycrc="meta/test/.nycrc.json" ava --config ava.coverage.js
+      pnpx nyc report -r json --cwd="../.." --nycrc="meta/test/.nycrc.json"
+      pnpx nyc report -r cobertura --cwd="../.." --nycrc="meta/test/.nycrc.json"
     displayName: Generate Reports
     workingDirectory: meta/test
   - script: pnpm server stop

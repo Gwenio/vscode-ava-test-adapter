@@ -11,9 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/Gwenio/vscode-ava-test-adapter/issues"
 	},
-	"scripts": {
-		"clean": "pnpm recursive run clean"
-	},
+	"scripts": {},
 	"devDependencies": {
 		"@commitlint/cli": "^8.2.0",
 		"@commitlint/config-conventional": "^8.2.0",
@@ -21,24 +19,41 @@
 		"@typescript-eslint/parser": "^2.3.2",
 		"@typescript-eslint/typescript-estree": "^2.3.2",
 		"eslint": "^6.5.1",
-		"eslint-config-prettier": "^6.1.0",
+		"eslint-config-prettier": "^6.4.0",
 		"eslint-plugin-ava": "^9.0.0",
 		"eslint-plugin-node": "^10.0.0",
 		"eslint-plugin-promise": "^4.2.1",
-		"eslint-plugin-unicorn": "^12.0.2",
+		"eslint-plugin-unicorn": "^12.1.0",
 		"husky": "^3.0.8",
-		"lint-staged": "^9.4.1",
+		"lint-staged": "^9.4.2",
 		"markdownlint-cli": "^0.18.0",
-		"prettier": "1.18.2",
+		"prettier": "1.18.*",
 		"rxjs": "^6.5.3",
 		"tslib": "^1.9.3",
-		"typescript": "3.6.3"
+		"typescript": "3.6.*"
 	},
 	"engines": {
 		"node": ">=10.16.0 <11 || >=12.7.0"
 	},
 	"greenkeeper": {
-		"ignore": ["prettier", "husky", "lint-staged", "markdownlint-cli"]
+		"ignore": ["prettier", "husky", "lint-staged", "markdownlint-cli"],
+		"commitMessages": {
+			"initialBadge": "docs(readme): add greenkeeper badge",
+			"initialDependencies": "chore(package) update dependencies",
+			"initialBranches": "ci: whitelist greenkeeper branches",
+			"dependencyUpdate": "chore(package): update ${dependency} to version ${version}",
+			"devDependencyUpdate": "chore(package): update ${dependency} to version ${version}",
+			"dependencyPin": "build(package): pin ${dependency} to ${oldVersion}",
+			"devDependencyPin": "build(package): pin ${dependency} to ${oldVersion}"
+		},
+		"prTitles": {
+			"initialPR": "Enable Greenkeeper",
+			"initialPrBadge": "Add Greenkeeper badge to enable Greenkeeper",
+			"initialPrBadgeOnly": "Add Greenkeeper badge",
+			"initialSubgroupPR": "Update dependencies for ${group}",
+			"basicPR": "Update ${dependency} to the latest",
+			"groupPR": "Update ${dependency} in group ${group} to the latest"
+		}
 	},
 	"husky": {
 		"hooks": {
