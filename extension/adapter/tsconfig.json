@@ -14,7 +14,7 @@
 		"declaration": true,
 		"composite": true,
 		"esModuleInterop": true,
-		"preserveSymlinks": true
+		"incremental": true
 	},
 	"references": [
 		{

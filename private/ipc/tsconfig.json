@@ -10,6 +10,7 @@
 		"importHelpers": true,
 		"declaration": true,
 		"composite": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"incremental": true
 	}
 }
