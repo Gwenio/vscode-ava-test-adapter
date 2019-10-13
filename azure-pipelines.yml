@@ -30,7 +30,7 @@ jobs:
     parameters:
       type: production
   - script: |
-      pnpm install --prefer-frozen-lockfile --ignore-scripts --filter ./meta/test
+      pnpm install --prefer-frozen-lockfile --ignore-scripts --filter .
       pnpx tsc --project tsconfig.json
     displayName: Compile Tests
     workingDirectory: meta/test
@@ -72,7 +72,7 @@ jobs:
   - template: .azure/compile_extension.yml
   - template: .azure/prepare_extension.yml
   - script: |
-      pnpm install --prefer-frozen-lockfile --ignore-scripts --filter ./meta/test
+      pnpm install --prefer-frozen-lockfile --ignore-scripts --filter .
       pnpx tsc --project tsconfig.json
     displayName: Compile Tests
     workingDirectory: meta/test
