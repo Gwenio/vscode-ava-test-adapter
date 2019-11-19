@@ -43,7 +43,7 @@
 		"gulp": "^4.0.2",
 		"gulp-plumber": "^1.2.1",
 		"hash-sum": "^2.0.0",
-		"matcher": "^2.0.0",
+		"matcher": "^2.1.0",
 		"ow": "^0.13.2",
 		"p-cancelable": "^2.0.0",
 		"prando": "^5.1.1",
