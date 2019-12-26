@@ -9,7 +9,7 @@ importers:
       eslint: 6.5.1
       eslint-config-prettier: 6.4.0_eslint@6.5.1
       eslint-plugin-ava: 9.0.0_eslint@6.5.1
-      eslint-plugin-node: 10.0.0_eslint@6.5.1
+      eslint-plugin-node: 11.0.0_eslint@6.5.1
       eslint-plugin-promise: 4.2.1
       eslint-plugin-unicorn: 12.1.0_eslint@6.5.1
       husky: 3.0.8
@@ -28,7 +28,7 @@ importers:
       eslint: ^6.5.1
       eslint-config-prettier: ^6.4.0
       eslint-plugin-ava: ^9.0.0
-      eslint-plugin-node: ^10.0.0
+      eslint-plugin-node: ^11.0.0
       eslint-plugin-promise: ^4.2.1
       eslint-plugin-unicorn: ^12.1.0
       husky: ^3.0.8
@@ -2739,10 +2739,10 @@ packages:
       eslint: '>=6.2.0'
     resolution:
       integrity: sha512-mJqQ1wQ9pxBi5Pu+grrqjfuSLxiSSgnpa5p5vMdEpBqA9n9cUzSCv0xMZ/NkTMAj5ieOB3TWF8j+7C30Yiv4RA==
-  /eslint-plugin-es/2.0.0_eslint@6.5.1:
+  /eslint-plugin-es/3.0.0_eslint@6.5.1:
     dependencies:
       eslint: 6.5.1
-      eslint-utils: 1.4.2
+      eslint-utils: 2.0.0
       regexpp: 3.0.0
     dev: true
     engines:
@@ -2750,15 +2750,15 @@ packages:
     peerDependencies:
       eslint: '>=4.19.1'
     resolution:
-      integrity: sha512-f6fceVtg27BR02EYnBhgWLFQfK6bN4Ll0nQFrBHOlCsAyxeZkn0NHns5O0YZOPrV1B3ramd6cgFwaoFLcSkwEQ==
-  /eslint-plugin-node/10.0.0_eslint@6.5.1:
+      integrity: sha512-6/Jb/J/ZvSebydwbBJO1R9E5ky7YeElfK56Veh7e4QGFHCXoIXGH9HhVz+ibJLM3XJ1XjP+T7rKBLUa/Y7eIng==
+  /eslint-plugin-node/11.0.0_eslint@6.5.1:
     dependencies:
       eslint: 6.5.1
-      eslint-plugin-es: 2.0.0_eslint@6.5.1
-      eslint-utils: 1.4.2
+      eslint-plugin-es: 3.0.0_eslint@6.5.1
+      eslint-utils: 2.0.0
       ignore: 5.1.4
       minimatch: 3.0.4
-      resolve: 1.12.0
+      resolve: 1.14.1
       semver: 6.3.0
     dev: true
     engines:
@@ -2766,7 +2766,7 @@ packages:
     peerDependencies:
       eslint: '>=5.16.0'
     resolution:
-      integrity: sha512-1CSyM/QCjs6PXaT18+zuAXsjXGIGo5Rw630rSKwokSs2jrYURQc4R5JZpoanNCqwNmepg+0eZ9L7YiRUJb8jiQ==
+      integrity: sha512-chUs/NVID+sknFiJzxoN9lM7uKSOEta8GC8365hw1nDfwIPIjjpRSwwPvQanWv8dt/pDe9EV4anmVSwdiSndNg==
   /eslint-plugin-promise/4.2.1:
     dev: true
     engines:
@@ -2827,6 +2827,14 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-eAZS2sEUMlIeCjBeubdj45dmBHQwPHWyBcT1VSYB7o9x9WRRqKxyUoiXlRjyAwzN7YEzHJlYg0NmzDRWx6GP4Q==
+  /eslint-utils/2.0.0:
+    dependencies:
+      eslint-visitor-keys: 1.1.0
+    dev: true
+    engines:
+      node: '>=6'
+    resolution:
+      integrity: sha512-0HCPuJv+7Wv1bACm8y5/ECVfYdfsAm9xmVb7saeFlxjPYALefjhbYoCkBjPdPzGH8wWyTpAez82Fh3VKYEZ8OA==
   /eslint-visitor-keys/1.1.0:
     dev: true
     engines:
@@ -6285,6 +6293,12 @@ packages:
       path-parse: 1.0.6
     resolution:
       integrity: sha512-B/dOmuoAik5bKcD6s6nXDCjzUKnaDvdkRyAk6rsmsKLipWj4797iothd7jmmUhWTfinVMU+wc56rYKsit2Qy4w==
+  /resolve/1.14.1:
+    dependencies:
+      path-parse: 1.0.6
+    dev: true
+    resolution:
+      integrity: sha512-fn5Wobh4cxbLzuHaE+nphztHy43/b++4M6SsGFC2gB8uYwf0C8LcarfCz1un7UTW8OFQg9iNjZ4xpcFVGebDPg==
   /responselike/1.0.2:
     dependencies:
       lowercase-keys: 1.0.1
