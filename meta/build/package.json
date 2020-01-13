@@ -20,7 +20,7 @@
 		"publish": "cd extension && vsce publish"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.6.4",
+		"@babel/core": "^7.8.0",
 		"@babel/plugin-syntax-bigint": "^7.4.4",
 		"@sindresorhus/is": "^1.2.0",
 		"@types/node": "^12.7.12",
