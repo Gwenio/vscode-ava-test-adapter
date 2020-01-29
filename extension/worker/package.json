@@ -24,7 +24,7 @@
 		"matcher": "^2.0.0"
 	},
 	"devDependencies": {
-		"@sindresorhus/is": "^1.2.0",
+		"@sindresorhus/is": "^2.0.0",
 		"@types/hash-sum": "^1.0.0",
 		"@types/node": "^12.7.12",
 		"emittery": "^0.5.0",
