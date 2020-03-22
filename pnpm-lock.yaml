@@ -7,7 +7,7 @@ importers:
       '@typescript-eslint/parser': 2.3.3_eslint@6.5.1
       '@typescript-eslint/typescript-estree': 2.3.3
       eslint: 6.5.1
-      eslint-config-prettier: 6.4.0_eslint@6.5.1
+      eslint-config-prettier: 6.10.1_eslint@6.5.1
       eslint-plugin-ava: 9.0.0_eslint@6.5.1
       eslint-plugin-node: 10.0.0_eslint@6.5.1
       eslint-plugin-promise: 4.2.1
@@ -26,7 +26,7 @@ importers:
       '@typescript-eslint/parser': ^2.3.2
       '@typescript-eslint/typescript-estree': ^2.3.2
       eslint: ^6.5.1
-      eslint-config-prettier: ^6.4.0
+      eslint-config-prettier: ^6.10.1
       eslint-plugin-ava: ^9.0.0
       eslint-plugin-node: ^10.0.0
       eslint-plugin-promise: ^4.2.1
@@ -2712,7 +2712,7 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-otzzTim2/1+lVrlH19EfQQJEhVJSu0zOb9ygb3iapN6UlyaDtyRq4b5U1FuW0v1lRa9Fp/GJyHkSwm6NqABgCA==
-  /eslint-config-prettier/6.4.0_eslint@6.5.1:
+  /eslint-config-prettier/6.10.1_eslint@6.5.1:
     dependencies:
       eslint: 6.5.1
       get-stdin: 6.0.0
@@ -2721,7 +2721,7 @@ packages:
     peerDependencies:
       eslint: '>=3.14.1'
     resolution:
-      integrity: sha512-YrKucoFdc7SEko5Sxe4r6ixqXPDP1tunGw91POeZTTRKItf/AMFYt/YLEQtZMkR2LVpAVhcAcZgcWpm1oGPW7w==
+      integrity: sha512-svTy6zh1ecQojvpbJSgH3aei/Rt7C6i090l5f2WQ4aB05lYHeZIR1qL4wZyyILTbtmnbHP5Yn8MrsOJMGa8RkQ==
   /eslint-plugin-ava/9.0.0_eslint@6.5.1:
     dependencies:
       deep-strict-equal: 0.2.0
