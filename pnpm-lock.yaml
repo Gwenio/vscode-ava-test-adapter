@@ -8,7 +8,7 @@ importers:
       '@typescript-eslint/typescript-estree': 2.3.3
       eslint: 6.5.1
       eslint-config-prettier: 6.4.0_eslint@6.5.1
-      eslint-plugin-ava: 9.0.0_eslint@6.5.1
+      eslint-plugin-ava: 10.0.0_eslint@6.5.1
       eslint-plugin-node: 11.0.0_eslint@6.5.1
       eslint-plugin-promise: 4.2.1
       eslint-plugin-unicorn: 13.0.0_eslint@6.5.1
@@ -27,7 +27,7 @@ importers:
       '@typescript-eslint/typescript-estree': ^2.3.2
       eslint: ^6.5.1
       eslint-config-prettier: ^6.4.0
-      eslint-plugin-ava: ^9.0.0
+      eslint-plugin-ava: ^10.0.0
       eslint-plugin-node: ^11.0.0
       eslint-plugin-promise: ^4.2.1
       eslint-plugin-unicorn: ^13.0.0
@@ -2730,24 +2730,24 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-YrKucoFdc7SEko5Sxe4r6ixqXPDP1tunGw91POeZTTRKItf/AMFYt/YLEQtZMkR2LVpAVhcAcZgcWpm1oGPW7w==
-  /eslint-plugin-ava/9.0.0_eslint@6.5.1:
+  /eslint-plugin-ava/10.0.0_eslint@6.5.1:
     dependencies:
       deep-strict-equal: 0.2.0
       enhance-visitors: 1.0.0
       eslint: 6.5.1
-      espree: 6.1.1
+      espree: 6.1.2
       espurify: 2.0.1
-      import-modules: 1.1.0
+      import-modules: 2.0.0
       pkg-dir: 4.2.0
       resolve-from: 5.0.0
     dev: true
     engines:
-      node: '>=8'
+      node: '>=10.18.0 <11 || >=12.14.0 <13 || >=13.5.0'
     peerDependencies:
-      eslint: '>=6.2.0'
+      eslint: ^6.2.0
     resolution:
-      integrity: sha512-mJqQ1wQ9pxBi5Pu+grrqjfuSLxiSSgnpa5p5vMdEpBqA9n9cUzSCv0xMZ/NkTMAj5ieOB3TWF8j+7C30Yiv4RA==
-  /eslint-plugin-es/3.0.0_eslint@6.5.1:
+      integrity: sha512-jTmx2Xd4Arnk+S5GiueJIWstJRpGHCysp6ibVIFCbYSZNTtT1FaWHol04AavZXbzdnJTc5f0Ga0Gp7qm7GUmqQ==
+  /eslint-plugin-es/2.0.0_eslint@6.5.1:
     dependencies:
       eslint: 6.5.1
       eslint-utils: 2.0.0
@@ -3886,12 +3886,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-vjL3+w0oulAVZ0hBHnxa/Nm5TAurf9YLQJDhqRZyqb+VKGOB6LU8t9H1Nr5CIo16vh9XfJTOoHwU0B71S557gA==
-  /import-modules/1.1.0:
-    dev: true
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha1-dI23nFzEK7lwHvq0JPiU5yYA6dw=
   /import-modules/2.0.0:
     dev: true
     engines:
