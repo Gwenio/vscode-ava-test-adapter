@@ -23,7 +23,7 @@
 		"@babel/core": "^7.6.4",
 		"@babel/plugin-syntax-bigint": "^7.4.4",
 		"@sindresorhus/is": "^1.2.0",
-		"@types/node": "^12.7.12",
+		"@types/node": "^13.1.0",
 		"@types/through2": "^2.0.34",
 		"arrify": "^2.0.1",
 		"ava": "^2.2.0",
