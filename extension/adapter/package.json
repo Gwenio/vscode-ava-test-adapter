@@ -22,7 +22,7 @@
 		"@types/node": "^13.1.0",
 		"@types/vscode": "1.23.0",
 		"delay": "^4.3.0",
-		"emittery": "^0.5.0",
+		"emittery": "^0.6.0",
 		"ow": "^0.14.0",
 		"p-cancelable": "^2.0.0",
 		"rimraf": "^3.0.0",
