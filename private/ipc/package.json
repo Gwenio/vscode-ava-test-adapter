@@ -18,7 +18,7 @@
 		"compile": "tsc -p tsconfig.json"
 	},
 	"devDependencies": {
-		"@sindresorhus/is": "^1.2.0",
+		"@sindresorhus/is": "^2.0.0",
 		"@types/node": "^13.1.0",
 		"ow": "^0.17.0",
 		"rimraf": "^3.0.0",
