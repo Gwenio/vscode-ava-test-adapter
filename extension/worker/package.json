@@ -19,7 +19,7 @@
 	},
 	"dependencies": {
 		"arrify": "^2.0.1",
-		"ava": "^2.2.0",
+		"ava": "^3.0.0",
 		"get-port": "^5.0.0",
 		"matcher": "^2.0.0"
 	},
