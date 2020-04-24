@@ -16,7 +16,6 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import Emitter from 'events'
 import hash from './hash'
 import { setup, Setup } from './ava_setup'
 import { worker } from './ava_worker'
@@ -137,22 +136,23 @@ export default class ConfigInfo {
 	public async run(session: Session, plan?: string[], logger?: Logger): Promise<void> {
 		const config = this.config
 		const send = session.send
-		const emitter: Emitter & TestEmitter = new Emitter()
-			.on('done', (f: string): void => {
-				const file = this.getFileID(f)
-				if (file) {
-					send({ type: 'done', file })
-				}
-			})
-			.on('result', (result: TestResult): void => {
-				const test = this.getTestID(result.test, result.file)
-				if (test) {
-					send({ type: 'result', state: result.state, test })
-				}
-			})
-			.once('end', (): void => {
-				send({ type: 'done', file: this.id })
-			})
+		const signalDone = (f: string): void => {
+			const file = this.getFileID(f)
+			if (file) {
+				send({ type: 'done', file })
+			}
+		}
+		const signalResult = (result: TestResult): void => {
+			const test = this.getTestID(result.test, result.file)
+			if (test) {
+				send({ type: 'result', state: result.state, test })
+			}
+		}
+		const emitter: TestEmitter = {
+			done: signalDone,
+			result: signalResult,
+			end: (): void => send({ type: 'done', file: this.id }),
+		}
 		const reporter = new TestReporter(emitter, this.prefix.length, logger)
 		const callback = (i: () => void): void => {
 			session.set(this.id, i)

@@ -99,7 +99,9 @@ export function setup(configFile: string, logger?: Logger): Setup {
 		? path.resolve(projectDir, avaConfig.snapshotDir)
 		: null
 	/* istanbul ignore next */
-	const concurrency = avaConfig.concurrency ? parseInt(avaConfig.concurrency, 10) : 0
+	const concurrency: number = avaConfig.concurrency
+		? Number.parseInt(avaConfig.concurrency as string, 10)
+		: 0
 	if (logger) logger('Config loaded.')
 	return {
 		babelConfig,

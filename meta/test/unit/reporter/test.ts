@@ -1,7 +1,7 @@
 /*
 ISC License (ISC)
 
-Copyright 2019 James Adam Armstrong
+Copyright 2019-2020 James Adam Armstrong
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above copyright
@@ -16,11 +16,10 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 */
 
-import Emitter from 'events'
 import anyTest, { TestInterface } from 'ava'
 import sinon, { SinonSandbox } from 'sinon'
 import Status from 'ava/lib/run-status'
-import { TestReporter } from '~worker/reporter'
+import { TestReporter, TestEmitter, TestResult as TestOutput } from '~worker/reporter'
 
 interface Context {
 	/** Isolated sinon sandbox. */
@@ -174,9 +173,17 @@ function mockTests(status: Status): Promise<void> {
 test('begin and end log', async (t): Promise<void> => {
 	const l = t.context.sandbox.spy()
 	let end = 0
-	const emit = new Emitter().on('end', (): void => {
-		end += 1
-	})
+	const emit: TestEmitter = {
+		end: (): void => {
+			end += 1
+		},
+		done: (_f: string): void => {
+			return
+		},
+		result: (_r: TestOutput): void => {
+			return
+		},
+	}
 	const status = t.context.status
 	const r1 = new TestReporter(emit, prefixSize, l)
 	const r2 = new TestReporter(emit, prefixSize)
@@ -205,12 +212,13 @@ test('sample results', async (t): Promise<void> => {
 	const result = spy()
 	const done = spy()
 	let end = false
-	const emit = new Emitter()
-		.once('end', (): void => {
+	const emit: TestEmitter = {
+		end: (): void => {
 			end = true
-		})
-		.on('result', result)
-		.on('done', done)
+		},
+		done,
+		result,
+	}
 	const r = new TestReporter(emit, 0)
 	r.startRun({
 		...basePlan,

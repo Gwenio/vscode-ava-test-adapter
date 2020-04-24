@@ -36,24 +36,21 @@ export interface TestResult {
 /** Emitter interface for forwarding test results. */
 export interface TestEmitter {
 	/**
-	 * Emit an end event.
-	 * @param event The type of event.
+	 * Signals all tests are complete.
 	 */
-	emit(event: 'end'): void
+	end(): void
 
 	/**
-	 * Emit a done event.
-	 * @param event The type of event.
-	 * @param message The file that was completed.
+	 * Signals a test file has been completed.
+	 * @param file The file that was completed.
 	 */
-	emit(event: 'done', message: string): void
+	done(file: string): void
 
 	/**
-	 * Emit a result event.
-	 * @param event The type of event.
-	 * @param message The result of the test.
+	 * Signals a test case has been completed.
+	 * @param message The result of the test case.
 	 */
-	emit(event: 'result', message: TestResult): void
+	result(message: TestResult): void
 }
 
 /** Reporter for running tests. */
@@ -111,7 +108,7 @@ export class TestReporter extends AbstractReporter {
 		switch (event.type) {
 			case 'selected-test':
 				if (event.skip) {
-					this.reporter.emit('result', {
+					this.reporter.result({
 						state: 'skipped',
 						file: event.testFile.slice(this.prefix),
 						test: event.title,
@@ -119,14 +116,14 @@ export class TestReporter extends AbstractReporter {
 				}
 				return
 			case 'test-passed':
-				this.reporter.emit('result', {
+				this.reporter.result({
 					state: 'passed',
 					file: event.testFile.slice(this.prefix),
 					test: event.title,
 				})
 				return
 			case 'test-failed':
-				this.reporter.emit('result', {
+				this.reporter.result({
 					state: 'failed',
 					file: event.testFile.slice(this.prefix),
 					test: event.title,
@@ -134,7 +131,7 @@ export class TestReporter extends AbstractReporter {
 				return
 			case 'worker-failed':
 			case 'worker-finished':
-				this.reporter.emit('done', event.testFile.slice(this.prefix))
+				this.reporter.done(event.testFile.slice(this.prefix))
 				return
 			case 'worker-stderr':
 				process.stderr.write(event.chunk)
@@ -155,7 +152,7 @@ export class TestReporter extends AbstractReporter {
 		if (this.running) {
 			this.running = false
 			this.log('Test Run Complete.')
-			this.reporter.emit('end')
+			this.reporter.end()
 		}
 	}
 }
