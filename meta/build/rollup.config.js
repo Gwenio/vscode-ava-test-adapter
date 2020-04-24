@@ -5,14 +5,14 @@
 
 import path from 'path'
 import fs from 'fs'
-import commonjs from 'rollup-plugin-commonjs'
-import resolve from 'rollup-plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import resolve from '@rollup/plugin-node-resolve'
 import { terser } from 'rollup-plugin-terser'
 import babel from 'rollup-plugin-babel'
 import builtins from 'builtin-modules'
 import sourcemaps from 'rollup-plugin-sourcemaps'
-import jsonfile from 'rollup-plugin-json'
-import alias from 'rollup-plugin-alias'
+import jsonfile from '@rollup/plugin-json'
+import alias from '@rollup/plugin-alias'
 import globby from 'globby'
 // eslint-disable-next-line node/no-extraneous-import
 import chalk from 'chalk'
@@ -63,13 +63,13 @@ function dependList() {
 			const f = path.basename(options.file)
 			const s = new Set()
 			Object.keys(bundle[f].modules)
-				.filter(x => !x.startsWith('\u0000'))
-				.map(x => path.dirname(x).split(path.sep))
-				.filter(x => x.includes('node_modules'))
-				.map(x => x.slice(x.lastIndexOf('node_modules') + 1))
-				.map(x => x.slice(0, x[0].startsWith('@') ? 2 : 1))
-				.map(x => x.join(path.sep))
-				.forEach(x => s.add(x))
+				.filter((x) => !x.startsWith('\u0000'))
+				.map((x) => path.dirname(x).split(path.sep))
+				.filter((x) => x.includes('node_modules'))
+				.map((x) => x.slice(x.lastIndexOf('node_modules') + 1))
+				.map((x) => x.slice(0, x[0].startsWith('@') ? 2 : 1))
+				.map((x) => x.join(path.sep))
+				.forEach((x) => s.add(x))
 			console.log([...s])
 		},
 	}
@@ -85,7 +85,7 @@ const avaFiles = globby
 		],
 		{ onlyFiles: true, dot: true }
 	)
-	.map(file => {
+	.map((file) => {
 		return file.replace(/^\.\/node_modules\//, '').replace(/\.js$/i, '')
 	})
 
