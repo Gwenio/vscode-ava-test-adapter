@@ -1,7 +1,7 @@
 /*
 ISC License (ISC)
 
-Copyright 2019 James Adam Armstrong
+Copyright 2019-2020 James Adam Armstrong
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above copyright
@@ -19,9 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import getPort from 'get-port'
 // eslint-disable-next-line node/no-missing-import
 import AVA from 'ava/namespace'
-
-/** Logger callback type. */
-type Logger = (message: string) => void
+import { Logger, noLog } from './log'
 
 /** Callback type to signal the tests are ready to be debugged. */
 type Ready = (port: number) => void
@@ -32,7 +30,7 @@ export default class DebugReporter implements AVA.Reporter {
 	private readonly ready: Ready
 
 	/** Logging callback. */
-	private readonly log: Logger = (_message: string): void => {}
+	private readonly log: Logger = noLog
 
 	/** The preferred port for the debugger to connect on. */
 	private readonly defaultPort: number

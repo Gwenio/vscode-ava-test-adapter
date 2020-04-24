@@ -1,7 +1,7 @@
 /*
 ISC License (ISC)
 
-Copyright 2019 James Adam Armstrong
+Copyright 2019-2020 James Adam Armstrong
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above copyright
@@ -25,9 +25,7 @@ import { LoadReporter, TestReporter, TestEmitter, DebugReporter, TestResult } fr
 import FileInfo from './file_info'
 import TestInfo from './test_info'
 import Session from './session'
-
-/** Logger callback type. */
-type Logger = (message: string) => void
+import { Logger } from './reporter/log'
 
 interface Loaded {
 	prefix: string

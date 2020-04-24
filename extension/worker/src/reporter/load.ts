@@ -1,7 +1,7 @@
 /*
 ISC License (ISC)
 
-Copyright 2019 James Adam Armstrong
+Copyright 2019-20 James Adam Armstrong
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above copyright
@@ -20,9 +20,7 @@ PERFORMANCE OF THIS SOFTWARE.
 import AVA from 'ava/namespace'
 import matcher from 'matcher'
 import AbstractReporter from './reporter'
-
-/** Logger callback type. */
-type Logger = (message: string) => void
+import { Logger, noLog } from './log'
 
 /** The information for a test file. */
 interface Info {
@@ -51,7 +49,7 @@ interface TestCase {
 /** Reporter for loading test information. */
 export default class LoadReporter extends AbstractReporter {
 	/** Logging callback. */
-	private readonly log: Logger = (_message: string): void => {}
+	private readonly log: Logger = noLog
 
 	/** Tracks if there is an active run. */
 	private running = false
