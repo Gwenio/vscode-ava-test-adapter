@@ -8,7 +8,7 @@ importers:
       '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
       eslint: 6.8.0
       eslint-config-prettier: 6.11.0_eslint@6.8.0
-      eslint-plugin-ava: 10.2.0_eslint@6.8.0
+      eslint-plugin-ava: 10.3.0_eslint@6.8.0
       eslint-plugin-node: 11.1.0_eslint@6.8.0
       eslint-plugin-promise: 4.2.1
       eslint-plugin-unicorn: 18.0.1_eslint@6.8.0
@@ -27,7 +27,7 @@ importers:
       '@typescript-eslint/typescript-estree': ^2.29.0
       eslint: ^6.8.0
       eslint-config-prettier: ^6.11.0
-      eslint-plugin-ava: ^10.2.0
+      eslint-plugin-ava: ^10.3.0
       eslint-plugin-node: ^11.1.0
       eslint-plugin-promise: ^4.2.1
       eslint-plugin-unicorn: ^18.0.1
@@ -1173,7 +1173,6 @@ packages:
       functional-red-black-tree: 1.0.1
       regexpp: 3.1.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1208,7 +1207,6 @@ packages:
       '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
       eslint: 6.8.0
       eslint-visitor-keys: 1.1.0
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1229,7 +1227,6 @@ packages:
       lodash: 4.17.15
       semver: 6.3.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -3115,7 +3112,7 @@ packages:
       eslint: '>=3.14.1'
     resolution:
       integrity: sha512-oB8cpLWSAjOVFEJhhyMZh6NOEOtBVziaqdDQ86+qhDHFbZXoRTM7pNSvFRfW/W/L/LrQ38C99J5CGuRBBzBsdA==
-  /eslint-plugin-ava/10.2.0_eslint@6.8.0:
+  /eslint-plugin-ava/10.3.0_eslint@6.8.0:
     dependencies:
       deep-strict-equal: 0.2.0
       enhance-visitors: 1.0.0
@@ -3123,6 +3120,7 @@ packages:
       espree: 6.2.1
       espurify: 2.0.1
       import-modules: 2.0.0
+      micro-spelling-correcter: 1.1.1
       pkg-dir: 4.2.0
       resolve-from: 5.0.0
     dev: true
@@ -3131,7 +3129,7 @@ packages:
     peerDependencies:
       eslint: ^6.2.0
     resolution:
-      integrity: sha512-1EP9Mn/pau+ZxwRPDspiioRD6GHCSz7RywTmqW01JTxXvX0vKEV0odfWe+QL+jXfmqd83SHHvDJfOvYcyzoxYA==
+      integrity: sha512-rNijYwBo+28ahXvifTx3IYzsNjtArAeyowBJ1Rd5dCtW7f0y5aSTBU7sXBpU5o5Eh5/FZvz3lSLVLac8ExYTtA==
   /eslint-plugin-es/3.0.0_eslint@6.8.0:
     dependencies:
       eslint: 6.8.0
@@ -5515,6 +5513,10 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-2j4DAdlBOkiSZIsaXk4mTE3sRS02yBHAtfy127xRV3bQUFqXkjHCHLW6Scv7DwNRbIWNHH8zpnz9zMaKXIdvYw==
+  /micro-spelling-correcter/1.1.1:
+    dev: true
+    resolution:
+      integrity: sha512-lkJ3Rj/mtjlRcHk6YyCbvZhyWTOzdBvTHsxMmZSk5jxN1YyVSQ+JETAom55mdzfcyDrY/49Z7UCW760BK30crg==
   /micromatch/3.1.10:
     dependencies:
       arr-diff: 4.0.0
