@@ -3,7 +3,7 @@ importers:
     devDependencies:
       '@commitlint/cli': 8.3.5
       '@commitlint/config-conventional': 8.3.4
-      '@typescript-eslint/eslint-plugin': 2.29.0_68aa0cf1893d5414e11aa7fe89753d25
+      '@typescript-eslint/eslint-plugin': 2.31.0_68aa0cf1893d5414e11aa7fe89753d25
       '@typescript-eslint/parser': 2.29.0_eslint@6.8.0+typescript@3.8.3
       '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
       eslint: 6.8.0
@@ -22,7 +22,7 @@ importers:
     specifiers:
       '@commitlint/cli': ^8.3.5
       '@commitlint/config-conventional': ^8.3.4
-      '@typescript-eslint/eslint-plugin': ^2.29.0
+      '@typescript-eslint/eslint-plugin': ^2.31.0
       '@typescript-eslint/parser': ^2.29.0
       '@typescript-eslint/typescript-estree': ^2.29.0
       eslint: ^6.8.0
@@ -1165,15 +1165,14 @@ packages:
     dev: true
     resolution:
       integrity: sha512-gMIEQTtt84M2PglQ8pmuanc9I8TZIHkK9bWz8teandxZX5o+gGGdbt0bfA5OMtotDqf3Ni+iRW5YaZCJFzJ07A==
-  /@typescript-eslint/eslint-plugin/2.29.0_68aa0cf1893d5414e11aa7fe89753d25:
+  /@typescript-eslint/eslint-plugin/2.31.0_68aa0cf1893d5414e11aa7fe89753d25:
     dependencies:
-      '@typescript-eslint/experimental-utils': 2.29.0_eslint@6.8.0+typescript@3.8.3
+      '@typescript-eslint/experimental-utils': 2.31.0_eslint@6.8.0+typescript@3.8.3
       '@typescript-eslint/parser': 2.29.0_eslint@6.8.0+typescript@3.8.3
       eslint: 6.8.0
       functional-red-black-tree: 1.0.1
       regexpp: 3.1.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1185,7 +1184,7 @@ packages:
       typescript:
         optional: true
     resolution:
-      integrity: sha512-X/YAY7azKirENm4QRpT7OVmzok02cSkqeIcLmdz6gXUQG4Hk0Fi9oBAynSAyNXeGdMRuZvjBa0c1Lu0dn/u6VA==
+      integrity: sha512-iIC0Pb8qDaoit+m80Ln/aaeu9zKQdOLF4SHcGLarSeY1gurW6aU4JsOPMjKQwXlw70MvWKZQc6S2NamA8SJ/gg==
   /@typescript-eslint/experimental-utils/2.29.0_eslint@6.8.0+typescript@3.8.3:
     dependencies:
       '@types/json-schema': 7.0.4
@@ -1201,6 +1200,21 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-H/6VJr6eWYstyqjWXBP2Nn1hQJyvJoFdDtsHxGiD+lEP7piGnGpb/ZQd+z1ZSB1F7dN+WsxUDh8+S4LwI+f3jw==
+  /@typescript-eslint/experimental-utils/2.31.0_eslint@6.8.0+typescript@3.8.3:
+    dependencies:
+      '@types/json-schema': 7.0.4
+      '@typescript-eslint/typescript-estree': 2.31.0_typescript@3.8.3
+      eslint: 6.8.0
+      eslint-scope: 5.0.0
+      eslint-utils: 2.0.0
+    dev: true
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    peerDependencies:
+      eslint: '*'
+      typescript: '*'
+    resolution:
+      integrity: sha512-MI6IWkutLYQYTQgZ48IVnRXmLR/0Q6oAyJgiOror74arUMh7EWjJkADfirZhRsUMHeLJ85U2iySDwHTSnNi9vA==
   /@typescript-eslint/parser/2.29.0_eslint@6.8.0+typescript@3.8.3:
     dependencies:
       '@types/eslint-visitor-keys': 1.0.0
@@ -1208,7 +1222,6 @@ packages:
       '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
       eslint: 6.8.0
       eslint-visitor-keys: 1.1.0
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1229,7 +1242,6 @@ packages:
       lodash: 4.17.15
       semver: 6.3.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1240,6 +1252,25 @@ packages:
         optional: true
     resolution:
       integrity: sha512-3YGbtnWy4az16Egy5Fj5CckkVlpIh0MADtAQza+jiMADRSKkjdpzZp/5WuvwK/Qib3Z0HtzrDFeWanS99dNhnA==
+  /@typescript-eslint/typescript-estree/2.31.0_typescript@3.8.3:
+    dependencies:
+      debug: 4.1.1
+      eslint-visitor-keys: 1.1.0
+      glob: 7.1.6
+      is-glob: 4.0.1
+      lodash: 4.17.15
+      semver: 6.3.0
+      tsutils: 3.17.1_typescript@3.8.3
+    dev: true
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    resolution:
+      integrity: sha512-vxW149bXFXXuBrAak0eKHOzbcu9cvi6iNcJDzEtOkRwGHxJG15chiAQAwhLOsk+86p9GTr/TziYvw+H9kMaIgA==
   /JSONStream/1.3.5:
     dependencies:
       jsonparse: 1.3.1
