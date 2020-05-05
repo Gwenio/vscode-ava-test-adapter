@@ -19,7 +19,7 @@
 	},
 	"devDependencies": {
 		"@sindresorhus/is": "^2.0.0",
-		"@types/node": "^13.1.0",
+		"@types/node": "^13.13.5",
 		"ow": "^0.17.0",
 		"rimraf": "^3.0.2",
 		"tslib": "^1.11.1",
