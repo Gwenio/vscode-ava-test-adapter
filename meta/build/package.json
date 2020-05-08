@@ -30,7 +30,7 @@
 		"@types/node": "^13.13.2",
 		"@types/through2": "^2.0.34",
 		"arrify": "^2.0.1",
-		"ava": "^3.7.1",
+		"ava": "^3.8.2",
 		"babel-plugin-minify-dead-code-elimination": "^0.5.1",
 		"babel-plugin-minify-guarded-expressions": "^0.4.4",
 		"babel-plugin-transform-inline-consecutive-adds": "^0.4.3",
