@@ -30,7 +30,7 @@
 		"typescript": "3.8.3",
 		"veza": "^1.1.0",
 		"vscode-test-adapter-api": "^1.8.0",
-		"vscode-test-adapter-util": "^0.7.0",
+		"vscode-test-adapter-util": "^0.7.1",
 		"~ipc": "workspace:*"
 	},
 	"engines": {
