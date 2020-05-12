@@ -5,7 +5,7 @@ importers:
       '@commitlint/config-conventional': 8.3.4
       '@typescript-eslint/eslint-plugin': 2.29.0_68aa0cf1893d5414e11aa7fe89753d25
       '@typescript-eslint/parser': 2.29.0_eslint@6.8.0+typescript@3.8.3
-      '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
+      '@typescript-eslint/typescript-estree': 2.33.0_typescript@3.8.3
       eslint: 6.8.0
       eslint-config-prettier: 6.11.0_eslint@6.8.0
       eslint-plugin-ava: 10.2.0_eslint@6.8.0
@@ -24,7 +24,7 @@ importers:
       '@commitlint/config-conventional': ^8.3.4
       '@typescript-eslint/eslint-plugin': ^2.29.0
       '@typescript-eslint/parser': ^2.29.0
-      '@typescript-eslint/typescript-estree': ^2.29.0
+      '@typescript-eslint/typescript-estree': ^2.33.0
       eslint: ^6.8.0
       eslint-config-prettier: ^6.11.0
       eslint-plugin-ava: ^10.2.0
@@ -1173,7 +1173,6 @@ packages:
       functional-red-black-tree: 1.0.1
       regexpp: 3.1.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1208,7 +1207,6 @@ packages:
       '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
       eslint: 6.8.0
       eslint-visitor-keys: 1.1.0
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1229,7 +1227,6 @@ packages:
       lodash: 4.17.15
       semver: 6.3.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1240,6 +1237,25 @@ packages:
         optional: true
     resolution:
       integrity: sha512-3YGbtnWy4az16Egy5Fj5CckkVlpIh0MADtAQza+jiMADRSKkjdpzZp/5WuvwK/Qib3Z0HtzrDFeWanS99dNhnA==
+  /@typescript-eslint/typescript-estree/2.33.0_typescript@3.8.3:
+    dependencies:
+      debug: 4.1.1
+      eslint-visitor-keys: 1.1.0
+      glob: 7.1.6
+      is-glob: 4.0.1
+      lodash: 4.17.15
+      semver: 7.3.2
+      tsutils: 3.17.1_typescript@3.8.3
+    dev: true
+    engines:
+      node: ^8.10.0 || ^10.13.0 || >=11.10.1
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    resolution:
+      integrity: sha512-d8rY6/yUxb0+mEwTShCQF2zYQdLlqihukNfG9IUlLYz5y1CH6G/9XYbrxQLq3Z14RNvkCC6oe+OcFlyUpwUbkg==
   /JSONStream/1.3.5:
     dependencies:
       jsonparse: 1.3.1
@@ -7743,9 +7759,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
+  /tslib/1.12.0:
+    dev: true
+    resolution:
+      integrity: sha512-5rxCQkP0kytf4H1T4xz1imjxaUUPMvc5aWp0rJ/VMIN7ClRiH1FwFvBt8wOeMasp/epeUnmSW6CixSIePtiLqA==
   /tsutils/3.17.1_typescript@3.8.3:
     dependencies:
-      tslib: 1.11.1
+      tslib: 1.12.0
       typescript: 3.8.3
     dev: true
     engines:
