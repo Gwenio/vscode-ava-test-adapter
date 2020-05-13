@@ -17,7 +17,7 @@ importers:
       markdownlint-cli: 0.22.0
       prettier: 2.0.5
       rxjs: 6.5.5
-      tslib: 1.11.1
+      tslib: 2.0.0
       typescript: 3.8.3
     specifiers:
       '@commitlint/cli': ^8.3.5
@@ -36,7 +36,7 @@ importers:
       markdownlint-cli: ^0.22.0
       prettier: 2.0.5
       rxjs: ^6.5.5
-      tslib: ^1.11.1
+      tslib: ^2.0.0
       typescript: 3.8.3
   extension/adapter:
     devDependencies:
@@ -1173,7 +1173,6 @@ packages:
       functional-red-black-tree: 1.0.1
       regexpp: 3.1.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1208,7 +1207,6 @@ packages:
       '@typescript-eslint/typescript-estree': 2.29.0_typescript@3.8.3
       eslint: 6.8.0
       eslint-visitor-keys: 1.1.0
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -1229,7 +1227,6 @@ packages:
       lodash: 4.17.15
       semver: 6.3.0
       tsutils: 3.17.1_typescript@3.8.3
-      typescript: 3.8.3
     dev: true
     engines:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
@@ -7743,6 +7740,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
+  /tslib/2.0.0:
+    dev: true
+    resolution:
+      integrity: sha512-lTqkx847PI7xEDYJntxZH89L2/aXInsyF2luSafe/+0fHOMjlBNXdH6th7f70qxLDhul7KZK0zC8V5ZIyHl0/g==
   /tsutils/3.17.1_typescript@3.8.3:
     dependencies:
       tslib: 1.11.1
