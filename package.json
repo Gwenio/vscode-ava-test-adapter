@@ -29,7 +29,7 @@
 		"markdownlint-cli": "^0.22.0",
 		"prettier": "2.0.5",
 		"rxjs": "^6.5.5",
-		"tslib": "^1.11.1",
+		"tslib": "^2.0.0",
 		"typescript": "3.8.3"
 	},
 	"engines": {
