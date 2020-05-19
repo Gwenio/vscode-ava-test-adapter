@@ -17,7 +17,7 @@
 		"@babel/core": "^7.9.0",
 		"@babel/plugin-syntax-bigint": "^7.8.3",
 		"@sindresorhus/is": "^2.1.1",
-		"@types/node": "^13.13.2",
+		"@types/node": "^14.0.4",
 		"babel-plugin-minify-dead-code-elimination": "^0.5.0",
 		"babel-plugin-minify-guarded-expressions": "^0.4.3",
 		"babel-plugin-minify-replace": "^0.5.0",
